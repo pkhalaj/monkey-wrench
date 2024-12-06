@@ -12,6 +12,9 @@ with a task related to product IDs. The _action_ is a verb which describe what n
 context of ids, `action: fetch` means product IDs need to fetched from the EUMETSAT Datastore. Finally, _specifications_
 is a dictionary which gives details of the action, such as `start_datetime`.
 
+It is possible to have several tasks in the same file. One can think of a task as a document in a YAML file, where
+documents are separated by three dashes `"---"`.
+
 The following is the content of a task file which obtains all product IDs for SEVIRI native data between `2015/06/01`
 (inclusive) and `2015/08/01` (exclusive) and saves them in `seviri_product_ids.txt`
 ```yaml

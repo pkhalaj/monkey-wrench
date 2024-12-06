@@ -1,12 +1,12 @@
 """The module to provide main functions to parse CLI arguments."""
 
 import sys
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Generator
 
 from pydantic import BaseModel, model_validator
 from pydantic_core import PydanticCustomError
 
-from monkey_wrench.task_utils import Task, read_task_from_file
+from monkey_wrench.task_utils import Task, read_tasks_from_file
 
 
 class CommandLineArguments(BaseModel):
@@ -29,7 +29,7 @@ class CommandLineArguments(BaseModel):
         return v
 
 
-def parse() -> Task:
-    """Parse CLI arguments and a return the corresponding task."""
+def parse() -> Generator[Task, None, None]:
+    """Parse CLI arguments and a return the corresponding task(s)."""
     parsed_args = CommandLineArguments(args=sys.argv)
-    return read_task_from_file(parsed_args.filename)
+    yield from read_tasks_from_file(parsed_args.filename)

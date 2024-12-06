@@ -37,7 +37,7 @@ def pretty_error_logs(func: Callable) -> Callable:
 
 
 @pretty_error_logs
-def run():
+def run() -> None:
     """Main entrypoint when invoked from the CLI."""
-    task = parse()
-    task.perform()
+    for task in parse():
+        task.perform()
