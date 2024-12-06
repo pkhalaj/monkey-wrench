@@ -5,7 +5,7 @@ import pytest
 
 from monkey_wrench.io_utils import write_items_to_txt_file
 from monkey_wrench.io_utils.seviri import input_filename_from_product_id
-from monkey_wrench.task_utils import read_task_from_file
+from monkey_wrench.task_utils import read_tasks_from_file
 from monkey_wrench.test_utils import make_dummy_files, make_yaml_file
 
 from ..const import END_DATETIME, START_DATETIME, ids, ids_in_query
@@ -46,7 +46,7 @@ def test_verify_files_success(temp_dir):
             ))
     )
 
-    validated_task = read_task_from_file(task_filename)
+    validated_task = list(read_tasks_from_file(task_filename))[0]
     outs = validated_task.perform()
 
     keys_map = {
@@ -82,5 +82,5 @@ def test_fetch_files_success(get_token_or_skip, temp_dir):
             ))
     )
 
-    validated_task = read_task_from_file(task_filename)
-    validated_task.perform()
+    for task in read_tasks_from_file(task_filename):
+        task.perform()
