@@ -1,0 +1,27 @@
+name: chimp
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python[version=">=3.12"]
+  - pytorch::pytorch
+  - pytorch::pytorch-cuda[version=">=12.4"]
+  - pytorch::torchvision
+  - appdirs
+  - cartopy
+  - geopandas
+  - git-lfs
+  - h5py
+  - ipywidgets
+  - lightning
+  - llvm-openmp
+  - netcdf4
+  - protobuf
+  - pyspectral
+  - satpy
+  - pip
+  - pip:
+      - "git+https://github.com/see-geo/pansat@refactoring"
+      - "git+https://github.com/simonpf/pytorch_retrieve"
+      - "git+https://github.com/simonpf/chimp"

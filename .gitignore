@@ -1,0 +1,22 @@
+*.html
+*.json
+*.log
+*.py[cod]
+*.rst
+*.txt
+.cache
+.coverage
+.env
+.venv
+
+.idea/
+__pycache__/
+_build/
+build/
+env/
+venv/
+
+
+# always include
+!docs/source/index.rst
+!docs/requirements.txt

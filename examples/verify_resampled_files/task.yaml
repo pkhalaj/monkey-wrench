@@ -1,0 +1,9 @@
+context: files
+action: verify
+specifications:
+  start_datetime: [2022, 1, 1]
+  end_datetime: [2024, 1, 1]
+  input_filename: <replace-with-full-path-and-filename-of-the-text-file-in-which-product-ids-are-stored>
+  directory: <replace-with-directory-where-the-files-are-stored>
+  nominal_size: <replace-with-nominal-size-of-a-single-file-in-bytes-as-an-integer>
+  tolerance: 0.01
