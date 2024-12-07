@@ -5,7 +5,7 @@ SOURCE_DIR := source
 
 clean:
 	@cd $(SOURCE_DIR) && find . -type f ! -name 'index.rst' ! -name 'conf.py' -delete
-	@cd $(SOURCE_DIR) && find . -type d -delete
+	@cd $(SOURCE_DIR) && find . -type d ! -name 'static' -delete
 
 html:
 	@cd $(SOURCE_DIR) && python -m sphinx -T -b html -d _build/doctrees -D language=en . build/html

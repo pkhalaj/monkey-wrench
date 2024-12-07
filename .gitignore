@@ -18,5 +18,7 @@ venv/
 
 
 # always include
+!README.rst
 !docs/source/index.rst
 !docs/requirements.txt
+!docs/source/static/*.rst
