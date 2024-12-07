@@ -110,23 +110,22 @@ class List[T](Query):
 
         Both ``index_start`` and ``index_end`` are considered as inclusive. They can be negative as well.
 
-
         Note:
             The indices are zero-based. If ``index_start`` is less than or equal to ``k-1``, the first batch includes
             items from index ``0`` to index ``k-1`` (inclusive). The next batch includes indices ``[1, k]``.
 
         Args:
-              k:
+            k:
                 The size of the batches. Each batch includes the current item as well as ``k-1`` proceeding items.
-              index_start:
+            index_start:
                 The zero-based index of the first item to start generating the batches from. Defaults to ``0`` and can
                 be negative as well.
-              index_end:
+            index_end:
                 The zero-based index of the last item (inclusive) up to which the batches are generated.
                 Defaults to ``-1`` meaning the last item of the list makes the last item of the final batch.
 
         Yields:
-              A generator that yields batches of size ``k``. Adjacent batches overlap by ``k-2`` items.
+            A generator that yields batches of size ``k``. Adjacent batches overlap by ``k-2`` items.
 
         Raises:
             ValueError:
