@@ -1,25 +1,29 @@
 Tasks
 =====
 
+.. role:: iyaml(code)
+   :language: yaml
+
 The following are specifications and examples of different keys and values in ``task.yaml`` files, depending on
-different scenarios. The YAML files are parsed and first validated by ``Pydantic`` and any errors are logged.
+different scenarios. The YAML files are parsed and first validated by `Pydantic`_ and any errors are logged.
 
-Every task is a YAML file which consists of the following parts:
+Every task is a `YAML`_ document which consists of the following parts, or the so-called nodes:
 
-* ``context``
-* ``action``
-* ``specifications``
+* ``context``: literal string
+* ``action``: literal string
+* ``specifications``: mapping
 
-The ``context`` determines the general category of the task. For example, ``context: ids`` means we are dealing
+The ``context`` determines the general category of the task. For example, :iyaml:`context: ids` means we are dealing
 with a task related to product IDs. The ``action`` is a verb which describe what needs to be done. For example in the
-context of ids, ``action: fetch`` means product IDs need to fetched from the EUMETSAT Datastore. Finally,
+context of ids, :iyaml:`action: fetch` means product IDs need to fetched from the EUMETSAT Datastore. Finally,
 ``specifications`` is a dictionary which gives details of the action, such as ``start_datetime``.
 
-It is possible to have several tasks in the same file. One can think of a task as a document in a YAML file, where
-documents are separated by three dashes ``---``.
+.. note::
+    It is possible to have several tasks in the same file. Since each task is a YAML document, tasks can be separated by
+    three dashes ``---``.
 
 The following is the content of a task file which obtains all product IDs for SEVIRI native data between ``2015/06/01``
-(inclusive) and ``2015/08/01`` (exclusive) and saves them in ``seviri_product_ids.txt``
+(inclusive) and ``2015/08/01`` (exclusive) and saves them in :file:`seviri_product_ids.txt`
 
 .. code-block:: yaml
 
@@ -243,3 +247,7 @@ Example
 .. code-block:: yaml
 
     number_of_processes: 20
+
+
+.. _Pydantic: https://docs.pydantic.dev/latest
+.. _YAML: https://yaml.org/spec/1.2.2

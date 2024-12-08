@@ -1,8 +1,8 @@
 Introduction
 -------------
-**Monkey wrench** gathers the tools to run `CHIMP <https://github.com/simonpf/chimp>`_, fetch and process its input
-files, analyse and visualise its output, and much more! It is an attempt to avoid *reinventing the wheel* by
-consolidating all Python scripts and codes that we use alongside CHIMP.
+**Monkey wrench** gathers the tools to run `CHIMP`_, fetch and process its input files, analyse and visualise its
+output, and much more! It is an attempt to avoid *reinventing the wheel* by consolidating all Python scripts and
+codes that we use alongside CHIMP.
 
 In particular, you can:
 
@@ -14,6 +14,10 @@ In particular, you can:
 * Perform post-processing of CHIMP output as well as some visualization utilities
 * Use it as a task runner
 
-Monkey Wrench uses the `eumdac <https://gitlab.eumetsat.int/eumetlab/data-services/eumdac>`_ package for API calls.
-This allows for customized downloading of files from EUMETSAT Data Store tailored to our needs. However, our wrapper
-does not utilize or even expose all the functionalities of the ``eumdac``, at least not yet!
+.. note::
+    Monkey Wrench uses the `eumdac`_ package for API calls.
+    This allows for customized downloading of files from EUMETSAT Data Store tailored to our needs. However, our wrapper
+    does not utilize or even expose all the functionalities of the ``eumdac``, at least not yet!
+
+.. _CHIMP: https://github.com/simonpf/chimp
+.. _eumdac: https://gitlab.eumetsat.int/eumetlab/data-services/eumdac
