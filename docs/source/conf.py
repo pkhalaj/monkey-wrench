@@ -25,7 +25,6 @@ autodoc_mock_imports = [
     "fsspec",
     "loguru",
     "numpy",
-    "pydantic",
     "pyresample",
     "requests",
     "satpy",
