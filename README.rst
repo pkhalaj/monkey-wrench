@@ -12,10 +12,4 @@ In particular, you can:
 * Perform post-processing of CHIMP output as well as some visualization utilities
 * Use it as a task runner
 
-
-Monkey Wrench uses the `eumdac`_ package for API calls.
-This allows for customized downloading of files from EUMETSAT Data Store tailored to our needs. However, our wrapper
-does not utilize or even expose all the functionalities of the ``eumdac``, at least not yet!
-
 .. _CHIMP: https://github.com/simonpf/chimp
-.. _eumdac: https://gitlab.eumetsat.int/eumetlab/data-services/eumdac
