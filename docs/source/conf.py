@@ -123,4 +123,4 @@ root_doc = "index"
 
 output_dir = os.path.join(".")
 module_dir = os.path.abspath("../../src")
-apidoc.main(["-e", "-M", "-q", "-f", "-o", output_dir, module_dir, *include_patterns])
+apidoc.main(["-e", "-q", "-f", "-M", "-H", "API Reference", "-o", output_dir, module_dir, *include_patterns])
