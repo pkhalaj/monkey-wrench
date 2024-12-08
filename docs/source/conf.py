@@ -20,6 +20,20 @@ from sphinx.ext import apidoc
 project = "monkey-wrench"
 author = "Pouria Khalaj"
 
+autodoc_mock_imports = [
+    "eumdac",
+    "fsspec",
+    "loguru",
+    "numpy",
+    "pydantic",
+    "pyresample",
+    "requests",
+    "satpy",
+    "torch",
+    "xarray",
+    "chimp"
+]
+
 # The full version, including alpha/beta/rc tags
 # release = __version__
 
