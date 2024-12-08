@@ -9,7 +9,7 @@ authors = [
     { name = "Martin Raspaud", email = "martin.raspaud@smhi.se" },
     { name = "Adam Dybbroe", email = "Adam.Dybbroe@smhi.se" }
 ]
-readme = "README.md"
+readme = "README.rst"
 requires-python = ">= 3.12"
 license = { file = "LICENSE" }
 classifiers = [
