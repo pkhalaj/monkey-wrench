@@ -34,11 +34,11 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.duration",
     "sphinx.ext.doctest",
-    "sphinx.ext.autosummary",
+    "sphinx.ext.autosummary"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
+# templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -123,4 +123,4 @@ root_doc = "index"
 
 output_dir = os.path.join(".")
 module_dir = os.path.abspath("../../src")
-apidoc.main(["-e", "-M", "-q", "-f", "-o", output_dir, module_dir, *include_patterns])
+apidoc.main(["-e", "-q", "-f", "-M", "-H", "API Reference", "-o", output_dir, module_dir, *include_patterns])

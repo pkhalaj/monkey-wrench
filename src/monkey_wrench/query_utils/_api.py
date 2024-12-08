@@ -63,8 +63,9 @@ class EumetsatAPI(Query):
                 A string that will be used in log messages to determine the context. Defaults to empty string.
 
         Note:
-            See `API key management <https://api.eumetsat.int/api-key/>`_ on the ``eumdac`` website for more
-            information.
+            See `API key management`_ on the ``eumdac`` website for more information.
+
+        .. _API key management: https://api.eumetsat.int/api-key
         """
         super().__init__(log_context=log_context)
         self.__collection = collection
@@ -195,8 +196,7 @@ class EumetsatAPI(Query):
         """Open SEVIRI native files (``.nat``) remotely, inside a zip archive using the given product ID.
 
         Note:
-            See `fsspec cache <https://filesystem-spec.readthedocs.io/en/latest/features.html#file-buffering-and-random-access>`_,
-            to learn more about buffering and random access in `fsspec`.
+            See `fsspec cache <fs>`_, to learn more about buffering and random access in `fsspec`.
 
         Args:
             product_id:
@@ -206,6 +206,8 @@ class EumetsatAPI(Query):
 
         Returns:
             A file object of type ``FSFile``, which can be further used by ``satpy``.
+
+        .. _fs: https://filesystem-spec.readthedocs.io/en/latest/features.html#file-buffering-and-random-access
         """
         https_header = {
             "encoded": True,
