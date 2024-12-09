@@ -1,9 +1,13 @@
 from datetime import datetime
 from pathlib import Path
 
-from monkey_wrench.datetime_utils import FilenameParser, SeviriIDParser
-from monkey_wrench.io_utils import collect_files_in_directory, compare_files_against_reference, read_items_from_txt_file
-from monkey_wrench.query_utils import List
+from monkey_wrench.date_time import FilenameParser, SeviriIDParser
+from monkey_wrench.input_output import (
+    collect_files_in_directory,
+    compare_files_against_reference,
+    read_items_from_txt_file,
+)
+from monkey_wrench.query import List
 
 # Check here!
 product_ids_filename = Path("<replace-with-full-path-and-filename-of-the-text-file-in-which-product-ids-are-stored>")

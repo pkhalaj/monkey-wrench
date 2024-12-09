@@ -1,10 +1,10 @@
 from datetime import datetime
 from pathlib import Path
 
-from monkey_wrench.datetime_utils import SeviriIDParser
-from monkey_wrench.io_utils import create_datetime_directory, read_items_from_txt_file, seviri
-from monkey_wrench.process_utils import run_multiple_processes
-from monkey_wrench.query_utils import EumetsatAPI, List
+from monkey_wrench.date_time import SeviriIDParser
+from monkey_wrench.input_output import create_datetime_directory, read_items_from_txt_file, seviri
+from monkey_wrench.process import run_multiple_processes
+from monkey_wrench.query import EumetsatAPI, List
 
 # Check here!
 product_ids_filename = Path("<replace-with-full-path-and-filename-of-the-text-file-in-which-product-ids-are-stored>")
