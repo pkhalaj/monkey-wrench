@@ -4,5 +4,5 @@ specifications:
   start_datetime: [2022, 1, 1]
   end_datetime: [2024, 1, 1]
   input_filename: <replace-with-full-path-and-filename-of-the-text-file-in-which-product-ids-are-stored>
-  directory: <replace-with-directory-where-the-files-are-to-be-stored>
+  output_directory: <replace-with-directory-where-the-files-are-to-be-stored>
   number_of_processes: 2

@@ -7,7 +7,7 @@ from monkey_wrench.query_utils import List
 
 # Check here!
 product_ids_filename = Path("<replace-with-full-path-and-filename-of-the-text-file-in-which-product-ids-are-stored>")
-files_directory = Path("<replace-with-directory-where-the-files-are-stored>")
+input_directory = Path("<replace-with-directory-where-the-files-are-stored>")
 
 start_datetime = datetime(2022, 1, 1)
 end_datetime = datetime(2024, 1, 1)
@@ -22,7 +22,7 @@ product_ids = List(
 expected_datetime_instances = [SeviriIDParser.parse(i) for i in product_ids]
 
 collected_files = List(
-    collect_files_in_directory(files_directory),
+    collect_files_in_directory(input_directory),
     FilenameParser
 ).query(
     start_datetime,

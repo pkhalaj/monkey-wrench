@@ -8,7 +8,7 @@ from monkey_wrench.query_utils import EumetsatAPI, List
 
 # Check here!
 product_ids_filename = Path("<replace-with-full-path-and-filename-of-the-text-file-in-which-product-ids-are-stored>")
-files_directory = Path("<replace-with-directory-where-the-files-are-to-be-stored>")
+output_directory = Path("<replace-with-directory-where-the-files-are-to-be-stored>")
 
 start_datetime = datetime(2022, 1, 1)
 end_datetime = datetime(2024, 1, 1)
@@ -28,7 +28,7 @@ def fetch(product_id):
     fs_file = api.open_seviri_native_file_remotely(product_id, cache="filecache")
     seviri.resample_seviri_native_file(
         fs_file,
-        files_directory,
+        output_directory,
         seviri.input_filename_from_product_id
     )
 
