@@ -49,8 +49,8 @@ def pattern_exists(item: str, pattern: Pattern = None, match_all: bool = True, c
     if pattern is None:
         return True
 
-    if isinstance(pattern, str):
-        pattern = (pattern,)
+    if not isinstance(pattern, list):
+        pattern = [pattern]
 
     if not case_sensitive:
         item = item.lower()

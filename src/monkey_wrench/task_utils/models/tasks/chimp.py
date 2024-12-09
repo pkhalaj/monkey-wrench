@@ -1,5 +1,4 @@
 """Module to define Pydantic models for running CHIMP retrievals."""
-
 from pathlib import Path
 from typing import ClassVar, Literal
 
@@ -12,7 +11,7 @@ from monkey_wrench.io_utils import (
     create_datetime_directory,
     extension,
 )
-from monkey_wrench.io_utils.seviri import SEVIRI
+from monkey_wrench.io_utils.seviri import SEVIRI, output_filename_from_datetime
 from monkey_wrench.query_utils import List
 from monkey_wrench.task_utils.models.specifications.datetime import DateTimeRange
 from monkey_wrench.task_utils.models.specifications.paths import (
@@ -84,10 +83,12 @@ class Retrieve(Task):
             parent=self.specifications.output_directory
         )
 
+        last_retrieved_snapshot = output_filename_from_datetime(FilenameParser.parse(batch[-1]))
+
         copy_files_between_directories(
             self.specifications.temp_directory,
             datetime_dir,
-            pattern=batch[-1].stem
+            pattern=str(last_retrieved_snapshot)
         )
 
         collect_files_in_directory(
