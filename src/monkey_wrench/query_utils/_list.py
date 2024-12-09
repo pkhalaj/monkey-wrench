@@ -133,7 +133,7 @@ class List[T](Query):
             ValueError:
                 If ``k`` exceeds the size of the list.
             IndexError:
-                Refer to :obj:`List.normalize_index`.
+                If normalized indices exceed the size of the list. Refer to :obj:`~List.normalize_index`.
         """
         if self.__n_total < k:
             raise ValueError("Batch size exceeds number of items in list.")
