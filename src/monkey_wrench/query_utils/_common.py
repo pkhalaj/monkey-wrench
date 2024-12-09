@@ -65,7 +65,7 @@ class Query(ABC):
 
         Yields:
             The result of queries, in the form of 2-tuples in which the first element is the retrieved items from the
-            ``query_function`` in each batch and the second element is the size of the items in the batch.
+            ``query()`` function in each batch and the second element is the size of the items in the batch.
         """
         self.log_message(start_datetime, end_datetime, f"and batch_interval='{batch_interval}'.")
         total_retrieved_count = 0

@@ -4,10 +4,11 @@ import yaml
 from pydantic import BaseModel, validate_call
 
 from .models.specifications.paths import InputFile
+from .models.tasks.chimp import ChimpTask
 from .models.tasks.files import FilesTask
 from .models.tasks.ids import IdsTask
 
-Task = FilesTask | IdsTask
+Task = ChimpTask | FilesTask | IdsTask
 
 
 class _Task(BaseModel):

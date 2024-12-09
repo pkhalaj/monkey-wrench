@@ -8,13 +8,14 @@ from monkey_wrench.datetime_utils import FilenameParser, SeviriIDParser
 from monkey_wrench.io_utils import (
     collect_files_in_directory,
     compare_files_against_reference,
+    create_datetime_directory,
     read_items_from_txt_file,
     seviri,
 )
 from monkey_wrench.process_utils import run_multiple_processes
 from monkey_wrench.query_utils import EumetsatAPI, List
 from monkey_wrench.task_utils.models.specifications.datetime import DateTimeRange
-from monkey_wrench.task_utils.models.specifications.paths import Directory, InputFile
+from monkey_wrench.task_utils.models.specifications.paths import InputDirectory, InputFile, OutputDirectory
 
 from .base import Action, Context, TaskBase
 
@@ -23,13 +24,13 @@ class Task(TaskBase):
     context: Literal[Context.product_files]
 
 
-class VerifySpecifications(DateTimeRange, InputFile, Directory):
+class VerifySpecifications(DateTimeRange, InputFile, InputDirectory):
     pattern: list[str] | None = None
     nominal_size: PositiveInt
     tolerance: PositiveFloat
 
 
-class FetchSpecifications(DateTimeRange, InputFile, Directory):
+class FetchSpecifications(DateTimeRange, InputFile, OutputDirectory):
     number_of_processes: int
 
 
@@ -41,7 +42,7 @@ class Verify(Task):
     def perform(self) -> dict[str, NonNegativeInt]:
         """Verify the product files using the reference."""
         files = List(
-            collect_files_in_directory(self.specifications.directory, pattern=self.specifications.pattern),
+            collect_files_in_directory(self.specifications.input_directory, pattern=self.specifications.pattern),
             FilenameParser
         ).query(
             self.specifications.start_datetime,
@@ -81,9 +82,14 @@ class Fetch(Task):
         """Fetch and resample the file with the given product ID."""
         api = EumetsatAPI()
         fs_file = api.open_seviri_native_file_remotely(product_id, cache="filecache")
+        datetime_directory = create_datetime_directory(
+            SeviriIDParser.parse(product_id),
+            parent=self.specifications.output_directory,
+            dry_run=True
+        )
         seviri.resample_seviri_native_file(
             fs_file,
-            self.specifications.directory,
+            datetime_directory,
             seviri.input_filename_from_product_id
         )
 
@@ -97,6 +103,9 @@ class Fetch(Task):
             self.specifications.start_datetime,
             self.specifications.end_datetime
         )
+
+        for product_id in product_ids:
+            create_datetime_directory(SeviriIDParser.parse(product_id), parent=self.specifications.output_directory)
 
         run_multiple_processes(self.fetch, product_ids, number_of_processes=self.specifications.number_of_processes)
 
