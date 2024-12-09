@@ -162,9 +162,10 @@ Paths
 .. code-block:: yaml
 
     Keys:
-      directory       # must point to an existing directory
-      intput_filename # must point to an existing file
-      output_filename # must be a new path as overwriting an existing file is not allowed!
+      input_directory   # must point to an existing directory
+      output_directory  # must point to an existing directory
+      intput_filename   # must point to an existing file
+      output_filename   # must be a new path as overwriting an existing file is not allowed!
 
     Values:
       a string which can be interpreted as a valid path. It can point to either relative or absolute paths. Internally,
@@ -180,10 +181,10 @@ Paths
       files:
         fetch:
           input_filename
-          directory
+          output_directory
         verify:
           input_filename
-          directory
+          input_directory
 
 Example
 
