@@ -61,7 +61,7 @@ def pattern_exists(item: str, pattern: Pattern = None, match_all: bool = True, c
 
 @validate_call
 def collect_files_in_directory(
-        directory: AbsolutePath[DirectoryPath], pattern: Pattern = None, order: Order = Order.decreasing, **kwargs
+        directory: AbsolutePath[DirectoryPath], pattern: Pattern = None, order: Order = Order.increasing, **kwargs
 ) -> list[Path]:
     """Get the list of all files in a directory and all of its subdirectories.
 
@@ -76,7 +76,7 @@ def collect_files_in_directory(
         order:
             Either :obj:`~monkey_wrench.datetime_utils.Order.decreasing` or
             :obj:`~monkey_wrench.datetime_utils.Order.increasing`. Defaults to
-            :obj:`~monkey_wrench.datetime_utils.Order.decreasing`.
+            :obj:`~monkey_wrench.datetime_utils.Order.increasing`.
         kwargs:
             Other keyword arguments to pass to :func:`pattern_exists`.
 
