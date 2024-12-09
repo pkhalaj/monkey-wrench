@@ -25,5 +25,9 @@ class InputFile(Specifications):
     input_filename: AbsolutePath[FilePath]
 
 
-class Directory(Specifications):
-    directory: AbsolutePath[DirectoryPath]
+class InputDirectory(Specifications):
+    input_directory: AbsolutePath[DirectoryPath]
+
+
+class OutputDirectory(Specifications):
+    output_directory: AbsolutePath[DirectoryPath]

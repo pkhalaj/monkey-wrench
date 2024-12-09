@@ -14,7 +14,7 @@ from monkey_wrench.io_utils import (
 from monkey_wrench.process_utils import run_multiple_processes
 from monkey_wrench.query_utils import EumetsatAPI, List
 from monkey_wrench.task_utils.models.specifications.datetime import DateTimeRange
-from monkey_wrench.task_utils.models.specifications.paths import Directory, InputFile
+from monkey_wrench.task_utils.models.specifications.paths import InputDirectory, InputFile, OutputDirectory
 
 from .base import Action, Context, TaskBase
 
@@ -23,13 +23,13 @@ class Task(TaskBase):
     context: Literal[Context.product_files]
 
 
-class VerifySpecifications(DateTimeRange, InputFile, Directory):
+class VerifySpecifications(DateTimeRange, InputFile, InputDirectory):
     pattern: list[str] | None = None
     nominal_size: PositiveInt
     tolerance: PositiveFloat
 
 
-class FetchSpecifications(DateTimeRange, InputFile, Directory):
+class FetchSpecifications(DateTimeRange, InputFile, OutputDirectory):
     number_of_processes: int
 
 
@@ -41,7 +41,7 @@ class Verify(Task):
     def perform(self) -> dict[str, NonNegativeInt]:
         """Verify the product files using the reference."""
         files = List(
-            collect_files_in_directory(self.specifications.directory, pattern=self.specifications.pattern),
+            collect_files_in_directory(self.specifications.input_directory, pattern=self.specifications.pattern),
             FilenameParser
         ).query(
             self.specifications.start_datetime,
@@ -83,7 +83,7 @@ class Fetch(Task):
         fs_file = api.open_seviri_native_file_remotely(product_id, cache="filecache")
         seviri.resample_seviri_native_file(
             fs_file,
-            self.specifications.directory,
+            self.specifications.input_directory,
             seviri.input_filename_from_product_id
         )
 

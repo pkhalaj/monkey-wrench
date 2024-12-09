@@ -40,7 +40,7 @@ def test_verify_files_success(temp_dir):
                 start_datetime=START_DATETIME,
                 end_datetime=END_DATETIME,
                 input_filename=str(product_ids_filename),
-                directory=str(directory),
+                input_directory=str(directory),
                 nominal_size=nominal_size,
                 tolerance=tolerance,
             ))
@@ -77,7 +77,7 @@ def test_fetch_files_success(get_token_or_skip, temp_dir):
                 start_datetime=START_DATETIME,
                 end_datetime=END_DATETIME,
                 input_filename=str(product_ids_filename),
-                directory=str(directory),
+                output_directory=str(directory),
                 number_of_processes=2,
             ))
     )
