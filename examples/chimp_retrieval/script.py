@@ -3,15 +3,15 @@ from pathlib import Path
 
 from chimp import processing
 
-from monkey_wrench.datetime_utils import FilenameParser
-from monkey_wrench.io_utils import (
+from monkey_wrench.date_time import FilenameParser
+from monkey_wrench.input_output import (
     collect_files_in_directory,
     copy_files_between_directories,
     create_datetime_directory,
     extension,
     seviri,
 )
-from monkey_wrench.query_utils import List
+from monkey_wrench.query import List
 
 # Check here!
 input_directory = Path("<replace-with-directory-where-the-seviri-files-are-stored>")
