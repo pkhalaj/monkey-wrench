@@ -39,7 +39,7 @@ tests = ["pre-commit", "pytest", "ruff", "pytest-cov"]
 dev = ["monkey-wrench[doc,tests]"]
 
 [project.scripts]
-monkey-wrench = "monkey_wrench.exec_utils:run"
+monkey-wrench = "monkey_wrench.cli:run"
 
 [build-system]
 requires = ["hatchling"]
