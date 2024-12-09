@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, Generator, Literal, TypeVar
 
 import requests
+from chimp import extensions
 from loguru import logger
 from pydantic import AfterValidator, DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveInt, validate_call
 from typing_extensions import Annotated
@@ -61,7 +62,11 @@ def pattern_exists(item: str, pattern: Pattern = None, match_all: bool = True, c
 
 @validate_call
 def collect_files_in_directory(
-        directory: AbsolutePath[DirectoryPath], pattern: Pattern = None, order: Order = Order.increasing, **kwargs
+        directory: AbsolutePath[DirectoryPath],
+        callback: Callable | None = None,
+        pattern: Pattern = None,
+        order: Order = Order.increasing,
+        **kwargs
 ) -> list[Path]:
     """Get the list of all files in a directory and all of its subdirectories.
 
@@ -70,6 +75,8 @@ def collect_files_in_directory(
     Args:
         directory:
             The top-level directory to collect the files from.
+        callback:
+            A function that will be called everytime a match is found for a file. Defaults to ``None``.
         pattern:
             If given, it will be used to filter files, i.e. a file must have the pattern(s) as (a) substring(s) in its
             name. Defaults to ``None`` which means no filtering. See :func:`pattern_exists` for more information.
@@ -87,7 +94,10 @@ def collect_files_in_directory(
     for root, _, files in os.walk(directory):
         for file in files:
             if pattern_exists(file, pattern, **kwargs):
-                file_list.append(Path(root, file))
+                filename = Path(root, file)
+                file_list.append(filename)
+                if callback is not None:
+                    callback(filename)
     return sorted(file_list, reverse=True if order == Order.decreasing else False)
 
 
@@ -320,3 +330,32 @@ def compare_files_against_reference(
             corrupted_files = {f for f in files if abs(1 - f.stat().st_size / nominal_size) > tolerance}
 
     return missing_files, corrupted_files
+
+
+@contextmanager
+def extension(cls: Any, name: str):
+    """A context manager to load the given extension.
+
+    Args:
+        cls:
+            The etension class which can be instantiated, e.g. ``SEVIRI()``.
+        name:
+            The name that will be passed to the ``cls``, e.g. ``"seviri"``.
+
+    Example:
+        >>> from monkey_wrench.io_utils.seviri import SEVIRI
+        >>> with extension(SEVIRI, "seviri"):
+        ...     print("The `SEVIRI` extension is now available to CHIMP.")
+    """
+
+    def instantiate_seviri():
+        """Instantiate the class with its name, so that it is now available in the CHIMP namespace."""
+        cls(name)
+
+    _original_extension_loader_function = extensions.load
+    extensions.load = instantiate_seviri
+
+    try:
+        yield
+    finally:
+        extensions.load = _original_extension_loader_function

@@ -21,6 +21,10 @@ class OutputFile(Specifications):
         return value
 
 
+class ModelFile(Specifications):
+    model_filename: AbsolutePath[FilePath]
+
+
 class InputFile(Specifications):
     input_filename: AbsolutePath[FilePath]
 
@@ -31,3 +35,7 @@ class InputDirectory(Specifications):
 
 class OutputDirectory(Specifications):
     output_directory: AbsolutePath[DirectoryPath]
+
+
+class TempDirectory(Specifications):
+    temp_directory: AbsolutePath[DirectoryPath]

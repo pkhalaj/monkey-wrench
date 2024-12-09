@@ -1,5 +1,4 @@
 """The module which includes the :obj:`SEVIRI` class allowing to read SEVIRI resampled files."""
-
 from pathlib import Path
 from typing import Generator
 
@@ -92,6 +91,3 @@ class SEVIRI(InputDataset):
                 logger.warning(f"Reading of the input file {input_file} failed. Skipping.\nMore:{e}")
 
         return torch.tensor(x_s.copy(), dtype=torch.float32)
-
-
-seviri_instance = SEVIRI("seviri")

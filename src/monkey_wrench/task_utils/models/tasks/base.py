@@ -14,12 +14,14 @@ class Context(str, Enum):
     """Enum for all possible task contexts."""
     product_ids = "ids"
     product_files = "files"
+    chimp = "chimp"
 
 
 class Action(str, Enum):
     """Enum for all possible task actions."""
     fetch = "fetch"
     verify = "verify"
+    retrieve = "retrieve"
 
 
 class TaskBase(BaseModel, extra="forbid", arbitrary_types_allowed=True):
