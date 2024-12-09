@@ -1,5 +1,6 @@
 """The module which provide the main executable function for the CLI."""
 
+from functools import wraps
 from typing import Any, Callable
 
 from loguru import logger
@@ -24,6 +25,7 @@ def make_error_message(e: Any) -> str:
 def pretty_error_logs(func: Callable) -> Callable:
     """Decorator to catch and log prettier error messages when running in the task runner mode."""
 
+    @wraps(func)
     def wrapper(*args, **kwargs):
         """Wrapper function to catch and log error messages."""
         try:
