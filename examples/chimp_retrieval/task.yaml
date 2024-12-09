@@ -1,0 +1,10 @@
+context: chimp
+action: retrieve
+specifications:
+  start_datetime: [2022, 2, 1]
+  end_datetime: [2022, 2, 10]
+  device: cpu
+  input_directory: <replace-with-directory-where-the-seviri-files-are-stored>
+  model_filename: <replace-with-full-path-and-filename-of-the-chimp-model-file>
+  output_directory: <replace-with-directory-where-the-chimp-outputs-are-to-be-stored>
+  temp_directory: <replace-with-a-temp-directory>
