@@ -45,15 +45,20 @@ def test_list_query(start_datetime, end_datetime, reference_indices):
         )
         assert expected == lq.query(datetime(*start_datetime), datetime(*end_datetime))
         assert expected == [items[i] for i in lq.query_indices(datetime(*start_datetime), datetime(*end_datetime))]
+        assert expected == lq[lq.query_indices(datetime(*start_datetime), datetime(*end_datetime))]
 
 
 @pytest.mark.parametrize(("expected_length", "items"), [
     (2, ["seviri_20150731_22_16.nc", "seviri_20150731_22_17.nc"]),
     (1, ["seviri_20150731_22_16.nc"])
 ])
-def test_list_len(expected_length, items):
+def test_list_as_list(expected_length, items):
     lq = List(items, FilenameParser)
-    assert expected_length == lq.len(items)
+    assert items == lq
+    assert items == lq.to_python_list()
+    assert isinstance(lq.to_python_list(), list)
+    assert isinstance(lq.to_python_list()[0], str)
+    assert expected_length == List.len(lq)
 
 
 def test_list_parse_raises():

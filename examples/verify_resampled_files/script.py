@@ -31,7 +31,7 @@ collected_files = List(
 ).query(
     start_datetime,
     end_datetime
-)
+).to_python_list()
 
 missing, corrupted = compare_files_against_reference(
     collected_files,
