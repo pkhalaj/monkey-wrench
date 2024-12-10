@@ -67,7 +67,7 @@ class Verify(Task):
         )
 
         return {
-            "number of files found": len(files),
+            "number of files found": List.len(files),
             "number of reference items ": len(datetime_objs),
             "number of missing files": len(missing),
             "number of corrupted files": len(corrupted),

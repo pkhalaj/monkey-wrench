@@ -26,10 +26,11 @@ class Query(ABC):
             log_context:
                 A string that will be used in log messages to determine the context. Defaults to empty string.
         """
-        self.__log_context = log_context
+        self._log_context = log_context
 
+    @staticmethod
     @abstractmethod
-    def len(self, items: Any) -> int:
+    def len(items: Any) -> int:
         """Get the size (number) of items, e.g. the Python built-in ``len()`` function in case of a list."""
         pass
 
@@ -41,7 +42,7 @@ class Query(ABC):
     @property
     def log_context(self) -> str:
         """Get the log context as a string."""
-        return self.__log_context
+        return self._log_context
 
     def log_message(self, start_datetime: datetime, end_datetime: datetime, other: str = "") -> None:
         """Log a query message with the start and end datetime values as well as other information (if any)."""
