@@ -129,9 +129,10 @@ class EumetsatAPI(Query):
                 Refer to :func:`~monkey_wrench.datetime_utils.assert_start_time_is_before_end_time`.
         """
         assert_start_time_is_before_end_time(start_datetime, end_datetime)
-        end_datetime = floor_datetime_minutes_to_snapshots(
-            self.__collection.seviri.value.snapshot_minutes, end_datetime
-        )
+        if self.__collection.value.snapshot_minutes is not None:
+            end_datetime = floor_datetime_minutes_to_snapshots(
+                self.__collection.value.value.snapshot_minutes, end_datetime
+            )
         return self.__selected_collection.search(dtstart=start_datetime, dtend=end_datetime)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
