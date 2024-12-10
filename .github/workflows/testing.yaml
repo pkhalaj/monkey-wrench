@@ -31,4 +31,4 @@ jobs:
         pip install -r src/tests/requirements.txt
     - name: Test with pytest
       run: |
-        pytest --asyncio-mode=auto --cov=trolldb --cov-report=xml
+        pytest --cov=monkey_wrench --cov-report=xml
