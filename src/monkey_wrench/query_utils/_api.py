@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from os import environ
-from typing import Any, ClassVar, Generator
+from typing import Any, ClassVar, Generator, Optional
 
 from eumdac import AccessToken, DataStore
 from eumdac.collection import SearchResults
@@ -100,7 +100,12 @@ class EumetsatAPI(Query):
         return product_ids.total_results
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def query(self, start_datetime: datetime, end_datetime: datetime) -> SearchResults:
+    def query(
+            self,
+            start_datetime: datetime,
+            end_datetime: datetime,
+            geometry: Optional[list[tuple[float, float]]] = None,
+        ) -> SearchResults:
         """Query product IDs in a single batch.
 
         This method wraps around the ``eumdac.Collection().search()`` method to perform a search for product IDs
@@ -120,6 +125,8 @@ class EumetsatAPI(Query):
                 The start datetime (inclusive).
             end_datetime:
                 The end datetime (exclusive).
+            geometry:
+                Optional list of polygon vertices (geodetic lon, lat coordinates).
 
         Returns:
             The results of the search, containing the product IDs found within the specified time range.
@@ -133,7 +140,11 @@ class EumetsatAPI(Query):
             end_datetime = floor_datetime_minutes_to_snapshots(
                 self.__collection.value.snapshot_minutes, end_datetime
             )
-        return self.__selected_collection.search(dtstart=start_datetime, dtend=end_datetime)
+        polygon = (
+            f'POLYGON(({",".join([f"{coords[0]} {coords[1]}" for coords in geometry])}))'
+            if geometry is not None else None
+        )
+        return self.__selected_collection.search(dtstart=start_datetime, dtend=end_datetime, geo=polygon)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def query_in_batches(
