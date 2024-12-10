@@ -2,10 +2,16 @@
 
 from datetime import datetime, timedelta
 from os import environ
+from pathlib import Path
 from typing import Any, ClassVar, Generator, Optional
+import fnmatch
+import shutil
+import time
 
-from eumdac import AccessToken, DataStore
+from eumdac import AccessToken, DataStore, DataTailor
 from eumdac.collection import SearchResults
+from eumdac.product import Product
+from eumdac.tailor_models import Chain, RegionOfInterest
 from fsspec import open_files
 from loguru import logger
 from pydantic import ConfigDict, validate_call
@@ -70,6 +76,7 @@ class EumetsatAPI(Query):
         super().__init__(log_context=log_context)
         self.__collection = collection
         self.__datastore = DataStore(EumetsatAPI.get_token())
+        self.__datatailor = DataTailor(EumetsatAPI.get_token())
         self.__selected_collection = self.__datastore.get_collection(collection.value.query_string)
 
     @classmethod
@@ -201,6 +208,55 @@ class EumetsatAPI(Query):
             order=Order.decreasing,
             expected_total_count=expected_total_count
         )
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def fetch(
+            self,
+            search_results: SearchResults,
+            outpath: Path,
+            bbox: tuple[float, float, float, float] = (90., -90, -180., 180.),
+            format: str = "netcdf4",
+            sleep_time: int = 10,
+    ) -> list[Optional[Path]]:
+        """Fetch search results."""
+
+        if not outpath.exists():
+            outpath.mkdir(parents=True, exist_ok=True)
+
+        chain = Chain(
+            product=search_results.collection.product_type,
+            format=format,
+            roi=RegionOfInterest(NSWE=bbox)
+        )
+        return [self._fetch(product, chain, outpath, sleep_time) for product in search_results]
+
+    def _fetch(
+            self,
+            product: Product,
+            chain: Chain,
+            outpath: Path,
+            sleep_time: int = 10,
+    ) -> Optional[Path]:
+        """Fetch product."""
+
+        customisation = self.__datatailor.new_customisation(product, chain)
+        logger.info(f"Start downloading product {str(product)}")
+        while True:
+            if "DONE" in customisation.status:
+                customized_file = fnmatch.filter(customisation.outputs, '*.nc')[0]
+                with (
+                    customisation.stream_output(customized_file) as stream,
+                    open(outpath / stream.name, mode='wb') as fdst
+                ):
+                    shutil.copyfileobj(stream, fdst)
+                    logger.info(f"Wrote file: {fdst.name}' to disk.")
+                    return Path(stream.name)
+            elif customisation.status in ["ERROR", "FAILED", "DELETED", "KILLED", "INACTIVE"]:
+                logger.warning(f"Job failed, error code is: '{customisation.status.lower()}'.")
+                return None
+            elif customisation.status in ["QUEUED", "RUNNING"]:
+                logger.info(f"Job is {customisation.status.lower()}.")
+                time.sleep(sleep_time)
 
     @staticmethod
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
