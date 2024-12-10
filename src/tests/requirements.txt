@@ -1,0 +1,10 @@
+eumdac
+fsspec
+loguru
+numpy
+pydantic
+pyresample
+pytest
+pytest-cov
+requests
+satpy
