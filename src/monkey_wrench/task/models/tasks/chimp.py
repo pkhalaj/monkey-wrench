@@ -1,17 +1,14 @@
 """Module to define Pydantic models for running CHIMP retrievals."""
 from pathlib import Path
-from typing import ClassVar, Literal
-
-from chimp import processing
+from typing import Callable, ClassVar, Literal
 
 from monkey_wrench.date_time import FilenameParser
 from monkey_wrench.input_output import (
     collect_files_in_directory,
     copy_files_between_directories,
     create_datetime_directory,
-    extension,
 )
-from monkey_wrench.input_output.seviri import SEVIRI, output_filename_from_datetime
+from monkey_wrench.input_output.seviri import output_filename_from_datetime, seviri_extension_context
 from monkey_wrench.query import List
 from monkey_wrench.task.models.specifications.datetime import DateTimeRange
 from monkey_wrench.task.models.specifications.paths import (
@@ -41,7 +38,7 @@ class Retrieve(Task):
     @TaskBase.log
     def perform(self) -> None:
         """Perform CHIMP retrievals."""
-        with extension(SEVIRI, "seviri"):
+        with seviri_extension_context() as chimp_cli:
             files = collect_files_in_directory(self.specifications.input_directory)
             lst = List(files, FilenameParser)
             indices = lst.query_indices(
@@ -56,9 +53,9 @@ class Retrieve(Task):
             )
 
             for batch in batches:
-                self.run_chimp(batch)
+                self.run_chimp(chimp_cli, batch)
 
-    def run_chimp(self, batch: list[Path]):
+    def run_chimp(self, retrieve_function: Callable, batch: list[Path]):
         input_filenames = [str(i) for i in batch]
 
         if len(input_filenames) != Retrieve.sequence_length:
@@ -66,7 +63,7 @@ class Retrieve(Task):
                 f"Expected to receive {Retrieve.sequence_length} input files but got {len(input_filenames)} instead!"
             )
 
-        processing.cli(
+        retrieve_function(
             self.specifications.model_filename,
             "seviri",
             input_filenames,

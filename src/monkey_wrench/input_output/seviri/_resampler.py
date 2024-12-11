@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Callable
 from uuid import uuid4
 
-from chimp import areas
 from loguru import logger
 from pydantic import DirectoryPath, FilePath
 from pyresample import AreaDefinition, load_area
@@ -23,7 +22,7 @@ def resample_seviri_native_file(
         fs_file: FSFile,
         output_directory: AbsolutePath[DirectoryPath],
         output_filename_generator: Callable,
-        area: AbsolutePath[FilePath] | AreaDefinition = areas.NORDICS_4,
+        area: AbsolutePath[FilePath] | AreaDefinition,
         channel_names: list[str] = DEFAULT_CHANNEL_NAMES,
         radius_of_influence: int = 20000,
         remove_file_if_exists: bool = True,
@@ -43,7 +42,7 @@ def resample_seviri_native_file(
             fully-qualified path for the output file.
         area:
             Either a filename (Path) or an object (AreaDefinition) which holds the area information according to which
-            the data will be resampled. Defaults to :obj:`chimp.areas.NORDICS_4`.
+            the data will be resampled.
         channel_names:
             The list of channels to load from the file. Defaults to
             ``satpy.readers.seviri_base.CHANNEL_NAMES.values()``.

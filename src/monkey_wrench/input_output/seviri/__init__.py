@@ -6,7 +6,7 @@ from ._common import (
     output_filename_from_datetime,
     output_filename_from_product_id,
 )
-from ._extension import SEVIRI
+from ._extension import seviri_extension_context
 from ._resampler import resample_seviri_native_file
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     "output_filename_from_datetime",
     "output_filename_from_product_id",
     "resample_seviri_native_file",
-    "SEVIRI"
+    "seviri_extension_context"
 ]
