@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any, Callable, Generator, Literal, TypeVar
 
 import requests
-from chimp import extensions
 from loguru import logger
 from pydantic import AfterValidator, DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveInt, validate_call
 from typing_extensions import Annotated
@@ -330,32 +329,3 @@ def compare_files_against_reference(
             corrupted_files = {f for f in files if abs(1 - f.stat().st_size / nominal_size) > tolerance}
 
     return missing_files, corrupted_files
-
-
-@contextmanager
-def extension(cls: Any, name: str):
-    """A context manager to load the given extension.
-
-    Args:
-        cls:
-            The etension class which can be instantiated, e.g. ``SEVIRI()``.
-        name:
-            The name that will be passed to the ``cls``, e.g. ``"seviri"``.
-
-    Example:
-        >>> from monkey_wrench.input_output.seviri import SEVIRI
-        >>> with extension(SEVIRI, "seviri"):
-        ...     print("The `SEVIRI` extension is now available to CHIMP.")
-    """
-
-    def instantiate_seviri():
-        """Instantiate the class with its name, so that it is now available in the CHIMP namespace."""
-        cls(name)
-
-    _original_extension_loader_function = extensions.load
-    extensions.load = instantiate_seviri
-
-    try:
-        yield
-    finally:
-        extensions.load = _original_extension_loader_function

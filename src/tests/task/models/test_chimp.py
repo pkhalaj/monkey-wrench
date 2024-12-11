@@ -1,29 +1,11 @@
 import os
-from contextlib import contextmanager
 from pathlib import Path
-
-from chimp import processing
 
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
 from monkey_wrench.task import read_tasks_from_file
-from monkey_wrench.test_utils import make_dummy_file, make_dummy_files, make_yaml_file
+from monkey_wrench.test_utils import make_dummy_file, make_dummy_files, make_yaml_file, optional_modules_mocked
 
 from ..const import END_DATETIME, START_DATETIME, ids
-
-
-def noop(*_args, **_kwargs):
-    pass
-
-
-@contextmanager
-def dummy_chimp_cli():
-    _cli = processing.cli
-    processing.cli = noop
-
-    try:
-        yield
-    finally:
-        processing.cli = _cli
 
 
 def test_retrieve_success(temp_dir):
@@ -63,6 +45,6 @@ def test_retrieve_success(temp_dir):
             ))
     )
 
-    with dummy_chimp_cli():
+    with optional_modules_mocked():
         validated_task = list(read_tasks_from_file(task_filename))[0]
         validated_task.perform()

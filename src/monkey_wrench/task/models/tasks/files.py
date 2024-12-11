@@ -1,6 +1,6 @@
 """Module to define Pydantic models for product files tasks."""
 
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import NonNegativeInt, PositiveFloat, PositiveInt
 
@@ -77,6 +77,13 @@ class Verify(Task):
 class Fetch(Task):
     action: Literal[Action.fetch]
     specifications: FetchSpecifications
+    __default_area_file: ClassVar = None
+
+    @classmethod
+    def set_default_area_file(cls) -> None:
+        """Set the default area once."""
+        from chimp.areas import NORDICS_4
+        cls.__default_area_file = NORDICS_4
 
     def fetch(self, product_id: str) -> None:
         """Fetch and resample the file with the given product ID."""
@@ -90,12 +97,15 @@ class Fetch(Task):
         seviri.resample_seviri_native_file(
             fs_file,
             datetime_directory,
-            seviri.input_filename_from_product_id
+            seviri.input_filename_from_product_id,
+            self.__default_area_file,
         )
 
     @TaskBase.log
     def perform(self) -> None:
         """Verify the product files using the reference."""
+        self.set_default_area_file()
+
         product_ids = List(
             read_items_from_txt_file(self.specifications.input_filename),
             SeviriIDParser

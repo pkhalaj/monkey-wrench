@@ -2,9 +2,12 @@
 
 import os
 import random
+import sys
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Iterable
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import yaml
@@ -260,3 +263,16 @@ def make_yaml_file(filename: Path, yaml_context_as_dict: dict) -> Path:
     with open(filename, "w") as f:
         yaml.dump(yaml_context_as_dict, f, default_flow_style=False)
     return filename
+
+
+@contextmanager
+def optional_modules_mocked():
+    """Context manager to mock modules such as CHIMP."""
+    modules_tree = {k: MagicMock() for k in ["chimp", "chimp.areas", "chimp.processing"]}
+    with patch.dict(sys.modules, modules_tree) as _module:
+        chimp = _module["chimp"]
+        chimp.areas = _module["chimp.areas"]
+        chimp.processing = _module["chimp.processing"]
+
+        chimp.processing.cli = MagicMock(name="chimp.processing.cli")
+        yield chimp
