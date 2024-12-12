@@ -32,11 +32,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-chimp = ["chimp@git+https://github.com/simonpf/chimp", "torch", "xarray"]
 doc = ["sphinx", "sphinx_rtd_theme"]
 hooks = ["pre-commit", "ruff"]
 tests = ["pytest", "pytest-cov"]
-dev = ["monkey-wrench[chimp,doc,hooks,tests]"]
+dev = ["monkey-wrench[doc,hooks,tests]"]
 
 [project.scripts]
 monkey-wrench = "monkey_wrench.cli:run"
