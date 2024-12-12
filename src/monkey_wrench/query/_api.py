@@ -219,8 +219,23 @@ class EumetsatAPI(Query):
             format: str = "netcdf4",
             sleep_time: int = 10,
     ) -> list[Optional[Path]]:
-        """Fetch search results."""
+        """Fetch all products of a search results.
 
+        Args:
+            search_results:
+                Searh results to fetch.
+            output_path:
+                Path where to write data.
+            bbox:
+                Bounding box,  north, south, west, east limits.
+            format:
+                Desired format of the output file(s).
+            sleep_time:
+                Sleep time, in seconds, between requests.
+
+        Returns:
+            A list pathes of the fetched files.
+        """
         if not outpath.exists():
             outpath.mkdir(parents=True, exist_ok=True)
 
@@ -229,17 +244,30 @@ class EumetsatAPI(Query):
             format=format,
             roi=RegionOfInterest(NSWE=bbox)
         )
-        return [self._fetch(product, chain, outpath, sleep_time) for product in search_results]
+        return [self.fetch_product(product, chain, outpath, sleep_time) for product in search_results]
 
-    def _fetch(
+    def fetch_product(
             self,
             product: Product,
             chain: Chain,
             outpath: Path,
-            sleep_time: int = 10,
+            sleep_time: int,
     ) -> Optional[Path]:
-        """Fetch product."""
+        """Fetch a given product and write it to a file.
 
+        Args:
+            product:
+                Product to fetch.
+            chain:
+                Chain to apply for customization of the output file.
+            output_path:
+                Path where to write data.
+            sleep_time:
+                Sleep time, in seconds, between requests.
+
+        Returns:
+            Optional path of the file, None if the fecth fails.
+        """
         customisation = self.__datatailor.new_customisation(product, chain)
         logger.info(f"Start downloading product {str(product)}")
         while True:
