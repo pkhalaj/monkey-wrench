@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from monkey_wrench.query_utils import EumetsatAPI, EumetsatCollection
+from monkey_wrench.query import EumetsatAPI, EumetsatCollection
 
 
 start = datetime(2021, 1, 1)

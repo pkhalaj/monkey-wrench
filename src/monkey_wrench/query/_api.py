@@ -75,8 +75,9 @@ class EumetsatAPI(Query):
         """
         super().__init__(log_context=log_context)
         self.__collection = collection
-        self.__datastore = DataStore(EumetsatAPI.get_token())
-        self.__datatailor = DataTailor(EumetsatAPI.get_token())
+        token = EumetsatAPI.get_token()
+        self.__datastore = DataStore(token)
+        self.__datatailor = DataTailor(token)
         self.__selected_collection = self.__datastore.get_collection(collection.value.query_string)
 
     @classmethod
@@ -250,7 +251,7 @@ class EumetsatAPI(Query):
                 ):
                     shutil.copyfileobj(stream, fdst)
                     logger.info(f"Wrote file: {fdst.name}' to disk.")
-                    return Path(stream.name)
+                    return Path(outpath / stream.name)
             elif customisation.status in ["ERROR", "FAILED", "DELETED", "KILLED", "INACTIVE"]:
                 logger.warning(f"Job failed, error code is: '{customisation.status.lower()}'.")
                 return None
