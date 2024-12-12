@@ -95,7 +95,7 @@ def test_fetch(
     """Test fetch fecthes a product file."""
     nswe_bbox = [70, 60, 10, 20]
     outfiles = api.fetch(search_results, tmp_path, bbox=nswe_bbox, sleep_time=1)
-    assert len(outfiles) == 1 and outfiles[0].is_file() and outfiles[0].suffix == "nc"
+    assert len(outfiles) == 1 and outfiles[0].is_file() and outfiles[0].suffix == ".nc"
 
 
 def seviri_product_datetime_is_correct(day: int, product: Product, end_datetime: datetime, start_datetime: datetime):
