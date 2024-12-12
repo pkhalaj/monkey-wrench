@@ -93,7 +93,7 @@ def test_fetch(
     tmp_path: Path,
 ):
     """Test fetch fecthes a product file."""
-    nswe_bbox = [64, 62, 14, 16]
+    nswe_bbox = [70, 60, 10, 20]
     outfiles = api.fetch(search_results, tmp_path, bbox=nswe_bbox, sleep_time=1)
     assert len(outfiles) == 1 and outfiles[0].is_file() and outfiles[0].suffix == "nc"
 
