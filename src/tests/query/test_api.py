@@ -13,14 +13,15 @@ from monkey_wrench.test_utils import (
 )
 
 
-@pytest.fixture(scope="session")
-def api() -> EumetsatAPI:
+@pytest.fixture
+def api(get_token_or_skip) -> EumetsatAPI:
     """Get eumetsat api."""
     return EumetsatAPI(EumetsatCollection.amsu)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def search_results(
+    get_token_or_skip,
     api: EumetsatAPI
 ) -> SearchResults:
     """Get search results."""
