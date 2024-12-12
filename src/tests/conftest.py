@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from requests import HTTPError
 
-from monkey_wrench.query_utils import EumetsatAPI
+from monkey_wrench.query import EumetsatAPI
 
 
 @pytest.fixture

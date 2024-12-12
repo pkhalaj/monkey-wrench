@@ -2,13 +2,16 @@
 
 import os
 import random
+import sys
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import yaml
-from pydantic import validate_call
+from pydantic import NonNegativeInt, validate_call
 
 DateTimeLike = Iterable[int]
 """Type definition for a datetime like object such as ``[2022, 10, 27]``."""
@@ -143,6 +146,41 @@ def make_dummy_file(filename: Path, size_in_bytes: int = 1) -> Path:
 
 
 @validate_call
+def randomly_remove_from_list(
+        items: list,
+        number_of_items_to_remove: NonNegativeInt,
+        callback: Callable | None = None,
+) -> tuple[set, set, set]:
+    """Randomly remove items from a list.
+
+    The ``callback`` is a function that will be called once for each item that is removed from the list. Each removed
+    item is passed to the ``callback`` as an argument.
+
+    Returns:
+        A 3-tuple in which the elements are, set of all items (shuffled), list of available items, and
+        set of removed items.
+    """
+    if number_of_items_to_remove > len(items):
+        raise ValueError("Number of items to remove must be less than the number of items in the list.")
+
+    _, shuffled_items = shuffle_list(items)
+    available_items = {i for i in shuffled_items}
+    removed_items = set()
+
+    if number_of_items_to_remove > 0:
+        _n = -1 * number_of_items_to_remove
+        removed_items = set(shuffled_items[_n:])
+
+    if callback:
+        for item in removed_items:
+            callback(item)
+
+    available_items -= removed_items
+
+    return set(shuffled_items), available_items, removed_items
+
+
+@validate_call
 def make_dummy_files(
         directory: Path,
         filenames: Iterable[Path] = None,
@@ -153,7 +191,7 @@ def make_dummy_files(
         tolerance: float = 0.01,
         size_fluctuation_ratio: float | None = None,
         number_of_files_to_remove: int = 0,
-) -> tuple[list[Path], set[Path], set[Path]]:
+) -> tuple[set[Path], set[Path], set[Path]]:
     """Make a number of dummy files.
 
     Args:
@@ -206,16 +244,9 @@ def make_dummy_files(
         for filename in filenames:
             _create_file(directory / filename)
 
-    _, shuffled_files = shuffle_list(files)
-    if number_of_files_to_remove > 0:
-        _n = -1 * number_of_files_to_remove
-        available_files = shuffled_files[:_n]
-        missing_files = set(shuffled_files[_n:])
-        for f in missing_files:
-            os.remove(f)
-    else:
-        available_files = shuffled_files
-        missing_files = set()
+    shuffled_files, available_files, missing_files = randomly_remove_from_list(
+        files, number_of_files_to_remove, callback=os.remove
+    )
 
     if size_fluctuation_ratio is not None:
         corrupted_files = {
@@ -232,3 +263,16 @@ def make_yaml_file(filename: Path, yaml_context_as_dict: dict) -> Path:
     with open(filename, "w") as f:
         yaml.dump(yaml_context_as_dict, f, default_flow_style=False)
     return filename
+
+
+@contextmanager
+def optional_modules_mocked():
+    """Context manager to mock modules such as CHIMP."""
+    modules_tree = {k: MagicMock() for k in ["chimp", "chimp.areas", "chimp.processing"]}
+    with patch.dict(sys.modules, modules_tree) as _module:
+        chimp = _module["chimp"]
+        chimp.areas = _module["chimp.areas"]
+        chimp.processing = _module["chimp.processing"]
+
+        chimp.processing.cli = MagicMock(name="chimp.processing.cli")
+        yield chimp
