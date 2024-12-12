@@ -1,13 +1,39 @@
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import pytest
+from eumdac.collection import SearchResults
 from eumdac.product import Product
+from eumdac.tailor_models import Chain, RegionOfInterest
 
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.query import EumetsatAPI, EumetsatCollection
 from monkey_wrench.test_utils import (
     EnvironmentVariables,
 )
+
+
+@pytest.fixture(scope="session")
+def api() -> EumetsatAPI:
+    """Get eumetsat api."""
+    return EumetsatAPI(EumetsatCollection.amsu)
+
+
+@pytest.fixture(scope="session")
+def search_results(
+    api: EumetsatAPI
+) -> SearchResults:
+    """Get search results."""
+    start = datetime(2021, 1, 1, 0)
+    end = datetime(2021, 1, 1, 6)
+    geometry = [  # polygon vertices (lon, lat) of small bounding box in central Sweden
+        (14.0, 64.0),
+        (16.0, 64.0),
+        (16.0, 62.0),
+        (14.0, 62.0),
+        (14.0, 64.0),
+    ]
+    return api.query(start, end, geometry=geometry)
 
 
 def test_api_init_raise():
@@ -46,6 +72,30 @@ def test_api_query_in_batches(get_token_or_skip):
         day -= 1
 
     assert 0 == day
+
+
+def test_fetch_fails(
+    get_token_or_skip,
+    api: EumetsatAPI,
+    search_results: SearchResults,
+    tmp_path: Path,
+):
+    """Test fetch fails."""
+    nswe_bbox = [64, 62, 114, 116]  # bbox outside the one used for the search query
+    outfiles = api.fetch(search_results, tmp_path, bbox=nswe_bbox, sleep_time=1)
+    assert len(outfiles) == 1 and outfiles[0] is None
+
+
+def test_fetch(
+    get_token_or_skip,
+    api: EumetsatAPI,
+    search_results: SearchResults,
+    tmp_path: Path,
+):
+    """Test fetch fecthes a product file."""
+    nswe_bbox = [64, 62, 14, 16]
+    outfiles = api.fetch(search_results, tmp_path, bbox=nswe_bbox, sleep_time=1)
+    assert len(outfiles) == 1 and outfiles[0].isfile() and outfiles[0].suffix == "nc"
 
 
 def seviri_product_datetime_is_correct(day: int, product: Product, end_datetime: datetime, start_datetime: datetime):

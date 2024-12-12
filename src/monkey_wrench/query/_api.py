@@ -219,15 +219,15 @@ class EumetsatAPI(Query):
             format: str = "netcdf4",
             sleep_time: int = 10,
     ) -> list[Optional[Path]]:
-        """Fetch all products of a search results.
+        """Fetch all products of a search results and write product files to disk.
 
         Args:
             search_results:
-                Searh results to fetch.
+                Search results to fetch.
             output_path:
                 Path where to write data.
             bbox:
-                Bounding box,  north, south, west, east limits.
+                Bounding box or north, south, west, east limits.
             format:
                 Desired format of the output file(s).
             sleep_time:
@@ -253,7 +253,7 @@ class EumetsatAPI(Query):
             outpath: Path,
             sleep_time: int,
     ) -> Optional[Path]:
-        """Fetch a given product and write it to a file.
+        """Fetch a given product and write the product file to disk.
 
         Args:
             product:
