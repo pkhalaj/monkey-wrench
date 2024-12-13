@@ -1,7 +1,7 @@
 """The module that provides metadata related to the EUMETSAT datastore, such as API URLs."""
 
 from enum import Enum
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from pydantic import HttpUrl, validate_call
 
@@ -9,7 +9,7 @@ from pydantic import HttpUrl, validate_call
 class CollectionMeta(NamedTuple):
     """Named tuple to gather the collection metadata."""
     query_string: str
-    snapshot_minutes: Optional[list[int]] = None
+    snapshot_minutes: list[int] | None = None
 
 
 class EumetsatCollection(Enum):

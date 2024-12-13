@@ -40,10 +40,11 @@ def test_days_in_a_month(year, month, number_of_days):
     ([2022, 1, 1, 0, 1], [12, 27, 42, 57], [2021, 12, 31, 23, 57]),
     ([2022, 3, 4, 10, 41], [12, 27, 42, 57], [2022, 3, 4, 10, 27]),
     ([2022, 1, 1, 1, 59], [12, 27, 42, 57], [2022, 1, 1, 1, 57]),
-    ([2022, 1, 1, 1, 59], [], [2022, 1, 1, 1, 59])
+    ([2022, 1, 1, 1, 59], [], [2022, 1, 1, 1, 59]),
+    ([2022, 1, 1, 1, 59], None, [2022, 1, 1, 1, 59])
 ])
 def test_floor_datetime_minutes(instance, snapshots, res):
-    assert datetime(*res) == floor_datetime_minutes_to_snapshots(snapshots, datetime(*instance))
+    assert datetime(*res) == floor_datetime_minutes_to_snapshots(datetime(*instance), snapshots)
 
 
 @pytest.mark.parametrize(("snapshots", "error_message"), [
@@ -54,4 +55,4 @@ def test_floor_datetime_minutes(instance, snapshots, res):
 ])
 def test_floor_datetime_minutes_raise(snapshots, error_message):
     with pytest.raises(ValueError, match=error_message):
-        floor_datetime_minutes_to_snapshots(snapshots, datetime(2022, 1, 1))
+        floor_datetime_minutes_to_snapshots(datetime(2022, 1, 1), snapshots)

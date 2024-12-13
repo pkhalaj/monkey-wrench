@@ -1,16 +1,12 @@
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import pytest
 from eumdac.collection import SearchResults
 from eumdac.product import Product
-from eumdac.tailor_models import Chain, RegionOfInterest
 
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.query import EumetsatAPI, EumetsatCollection
-from monkey_wrench.test_utils import (
-    EnvironmentVariables,
-)
+from monkey_wrench.test_utils import EnvironmentVariables
 
 
 @pytest.fixture
@@ -20,10 +16,7 @@ def api(get_token_or_skip) -> EumetsatAPI:
 
 
 @pytest.fixture
-def search_results(
-    get_token_or_skip,
-    api: EumetsatAPI
-) -> SearchResults:
+def search_results(api: EumetsatAPI) -> SearchResults:
     """Get search results."""
     start = datetime(2021, 1, 1, 0)
     end = datetime(2021, 1, 1, 6)
@@ -34,7 +27,7 @@ def search_results(
         (14.0, 62.0),
         (14.0, 64.0),
     ]
-    return api.query(start, end, geometry=geometry)
+    return api.query(start, end, polygon=geometry)
 
 
 def test_api_init_raise():
@@ -75,28 +68,19 @@ def test_api_query_in_batches(get_token_or_skip):
     assert 0 == day
 
 
-def test_fetch_fails(
-    get_token_or_skip,
-    api: EumetsatAPI,
-    search_results: SearchResults,
-    tmp_path: Path,
-):
-    """Test fetch fails."""
+def test_fetch_fails(api, search_results, tmp_path):
     nswe_bbox = [64, 62, 114, 116]  # bbox outside the one used for the search query
-    outfiles = api.fetch(search_results, tmp_path, bbox=nswe_bbox, sleep_time=1)
-    assert len(outfiles) == 1 and outfiles[0] is None
+    outfiles = api.fetch_products(search_results, tmp_path, bounding_box=nswe_bbox, sleep_time=1)
+    assert len(outfiles) == 1
+    assert outfiles[0] is None
 
 
-def test_fetch(
-    get_token_or_skip,
-    api: EumetsatAPI,
-    search_results: SearchResults,
-    tmp_path: Path,
-):
-    """Test fetch fecthes a product file."""
+def test_fetch(api, search_results, tmp_path):
     nswe_bbox = [70, 60, 10, 20]
-    outfiles = api.fetch(search_results, tmp_path, bbox=nswe_bbox, sleep_time=1)
-    assert len(outfiles) == 1 and outfiles[0].is_file() and outfiles[0].suffix == ".nc"
+    outfiles = api.fetch_products(search_results, tmp_path, bounding_box=nswe_bbox, sleep_time=1)
+    assert len(outfiles) == 1
+    assert outfiles[0].is_file()
+    assert outfiles[0].suffix == ".nc"
 
 
 def seviri_product_datetime_is_correct(day: int, product: Product, end_datetime: datetime, start_datetime: datetime):

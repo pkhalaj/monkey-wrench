@@ -1,12 +1,12 @@
 """The modules which defines the class for querying the EUMETSAT API."""
 
-from datetime import datetime, timedelta
-from os import environ
-from pathlib import Path
-from typing import Any, ClassVar, Generator, Optional
 import fnmatch
 import shutil
 import time
+from datetime import datetime, timedelta
+from os import environ
+from pathlib import Path
+from typing import Any, ClassVar, Generator
 
 from eumdac import AccessToken, DataStore, DataTailor
 from eumdac.collection import SearchResults
@@ -14,7 +14,7 @@ from eumdac.product import Product
 from eumdac.tailor_models import Chain, RegionOfInterest
 from fsspec import open_files
 from loguru import logger
-from pydantic import ConfigDict, validate_call
+from pydantic import ConfigDict, PositiveInt, validate_call
 from satpy.readers.utils import FSFile
 
 from monkey_wrench.date_time import (
@@ -25,6 +25,12 @@ from monkey_wrench.date_time import (
 
 from ._common import Query
 from ._meta import EumetsatAPIUrl, EumetsatCollection
+
+BoundingBox = tuple[float, float, float, float]
+"""The type alias for a tuple determining the bounds for (North, South, West, East)."""
+
+Polygon = list[tuple[float, float]]
+"""The """
 
 
 class EumetsatAPI(Query):
@@ -74,11 +80,11 @@ class EumetsatAPI(Query):
         .. _API key management: https://api.eumetsat.int/api-key
         """
         super().__init__(log_context=log_context)
-        self.__collection = collection
         token = EumetsatAPI.get_token()
-        self.__datastore = DataStore(token)
-        self.__datatailor = DataTailor(token)
-        self.__selected_collection = self.__datastore.get_collection(collection.value.query_string)
+        self.__collection = collection
+        self.__data_store = DataStore(token)
+        self.__data_tailor = DataTailor(token)
+        self.__selected_collection = self.__data_store.get_collection(collection.value.query_string)
 
     @classmethod
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -107,13 +113,22 @@ class EumetsatAPI(Query):
         """Return the number of product IDs."""
         return product_ids.total_results
 
+    @staticmethod
+    def __stringify_polygon(polygon: Polygon | None = None) -> str | None:
+        """Convert the given polygon to a string representation which is expected by the API."""
+        if polygon is None:
+            return None
+
+        coordinates_str = ",".join([f"{lon} {lat}" for lon, lat in polygon])
+        return f"POLYGON(({coordinates_str}))"
+
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def query(
             self,
             start_datetime: datetime,
             end_datetime: datetime,
-            geometry: Optional[list[tuple[float, float]]] = None,
-        ) -> SearchResults:
+            polygon: Polygon | None = None,
+    ) -> SearchResults:
         """Query product IDs in a single batch.
 
         This method wraps around the ``eumdac.Collection().search()`` method to perform a search for product IDs
@@ -133,8 +148,9 @@ class EumetsatAPI(Query):
                 The start datetime (inclusive).
             end_datetime:
                 The end datetime (exclusive).
-            geometry:
-                Optional list of polygon vertices (geodetic lon, lat coordinates).
+            polygon:
+                A list of polygon vertices. Each vertex is a 2-tuple of geodetic coordinates, i.e.
+                ``(<longitude>, <latitude>)``.
 
         Returns:
             The results of the search, containing the product IDs found within the specified time range.
@@ -144,14 +160,8 @@ class EumetsatAPI(Query):
                 Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
         """
         assert_start_time_is_before_end_time(start_datetime, end_datetime)
-        if self.__collection.value.snapshot_minutes is not None:
-            end_datetime = floor_datetime_minutes_to_snapshots(
-                self.__collection.value.snapshot_minutes, end_datetime
-            )
-        polygon = (
-            f'POLYGON(({",".join([f"{coords[0]} {coords[1]}" for coords in geometry])}))'
-            if geometry is not None else None
-        )
+        end_datetime = floor_datetime_minutes_to_snapshots(end_datetime, self.__collection.value.snapshot_minutes)
+        polygon = EumetsatAPI.__stringify_polygon(polygon)
         return self.__selected_collection.search(dtstart=start_datetime, dtend=end_datetime, geo=polygon)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -211,75 +221,75 @@ class EumetsatAPI(Query):
         )
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def fetch(
+    def fetch_products(
             self,
             search_results: SearchResults,
-            outpath: Path,
-            bbox: tuple[float, float, float, float] = (90., -90, -180., 180.),
-            format: str = "netcdf4",
-            sleep_time: int = 10,
-    ) -> list[Optional[Path]]:
+            output_directory: Path,
+            bounding_box: BoundingBox = (90., -90, -180., 180.),
+            output_file_format: str = "netcdf4",
+            sleep_time: PositiveInt = 10,
+    ) -> list[Path | None]:
         """Fetch all products of a search results and write product files to disk.
 
         Args:
             search_results:
-                Search results to fetch.
-            output_path:
-                Path where to write data.
-            bbox:
-                Bounding box or north, south, west, east limits.
-            format:
-                Desired format of the output file(s).
+                Search results for which the files will be fetched.
+            output_directory:
+                The directory to save the files in.
+            bounding_box:
+                Bounding box, i.e. (north, south, west, east) limits.
+            output_file_format:
+                Desired format of the output file(s). Defaults to ``netcdf4``.
             sleep_time:
-                Sleep time, in seconds, between requests.
+                Sleep time, in seconds, between requests. Defaults to ``10`` seconds.
 
         Returns:
-            A list pathes of the fetched files.
+            A list paths for the fetched files.
         """
-        if not outpath.exists():
-            outpath.mkdir(parents=True, exist_ok=True)
+        if not output_directory.exists():
+            output_directory.mkdir(parents=True, exist_ok=True)
 
         chain = Chain(
             product=search_results.collection.product_type,
-            format=format,
-            roi=RegionOfInterest(NSWE=bbox)
+            format=output_file_format,
+            roi=RegionOfInterest(NSWE=bounding_box)
         )
-        return [self.fetch_product(product, chain, outpath, sleep_time) for product in search_results]
+        return [self.fetch_product(product, chain, output_directory, sleep_time) for product in search_results]
 
     def fetch_product(
             self,
             product: Product,
             chain: Chain,
-            outpath: Path,
-            sleep_time: int,
-    ) -> Optional[Path]:
-        """Fetch a given product and write the product file to disk.
+            output_directory: Path,
+            sleep_time: PositiveInt,
+    ) -> Path | None:
+        """Fetch the file for a single product and write the product file to disk.
 
         Args:
             product:
-                Product to fetch.
+                The Product whose corresponding file will be fetched.
             chain:
                 Chain to apply for customization of the output file.
-            output_path:
-                Path where to write data.
+            output_directory:
+                 The directory to save the file in.
             sleep_time:
                 Sleep time, in seconds, between requests.
 
         Returns:
-            Optional path of the file, None if the fecth fails.
+            The path of the saved file on the disk, Otherwise ``None`` in case of a failure.
         """
-        customisation = self.__datatailor.new_customisation(product, chain)
+        customisation = self.__data_tailor.new_customisation(product, chain)
         logger.info(f"Start downloading product {str(product)}")
         while True:
             if "DONE" in customisation.status:
-                customized_file = fnmatch.filter(customisation.outputs, '*.nc')[0]
+                customized_file = fnmatch.filter(customisation.outputs, "*.nc")[0]
                 with (
                     customisation.stream_output(customized_file) as stream,
-                    open(outpath / stream.name, mode='wb') as fdst
+                    open(output_directory / stream.name, mode="wb") as fdst
                 ):
                     shutil.copyfileobj(stream, fdst)
                     logger.info(f"Wrote file: {fdst.name}' to disk.")
-                    return Path(outpath / stream.name)
+                    return Path(output_directory / stream.name)
             elif customisation.status in ["ERROR", "FAILED", "DELETED", "KILLED", "INACTIVE"]:
                 logger.warning(f"Job failed, error code is: '{customisation.status.lower()}'.")
                 return None
