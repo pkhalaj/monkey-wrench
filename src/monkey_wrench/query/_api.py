@@ -223,11 +223,11 @@ class EumetsatAPI(Query):
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def fetch_products(
             self,
-            search_results: SearchResults,
+            search_results,  # TODO: When adding `SearchResults` as the type, making the documentation fails!
             output_directory: Path,
             bounding_box: BoundingBox = (90., -90, -180., 180.),
             output_file_format: str = "netcdf4",
-            sleep_time: PositiveInt = 10,
+            sleep_time: PositiveInt = 10
     ) -> list[Path | None]:
         """Fetch all products of a search results and write product files to disk.
 
@@ -261,7 +261,7 @@ class EumetsatAPI(Query):
             product: Product,
             chain: Chain,
             output_directory: Path,
-            sleep_time: PositiveInt,
+            sleep_time: PositiveInt
     ) -> Path | None:
         """Fetch the file for a single product and write the product file to disk.
 
