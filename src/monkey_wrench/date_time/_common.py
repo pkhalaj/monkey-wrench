@@ -53,15 +53,18 @@ def number_of_days_in_month(year: PositiveInt, month: PositiveInt) -> int:
 
 
 @validate_call
-def floor_datetime_minutes_to_snapshots(snapshots: list[Minutes], datetime_instance: datetime) -> datetime:
+def floor_datetime_minutes_to_snapshots(
+        datetime_instance: datetime, snapshots: list[Minutes] | None = None
+) -> datetime:
     """Round down or floor the given datetime to the closest minute from the snapshots.
 
     Args:
-        snapshots:
-            A sorted list of minutes. As an example, for SEVIRI we have one snapshot per ``15`` minutes, starting
-            from the 12th minute. As a result, we have ``[12, 27, 42, 57]`` for SEVIRI snapshots in an hour.
         datetime_instance:
             The datetime instance to floor.
+        snapshots:
+            A sorted list of minutes. Defaults to ``None``, which means the given datetime instance will be returned as
+            it is, without any modifications. As an example, for SEVIRI we have one snapshot per ``15`` minutes,
+            starting from the 12th minute. As a result, we have ``[12, 27, 42, 57]`` for SEVIRI snapshots in an hour.
 
     Returns:
         A datetime instance which is smaller than or equal to ``datetime_instance``, such that the minute matches the
@@ -71,11 +74,11 @@ def floor_datetime_minutes_to_snapshots(snapshots: list[Minutes], datetime_insta
           >>> from datetime import datetime
           >>> from monkey_wrench.date_time import floor_datetime_minutes_to_snapshots
           >>> seviri_snapshots = [12, 27, 42, 57]
-          >>> floor_datetime_minutes_to_snapshots(seviri_snapshots, datetime(2020, 1, 1, 0, 3))
+          >>> floor_datetime_minutes_to_snapshots(datetime(2020, 1, 1, 0, 3), seviri_snapshots)
           datetime.datetime(2019, 12, 31, 23, 57)
-          >>> floor_datetime_minutes_to_snapshots(seviri_snapshots, datetime(2020, 1, 1, 0, 58))
+          >>> floor_datetime_minutes_to_snapshots(datetime(2020, 1, 1, 0, 58), seviri_snapshots)
           datetime.datetime(2020, 1, 1, 0, 57)
-          >>> floor_datetime_minutes_to_snapshots(seviri_snapshots, datetime(2020, 1, 1, 1, 30))
+          >>> floor_datetime_minutes_to_snapshots(datetime(2020, 1, 1, 1, 30), seviri_snapshots)
           datetime.datetime(2020, 1, 1, 1, 27)
     """
     if not snapshots:
