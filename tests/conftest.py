@@ -4,6 +4,8 @@ from pathlib import Path
 import pytest
 from requests import HTTPError
 
+from tests.utils.eumdac import EumdacPackage
+
 
 @pytest.fixture
 def get_token_or_skip():
@@ -27,3 +29,9 @@ def temp_dir() -> Path:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir = Path(tmpdir)
         yield tmpdir
+
+
+@pytest.fixture
+def eumdac():
+    with EumdacPackage.mocked() as _eumdac:
+        yield _eumdac

@@ -1,22 +1,19 @@
 from datetime import datetime, timedelta
 
 import pytest
-from eumdac.collection import SearchResults
-from eumdac.product import Product
 
-from monkey_wrench.date_time import SeviriIDParser
-from monkey_wrench.query import EumetsatAPI, EumetsatCollection
 from tests.utils import EnvironmentVariables
 
 
 @pytest.fixture
-def api(get_token_or_skip) -> EumetsatAPI:
+def api(get_token_or_skip):
     """Get eumetsat api."""
+    from monkey_wrench.query import EumetsatAPI, EumetsatCollection
     return EumetsatAPI(EumetsatCollection.amsu)
 
 
 @pytest.fixture
-def search_results(api: EumetsatAPI) -> SearchResults:
+def search_results(api):
     """Get search results."""
     start = datetime(2021, 1, 1, 0)
     end = datetime(2021, 1, 1, 6)
@@ -32,6 +29,7 @@ def search_results(api: EumetsatAPI) -> SearchResults:
 
 def test_api_init_raise():
     """Check that the API query raises an exception if the credentials are not set."""
+    from monkey_wrench.query import EumetsatAPI
     k1, k2 = EumetsatAPI.credentials_env_vars.values()
     for key1, key2 in [(k1, k2), (k2, k1)]:
         with EnvironmentVariables(**{f"{key1}": "dummy", f"{key2}": None}):
@@ -44,12 +42,15 @@ def test_api_get_token_success(get_token_or_skip):
 
 
 def test_api_query(get_token_or_skip):
+    from monkey_wrench.query import EumetsatAPI
     start_datetime = datetime(2022, 1, 1, )
     end_datetime = datetime(2022, 1, 2)
     assert 96 == EumetsatAPI().query(start_datetime, end_datetime).total_results
 
 
 def test_api_query_in_batches(get_token_or_skip):
+    from monkey_wrench.query import EumetsatAPI, EumetsatCollection
+
     start_datetime = datetime(2022, 1, 1, )
     end_datetime = datetime(2022, 1, 3)
     batch_interval = timedelta(days=1)
@@ -83,13 +84,15 @@ def test_fetch(api, search_results, tmp_path):
     assert outfiles[0].suffix == ".nc"
 
 
-def seviri_product_datetime_is_correct(day: int, product: Product, end_datetime: datetime, start_datetime: datetime):
+def seviri_product_datetime_is_correct(day: int, product, end_datetime: datetime, start_datetime: datetime):
     """Check that the product datetime is correct."""
+    from monkey_wrench.date_time import SeviriIDParser
     datetime_obj = SeviriIDParser.parse(str(product))
     return (start_datetime <= datetime_obj < end_datetime) and (day == datetime_obj.day)
 
 
 def test_open_seviri_native_remotely(get_token_or_skip):
+    from monkey_wrench.query import EumetsatAPI
     product_id = "MSG3-SEVI-MSG15-0100-NA-20230413164241.669000000Z-NA"
     fs_file = EumetsatAPI.open_seviri_native_file_remotely(product_id)
     assert f"{product_id}.nat" == fs_file.open().name
