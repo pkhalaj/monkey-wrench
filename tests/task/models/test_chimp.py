@@ -3,7 +3,7 @@ from pathlib import Path
 
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
 from monkey_wrench.task import read_tasks_from_file
-from monkey_wrench.test_utils import make_dummy_file, make_dummy_files, make_yaml_file, optional_modules_mocked
+from tests.utils import make_dummy_file, make_dummy_files, make_yaml_file, optional_modules_mocked
 
 from ..const import END_DATETIME, START_DATETIME, ids
 

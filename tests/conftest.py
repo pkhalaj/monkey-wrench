@@ -4,12 +4,11 @@ from pathlib import Path
 import pytest
 from requests import HTTPError
 
-from monkey_wrench.query import EumetsatAPI
-
 
 @pytest.fixture
 def get_token_or_skip():
     """Attempt to get a valid token and return it. Otherwise, skip the test."""
+    from monkey_wrench.query import EumetsatAPI
 
     def skip(other: str, exc: BaseException) -> None:
         pytest.skip(f"Could not get a valid token. {other}\nMore:{exc}")

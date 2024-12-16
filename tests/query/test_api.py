@@ -6,7 +6,7 @@ from eumdac.product import Product
 
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.query import EumetsatAPI, EumetsatCollection
-from monkey_wrench.test_utils import EnvironmentVariables
+from tests.utils import EnvironmentVariables
 
 
 @pytest.fixture

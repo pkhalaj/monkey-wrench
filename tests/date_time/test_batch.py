@@ -7,8 +7,8 @@ from monkey_wrench.date_time import (
     datetime_range,
     generate_datetime_batches,
 )
-from monkey_wrench.test_utils import intervals_equal
 
+from ..utils import intervals_equal
 from .const import END_DATETIME, INTERVAL, QUOTIENT, REMAINDER, START_DATETIME
 
 

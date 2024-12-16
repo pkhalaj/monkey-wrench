@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.input_output import read_items_from_txt_file
 from monkey_wrench.task import read_tasks_from_file
-from monkey_wrench.test_utils import make_yaml_file
+from tests.utils import make_yaml_file
 
 from ..const import (
     BATCH_INTERVAL,
