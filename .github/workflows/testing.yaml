@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests with a variety of Python versions
+# This workflow installs Python dependencies and run tests for Python versions >= 3.12
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
 name: Testing Pipeline
@@ -11,12 +11,11 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
