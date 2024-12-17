@@ -134,5 +134,5 @@ def setup(app):
 root_doc = "index"
 
 output_dir = os.path.join(".")
-module_dir = os.path.abspath("../../src")
+module_dir = os.path.abspath("../../monkey_wrench")
 apidoc.main(["-e", "-q", "-f", "-M", "-H", "API Reference", "-o", output_dir, module_dir, *include_patterns])
