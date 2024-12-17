@@ -1,4 +1,4 @@
-"""The module which defines utilities for parsing product IDs or filenames into datetime objects."""
+"""The module providing utilities for parsing product IDs or filenames into datetime objects."""
 
 import re
 from abc import abstractmethod
@@ -10,7 +10,7 @@ from pydantic import validate_call
 
 
 class DateTimeParser:
-    """Static class for parsing items, e.g. product IDs or filenames, into datetime objects."""
+    """A static class for parsing items, e.g. product IDs or filenames, into datetime objects."""
 
     @staticmethod
     def _raise_value_error(item: Any) -> Never:
@@ -20,7 +20,7 @@ class DateTimeParser:
     @staticmethod
     @validate_call
     def parse_by_regex(regex_pattern: str, item: str) -> datetime:
-        """Parse the given item into a datetime object using regular expression.
+        """Parse the given item into a datetime object using a regular expression.
 
         Raises:
             ValueError:
@@ -59,12 +59,16 @@ class DateTimeParser:
     @staticmethod
     @abstractmethod
     def parse(item: Any) -> datetime:
-        """Parse the given item into a datetime object."""
+        """Parse the given item into a datetime object.
+
+        Warning:
+            This is an abstract method and needs to be implemented for each derived class.
+        """
         pass
 
 
 class SeviriIDParser(DateTimeParser):
-    """Parser class for SEVIRI product IDs."""
+    """Static parser class for SEVIRI product IDs."""
 
     regex_pattern = (r"[0-9A-Za-z]+-SEVI-[0-9A-Za-z]+-[0-9]+-NA"
                      r"-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})[0-9]{2}\.[0-9]+Z-NA")
@@ -84,7 +88,7 @@ class SeviriIDParser(DateTimeParser):
 
 
 class FilenameParser(DateTimeParser):
-    """Parser class for filenames."""
+    """Static parser class for filenames."""
 
     regex_pattern = r"[0-9A-Za-z]+_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})_([0-9]{2})"
 
@@ -98,8 +102,13 @@ class FilenameParser(DateTimeParser):
         Example:
             >>> from pathlib import Path
             >>> from monkey_wrench.date_time import FilenameParser
-            >>> filename = Path("/home/user/dir/prefix_20150731_22_12.extension")
-            >>> FilenameParser.parse(filename)
+            >>> FilenameParser.parse(Path("/home/user/dir/prefix_20150731_22_12.extension"))
+            datetime.datetime(2015, 7, 31, 22, 12)
+            >>> FilenameParser.parse(Path("prefix_20150731_22_12.extension"))
+            datetime.datetime(2015, 7, 31, 22, 12)
+            >>> FilenameParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
+            datetime.datetime(2015, 7, 31, 22, 12)
+            >>> FilenameParser.parse("prefix_20150731_22_12.extension")
             datetime.datetime(2015, 7, 31, 22, 12)
         """
         if isinstance(filename, str):

@@ -4,7 +4,7 @@ import pytest
 
 from monkey_wrench.date_time import (
     assert_start_time_is_before_end_time,
-    floor_datetime_minutes_to_snapshots,
+    floor_datetime_minutes_to_specific_snapshots,
     number_of_days_in_month,
 )
 
@@ -44,7 +44,7 @@ def test_days_in_a_month(year, month, number_of_days):
     ([2022, 1, 1, 1, 59], None, [2022, 1, 1, 1, 59])
 ])
 def test_floor_datetime_minutes(instance, snapshots, res):
-    assert datetime(*res) == floor_datetime_minutes_to_snapshots(datetime(*instance), snapshots)
+    assert datetime(*res) == floor_datetime_minutes_to_specific_snapshots(datetime(*instance), snapshots)
 
 
 @pytest.mark.parametrize(("snapshots", "error_message"), [
@@ -55,4 +55,4 @@ def test_floor_datetime_minutes(instance, snapshots, res):
 ])
 def test_floor_datetime_minutes_raise(snapshots, error_message):
     with pytest.raises(ValueError, match=error_message):
-        floor_datetime_minutes_to_snapshots(datetime(2022, 1, 1), snapshots)
+        floor_datetime_minutes_to_specific_snapshots(datetime(2022, 1, 1), snapshots)

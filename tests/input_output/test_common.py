@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from monkey_wrench import input_output
-from monkey_wrench.date_time import Order, datetime_range
+from monkey_wrench.date_time import datetime_range
+from monkey_wrench.generic import Order
 from monkey_wrench.query import EumetsatAPI
 from tests.utils import make_dummy_file, make_dummy_files
 
@@ -46,8 +47,8 @@ def test_pattern_exist(pattern, kwargs, res):
 
 
 @pytest.mark.parametrize("order", [
-    Order.decreasing,
-    Order.increasing
+    Order.descending,
+    Order.ascending
 ])
 @pytest.mark.parametrize("pattern", [
     ".nc", ".", "nc", [".", "nc"], None, "", "2022", "non_existent_pattern"
@@ -56,7 +57,7 @@ def test_collect_files_in_dir(temp_dir, order, pattern):
     start_datetime = datetime(2022, 1, 1, 0, 12)
     end_datetime = datetime(2022, 1, 4)
     datetime_objs = list(datetime_range(start_datetime, end_datetime, timedelta(minutes=15)))
-    if order == Order.decreasing:
+    if order == Order.descending:
         datetime_objs = datetime_objs[::-1]
 
     make_dummy_datetime_files(datetime_objs, temp_dir)
