@@ -10,8 +10,7 @@ from monkey_wrench.task.models.specifications.datetime import (
 )
 from monkey_wrench.task.models.specifications.paths import OutputFile
 from monkey_wrench.task.models.tasks.base import TaskBase
-
-from ..const import BATCH_INTERVAL, END_DATETIME, FUTURE_DATETIME, START_DATETIME
+from tests.task.const import BATCH_INTERVAL, END_DATETIME, FUTURE_DATETIME, START_DATETIME
 
 
 @pytest.mark.parametrize("model", [

@@ -7,9 +7,7 @@ from pydantic import ValidationError
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.input_output import read_items_from_txt_file
 from monkey_wrench.task import read_tasks_from_file
-from tests.utils import make_yaml_file
-
-from ..const import (
+from tests.task.const import (
     BATCH_INTERVAL,
     END_DATETIME,
     FUTURE_DATETIME,
@@ -19,6 +17,7 @@ from ..const import (
     task,
     task_with,
 )
+from tests.utils import make_yaml_file
 
 
 def test_model_product_ids_success(temp_dir):
