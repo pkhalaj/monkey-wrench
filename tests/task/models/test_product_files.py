@@ -6,9 +6,8 @@ import pytest
 from monkey_wrench.input_output import write_items_to_txt_file
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
 from monkey_wrench.task import read_tasks_from_file
-from monkey_wrench.test_utils import make_dummy_files, make_yaml_file
-
-from ..const import END_DATETIME, START_DATETIME, ids, ids_in_query
+from tests.task.const import END_DATETIME, START_DATETIME, ids, ids_in_query
+from tests.utils import make_dummy_files, make_yaml_file
 
 
 def test_verify_files_success(temp_dir):

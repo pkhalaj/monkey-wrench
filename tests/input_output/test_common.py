@@ -9,7 +9,7 @@ import pytest
 from monkey_wrench import input_output
 from monkey_wrench.date_time import Order, datetime_range
 from monkey_wrench.query import EumetsatAPI
-from monkey_wrench.test_utils import make_dummy_file, make_dummy_files
+from tests.utils import make_dummy_file, make_dummy_files
 
 START_DATETIME = datetime(2015, 6, 1)
 END_DATETIME = datetime(2015, 6, 1, 5)

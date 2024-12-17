@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from monkey_wrench.date_time import FilenameParser, datetime_range
 from monkey_wrench.input_output.seviri import input_filename_from_datetime
 from monkey_wrench.query import List
-from monkey_wrench.test_utils import (
+from tests.utils import (
     get_items_from_shuffled_list_by_original_indices,
     randomly_remove_from_list,
     shuffle_list,
