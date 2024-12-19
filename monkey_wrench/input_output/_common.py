@@ -6,25 +6,17 @@ import tempfile
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Generator, TypeVar
+from typing import Any, Callable, Generator
 
 import requests
 from loguru import logger
-from pydantic import AfterValidator, DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveInt, validate_call
-from typing_extensions import Annotated
+from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveInt, validate_call
 
-from monkey_wrench.generic import Order
+from monkey_wrench.generic import IterableContainer, Order
 from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import Results
 
-from ._types import WriteMode
-
-T = TypeVar("T", DirectoryPath, NewPath, FilePath)
-AbsolutePath = Annotated[T, AfterValidator(lambda x: x.absolute())]
-"""Type annotation and Pydantic validator to represent (convert to) an absolute path."""
-
-Pattern = str | list[str] | None
-"""Type alias for a string or a list of strings that will be used as a pattern to search in other strings."""
+from ._types import AbsolutePath, Pattern, WriteMode
 
 
 @validate_call
@@ -148,10 +140,10 @@ def copy_single_file_to_directory(
 
 @validate_call
 def write_items_to_txt_file(
-        items: list | tuple | Generator, items_list_filename: AbsolutePath[FilePath] | AbsolutePath[NewPath],
+        items: IterableContainer | Generator, items_list_filename: AbsolutePath[FilePath] | AbsolutePath[NewPath],
         write_mode: WriteMode = WriteMode.overwrite
 ) -> NonNegativeInt:
-    """Write items from an iterable (list, tuple, generator) to a text file, with one item per line.
+    """Write items from an iterable (list, set, tuple, generator) to a text file, with one item per line.
 
     Examples of items are product IDs.
 
@@ -298,20 +290,20 @@ def temp_directory(directory: AbsolutePath[DirectoryPath]) -> Path:
 
 @validate_call
 def compare_files_against_reference(
-        files: list[Path] | set[Path] | tuple[Path],
-        reference_list: list[Any] | set[Path] | tuple[Path] | None = None,
+        files: IterableContainer[Path],
+        reference_list: IterableContainer | None = None,
         transform_function: Callable | None = None,
         nominal_size: int | None = None,
         tolerance: float = 0.01,
         number_of_processes: PositiveInt = 20,
 ) -> tuple[set | None, set | None]:
-    """Compare a list/set/tuple of files against a collection of reference items and report missing and corrupted files.
+    """Compare an iterable of files with an iterable of reference items and report missing and corrupted files.
 
     Args:
         files:
-            The list/set/tuple of files to perform the check on.
+            The iterable of files to perform the check on.
         reference_list:
-            The reference list/set/tuple of items to compare against. Defaults to ``None`` which means the search for
+            The reference iterable of items to compare against. Defaults to ``None`` which means the search for
             missing files will not be performed.
         transform_function:
             A function to transform the files into new objects before comparing them against the reference. This can be

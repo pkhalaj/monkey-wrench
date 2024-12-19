@@ -2,7 +2,6 @@
 
 from . import seviri
 from ._common import (
-    AbsolutePath,
     compare_files_against_reference,
     copy_files_between_directories,
     create_datetime_directory,
@@ -13,10 +12,11 @@ from ._common import (
     write_items_to_txt_file,
     write_items_to_txt_file_in_batches,
 )
-from ._types import WriteMode
+from ._types import AbsolutePath, Pattern, WriteMode
 
 __all__ = [
     "AbsolutePath",
+    "Pattern",
     "WriteMode",
     "compare_files_against_reference",
     "copy_files_between_directories",

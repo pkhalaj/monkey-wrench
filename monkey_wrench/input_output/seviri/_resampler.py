@@ -12,7 +12,8 @@ from satpy import Scene
 from satpy.readers.seviri_base import CHANNEL_NAMES
 from satpy.readers.utils import FSFile
 
-from monkey_wrench.input_output._common import AbsolutePath
+# We prefer relative imports here and therefore supress Ruff linter rule  TID252.
+from .._types import AbsolutePath  # noqa: TID252
 
 DEFAULT_CHANNEL_NAMES = CHANNEL_NAMES.values()
 """Names of SEVIRI channels."""
