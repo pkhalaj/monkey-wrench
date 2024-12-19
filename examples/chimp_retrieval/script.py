@@ -5,11 +5,10 @@ from chimp import processing
 
 from monkey_wrench.date_time import FilenameParser
 from monkey_wrench.input_output import (
-    collect_files_in_directory,
     copy_files_between_directories,
     create_datetime_directory,
-    extension,
     seviri,
+    visit_files_in_directory,
 )
 from monkey_wrench.query import List
 
@@ -59,14 +58,14 @@ def run_chimp(batch: list[Path]):
         pattern=str(last_retrieved_snapshot)
     )
 
-    collect_files_in_directory(
+    visit_files_in_directory(
         temp_directory,
         callback=Path.unlink
     )
 
 
-with extension(seviri.SEVIRI, "seviri"):
-    files = collect_files_in_directory(input_directory)
+with seviri.seviri_extension_context("seviri"):
+    files = visit_files_in_directory(input_directory)
     lst = List(files, FilenameParser)
     indices = lst.query_indices(
         start_datetime,

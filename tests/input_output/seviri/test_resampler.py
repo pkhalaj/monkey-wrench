@@ -4,7 +4,7 @@ import pytest
 from pyresample import load_area
 from satpy.readers import FSFile
 
-from monkey_wrench.input_output.seviri._resampler import resample_seviri_native_file
+from monkey_wrench.input_output.seviri import resample_seviri_native_file
 from tests.utils import make_dummy_file, make_yaml_file
 
 AREA_DEFINITION = dict(

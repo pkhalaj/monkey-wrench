@@ -7,7 +7,8 @@ from typing import Any, Generator
 from loguru import logger
 from pydantic import validate_call
 
-from monkey_wrench.date_time import Order, generate_datetime_batches
+from monkey_wrench.date_time import generate_datetime_batches
+from monkey_wrench.generic import Order
 
 Results = Generator[tuple[Any, int], None, None]
 """Type alias for search results in batches.
@@ -55,7 +56,7 @@ class Query(ABC):
             start_datetime: datetime,
             end_datetime: datetime,
             batch_interval: timedelta,
-            order: Order = Order.decreasing,
+            order: Order = Order.descending,
             expected_total_count: int | None = None
     ) -> Results:
         """Divide the specified time range into smaller intervals (batches) and perform queries on them.

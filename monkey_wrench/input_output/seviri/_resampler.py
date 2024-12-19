@@ -1,4 +1,4 @@
-"""The module which defines the functions to read and resample SEVIRI native files from ``FSFile`` objects."""
+"""The module providing functions to read and resample SEVIRI native files from ``FSFile`` objects."""
 
 import os
 from pathlib import Path

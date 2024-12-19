@@ -18,10 +18,10 @@ from pydantic import ConfigDict, PositiveInt, validate_call
 from satpy.readers.utils import FSFile
 
 from monkey_wrench.date_time import (
-    Order,
     assert_start_time_is_before_end_time,
-    floor_datetime_minutes_to_snapshots,
+    floor_datetime_minutes_to_specific_snapshots,
 )
+from monkey_wrench.generic import Order
 
 from ._common import Query
 from ._meta import EumetsatAPIUrl, EumetsatCollection
@@ -160,7 +160,9 @@ class EumetsatAPI(Query):
                 Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
         """
         assert_start_time_is_before_end_time(start_datetime, end_datetime)
-        end_datetime = floor_datetime_minutes_to_snapshots(end_datetime, self.__collection.value.snapshot_minutes)
+        end_datetime = floor_datetime_minutes_to_specific_snapshots(
+            end_datetime, self.__collection.value.snapshot_minutes
+        )
         polygon = EumetsatAPI.__stringify_polygon(polygon)
         return self.__selected_collection.search(dtstart=start_datetime, dtend=end_datetime, geo=polygon)
 
@@ -216,7 +218,7 @@ class EumetsatAPI(Query):
             start_datetime,
             end_datetime,
             batch_interval,
-            order=Order.decreasing,
+            order=Order.descending,
             expected_total_count=expected_total_count
         )
 
@@ -271,7 +273,7 @@ class EumetsatAPI(Query):
             chain:
                 Chain to apply for customization of the output file.
             output_directory:
-                 The directory to save the file in.
+                 The directory to save the file in.ort EumetsatAPI
             sleep_time:
                 Sleep time, in seconds, between requests.
 

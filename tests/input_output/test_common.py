@@ -61,7 +61,7 @@ def test_collect_files_in_dir(temp_dir, order, pattern):
         datetime_objs = datetime_objs[::-1]
 
     make_dummy_datetime_files(datetime_objs, temp_dir)
-    files = input_output.collect_files_in_directory(temp_dir, order=order, pattern=pattern)
+    files = input_output.visit_files_in_directory(temp_dir, order=order, pattern=pattern)
 
     if pattern == "non_existent_pattern":
         assert len(files) == 0
@@ -84,8 +84,8 @@ def test_copy_files_between_directories(temp_dir, pattern):
     os.makedirs(dest_directory, exist_ok=True)
     input_output.copy_files_between_directories(temp_dir, dest_directory, pattern=pattern)
     make_dummy_file(dest_directory / "excluded.ex")
-    assert 4 == len(input_output.collect_files_in_directory(dest_directory))
-    assert 3 == len(input_output.collect_files_in_directory(dest_directory, pattern=pattern))
+    assert 4 == len(input_output.visit_files_in_directory(dest_directory))
+    assert 3 == len(input_output.visit_files_in_directory(dest_directory, pattern=pattern))
 
 
 def test_compare_files_against_reference(temp_dir):
@@ -93,7 +93,7 @@ def test_compare_files_against_reference(temp_dir):
     tolerance = 0.05
     files, expected_missing, expected_corrupted = make_dummy_files(temp_dir, number_of_files_to_remove=3)
 
-    collected_files = input_output.collect_files_in_directory(temp_dir)
+    collected_files = input_output.visit_files_in_directory(temp_dir)
     missing_files, corrupted_files = input_output.compare_files_against_reference(
         collected_files, reference_list=files, nominal_size=nominal_size, tolerance=tolerance, number_of_processes=1
     )

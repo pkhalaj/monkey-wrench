@@ -3,7 +3,13 @@ from pathlib import Path
 
 import pytest
 
-from monkey_wrench import input_output
+from monkey_wrench.input_output.seviri import (
+    ChimpFilesPrefix,
+    input_filename_from_datetime,
+    input_filename_from_product_id,
+    output_filename_from_datetime,
+    output_filename_from_product_id,
+)
 
 SAMPLE_PRODUCTS = [
     dict(
@@ -20,19 +26,19 @@ SAMPLE_PRODUCTS = [
 
 
 @pytest.mark.parametrize(("prefix", "func", "key"), [
-    ("seviri", input_output.seviri.input_filename_from_product_id, "product_id"),
-    ("chimp", input_output.seviri.output_filename_from_product_id, "product_id"),
+    (ChimpFilesPrefix.seviri, input_filename_from_product_id, "product_id"),
+    (ChimpFilesPrefix.chimp, output_filename_from_product_id, "product_id"),
 
-    ("seviri", input_output.seviri.input_filename_from_datetime, "datetime_object"),
-    ("chimp", input_output.seviri.output_filename_from_datetime, "datetime_object")
+    (ChimpFilesPrefix.seviri, input_filename_from_datetime, "datetime_object"),
+    (ChimpFilesPrefix.chimp, output_filename_from_datetime, "datetime_object")
 ])
 def test_generate_chimp_input_filename_from_product_id(prefix, func, key):
     # single item
     filename = func(SAMPLE_PRODUCTS[0][key])
-    assert filename == Path(f"{prefix}_{SAMPLE_PRODUCTS[0]["stamp"]}")
+    assert Path(f"{prefix.value}_{SAMPLE_PRODUCTS[0]["stamp"]}") == filename
 
     # list of items
     products = [item[key] for item in SAMPLE_PRODUCTS]
-    expected_filenames = [Path(f"{prefix}_{item['stamp']}") for item in SAMPLE_PRODUCTS]
+    expected_filenames = [Path(f"{prefix.value}_{item['stamp']}") for item in SAMPLE_PRODUCTS]
     filenames = func(products)
     assert expected_filenames == filenames
