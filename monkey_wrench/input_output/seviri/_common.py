@@ -6,45 +6,49 @@ from pathlib import Path
 from pydantic import validate_call
 
 from monkey_wrench.date_time import SeviriIDParser
-from monkey_wrench.generic import apply_to_single_or_all, return_single_or_first
+from monkey_wrench.generic import IterableContainer, apply_to_single_or_all, get_item_type
 
 from ._types import ChimpFilesPrefix
 
 
 @validate_call
-def input_filename_from_product_id(product_ids: str | list[str]) -> Path | list[Path]:
+def input_filename_from_product_id(product_ids: str | IterableContainer[str]) -> Path | IterableContainer[Path]:
     """Generate CHIMP-compliant input filename(s) based on SEVIRI product ID(s).
 
     Args:
         product_ids:
-            Either a single SEVIRI product ID or a list of SEVIRI product IDs.
+            Either a single SEVIRI product ID or an iterable of SEVIRI product IDs.
 
     Returns:
-        Depending on the input, either a single filename or a list of filenames.
+        Depending on the input, either a single filename or an iterable of filenames. The type of the iterable container
+        matches the type of the input container, e.g. a tuple of strings as input will result in a tuple of paths.
 
     Example:
         >>> from monkey_wrench.input_output.seviri import input_filename_from_product_id
         >>> input_filename_from_product_id("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
         'seviri_20150731_22_12.nc'
-        >>> input_filename_from_product_id([
+        >>> input_filename_from_product_id({
         ...  "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
         ...  "MSG3-SEVI-MSG15-0100-NA-20231231171242.800000000Z-NA"
-        ... ])
-        ['seviri_20150731_22_12.nc', 'seviri_20231231_17_12.nc']
+        ... })
+        {'seviri_20150731_22_12.nc', 'seviri_20231231_17_12.nc'}
     """
     return __dispatch(ChimpFilesPrefix.seviri, product_ids)
 
 
 @validate_call
-def input_filename_from_datetime(datetime_objects: datetime | list[datetime]) -> Path | list[Path]:
+def input_filename_from_datetime(
+        datetime_objects: datetime | IterableContainer[datetime]
+) -> Path | IterableContainer[Path]:
     """Generate CHIMP-compliant input filename(s) based on datetime object(s).
 
     Args:
         datetime_objects:
-            Either a single datetime object or a list of datetime objects.
+            Either a single datetime object or an iterable of datetime objects.
 
     Returns:
-        Depending on the input, either a single filename or a list of filenames.
+        Depending on the input, either a single filename or an iterable of filenames. The type of the iterable container
+        matches the type of the input container, e.g. a tuple of strings as input will result in a tuple of paths.
 
     Example:
         >>> from datetime import datetime
@@ -63,10 +67,11 @@ def output_filename_from_product_id(product_ids: str | list[str]) -> Path | list
 
     Args:
         product_ids:
-            Either a single SEVIRI product ID or a list of SEVIRI product IDs.
+            Either a single SEVIRI product ID or an iterable of SEVIRI product IDs.
 
     Returns:
-        Depending on the input, either a single filename or a list of filenames.
+        Depending on the input, either a single filename or an iterable of filenames. The type of the iterable container
+        matches the type of the input container, e.g. a tuple of strings as input will result in a tuple of paths.
 
     Example:
         >>> from monkey_wrench.input_output.seviri import output_filename_from_product_id
@@ -82,15 +87,18 @@ def output_filename_from_product_id(product_ids: str | list[str]) -> Path | list
 
 
 @validate_call
-def output_filename_from_datetime(datetime_objects: datetime | list[datetime]) -> Path | list[Path]:
+def output_filename_from_datetime(
+        datetime_objects: datetime | IterableContainer[datetime]
+) -> Path | IterableContainer[Path]:
     """Generate CHIMP-compliant output filename(s) based on datetime object(s).
 
     Args:
         datetime_objects:
-            Either a single datetime object or a list of datetime objects.
+            Either a single datetime object or an iterable of datetime objects.
 
     Returns:
-        Depending on the input, either a single filename or a list of filenames.
+        Depending on the input, either a single filename or an iterable of filenames. The type of the iterable container
+        matches the type of the input container, e.g. a tuple of strings as input will result in a tuple of paths.
 
     Example:
         >>> from datetime import datetime
@@ -101,22 +109,6 @@ def output_filename_from_datetime(datetime_objects: datetime | list[datetime]) -
         ['chimp_20200101_00_12.nc', 'chimp_20200304_02_42.nc']
     """
     return __dispatch(ChimpFilesPrefix.chimp, datetime_objects)
-
-
-@validate_call
-def __dispatch(
-        prefix: ChimpFilesPrefix, single_item_or_list: datetime | str | list[datetime] | list[str]
-) -> Path | list[Path]:
-    """Dispatch the given input to corresponding CHIMP compliant filename(s) functions."""
-    match return_single_or_first(single_item_or_list):
-        case datetime():
-            return apply_to_single_or_all(
-                lambda x: datetime_to_filename(prefix, x), single_item_or_list
-            )
-        case str():
-            return apply_to_single_or_all(
-                lambda x: datetime_to_filename(prefix, SeviriIDParser.parse(x)), single_item_or_list
-            )
 
 
 @validate_call
@@ -136,3 +128,20 @@ def datetime_to_filename(prefix: ChimpFilesPrefix, datetime_object: datetime, ex
     """
     chimp_timestamp_str = datetime_object.strftime("%Y%m%d_%H_%M")
     return Path(f"{prefix.value}_{chimp_timestamp_str}{extension}")
+
+
+@validate_call
+def __dispatch(
+        prefix: ChimpFilesPrefix,
+        single_item_or_list: datetime | str | IterableContainer[datetime] | IterableContainer[str]
+) -> Path | list[Path]:
+    """Dispatch the given input to corresponding CHIMP compliant filename(s) functions."""
+    tp = get_item_type(single_item_or_list)
+    if tp is datetime:
+        return apply_to_single_or_all(lambda x: datetime_to_filename(prefix, x), single_item_or_list)
+    elif tp is str:
+        return apply_to_single_or_all(
+            lambda x: datetime_to_filename(prefix, SeviriIDParser.parse(x)), single_item_or_list
+        )
+    else:
+        raise TypeError(f"Do not know how to dispatch for type {tp}")
