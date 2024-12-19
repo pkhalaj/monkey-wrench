@@ -4,9 +4,11 @@ from typing import Any, Callable
 
 from pydantic import validate_call
 
+from ._types import IterableContainer
 
-@validate_call
-def apply_to_single_or_all(func: Callable, single_item_or_items: list | dict | set | tuple | Any) -> Any:
+
+@validate_call()
+def apply_to_single_or_all(func: Callable, single_item_or_items: IterableContainer | dict | Any) -> Any:
     """Apply the given function to all items of the input (if it is a list/dict/set/tuple), or only on the single input.
 
     Note:
@@ -38,7 +40,7 @@ def apply_to_single_or_all(func: Callable, single_item_or_items: list | dict | s
         case set():
             return {func(i) for i in single_item_or_items}
         case tuple():
-            return tuple([func(i) for i in single_item_or_items])
+            return tuple(func(i) for i in single_item_or_items)
         case dict():
             return {k: func(v) for k, v in single_item_or_items.items()}
         case _:
@@ -46,43 +48,42 @@ def apply_to_single_or_all(func: Callable, single_item_or_items: list | dict | s
 
 
 @validate_call
-def return_single_or_first(single_item_or_items: Any) -> Any:
-    """Return the first item from the input if it is a list/tuple, otherwise return the input itself.
+def get_item_type(single_item_or_items: IterableContainer[Any] | dict | Any) -> Any:
+    """Return the type of the single item, or any item in case of an iterable of items.
+
+    Note:
+        In case of a dictionary, the type of values will be considered.
 
     Warning:
-        This function raises an exception for sets and dictionaries, as they are not ordered and the concept of the
-        first element does not apply.
+        In case of an iterable, it is assumed that all items have the same type. This function does not perform any
+        checks regarding the order of items or that all items have the same type.
 
     Args:
         single_item_or_items:
-            Either a single item or a list/tuple of items.
+            Either a single item or an iterable of items.
 
     Returns:
-        Either the given single input as it is, or the first item from the input if it is a list/tuple. An empty
-        list/tuple will be returned as it is.
+        Either the type of the single input, or the type of an item from the iterable.
 
     Raises:
         ValueError:
-            If the given input is a set or a dictionary.
+            If the given input is an empty dict/list/set/tuple.
 
     Example:
-        >>> from monkey_wrench.generic import return_single_or_first
-        >>> return_single_or_first([3, 2, 1])
-        2
-        >>> return_single_or_first((3, 2, 1))
-        3
-        >>> return_single_or_first(3)
-        3
-        >>> return_single_or_first([])
-        []
+        >>> from monkey_wrench.generic import get_item_type
+        >>> get_item_type([3, 2, 1])
+        int
+        >>> get_item_type((3.0, 2, 1)) # Note that the types differ and the function does not check this!
+        float
+        >>> get_item_type(3)
+        int
     """
-    if single_item_or_items in [[], ()]:
-        return single_item_or_items
-
     match single_item_or_items:
-        case set() | dict():
-            raise ValueError("Cannot return the first item from a `set` or a `dictionary`.")
-        case list() | tuple():
-            return single_item_or_items[0]
+        case dict() | list() | set() | tuple():
+            if len(single_item_or_items) == 0:
+                raise ValueError("Empty iterable")
+            if isinstance(single_item_or_items, dict):
+                single_item_or_items = single_item_or_items.values()
+            return type(list(single_item_or_items)[0])
         case _:
-            return single_item_or_items
+            return type(single_item_or_items)

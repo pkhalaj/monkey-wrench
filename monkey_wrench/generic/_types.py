@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import TypeVar, Union
 
 
 class Order(Enum):
@@ -13,3 +14,12 @@ class Order(Enum):
     """
     ascending = 1
     descending = 2
+
+
+T = TypeVar("T")
+IterableContainer = Union[list[T], set[T], tuple[T]]
+"""Parametric type alias for the union of lists, sets, tuple.
+
+Note:
+    Strings and dictionaries have been intentionally left out!
+"""
