@@ -17,7 +17,7 @@ class Order(Enum):
 
 
 T = TypeVar("T")
-IterableContainer = Union[list[T], set[T], tuple[T]]
+IterableContainer = Union[list[T], set[T], tuple[T, ...]]
 """Parametric type alias for the union of lists, sets, tuple.
 
 Note:
