@@ -4,9 +4,9 @@ from typing import Callable, ClassVar, Literal
 
 from monkey_wrench.date_time import FilenameParser
 from monkey_wrench.input_output import (
-    collect_files_in_directory,
     copy_files_between_directories,
     create_datetime_directory,
+    visit_files_in_directory,
 )
 from monkey_wrench.input_output.seviri import output_filename_from_datetime, seviri_extension_context
 from monkey_wrench.query import List
@@ -39,7 +39,7 @@ class Retrieve(Task):
     def perform(self) -> None:
         """Perform CHIMP retrievals."""
         with seviri_extension_context() as chimp_cli:
-            files = collect_files_in_directory(self.specifications.input_directory)
+            files = visit_files_in_directory(self.specifications.input_directory)
             lst = List(files, FilenameParser)
             indices = lst.query_indices(
                 self.specifications.start_datetime,
@@ -88,7 +88,7 @@ class Retrieve(Task):
             pattern=str(last_retrieved_snapshot)
         )
 
-        collect_files_in_directory(
+        visit_files_in_directory(
             self.specifications.temp_directory,
             callback=Path.unlink
         )

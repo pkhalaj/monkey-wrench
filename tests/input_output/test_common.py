@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from monkey_wrench import input_output
-from monkey_wrench.date_time import Order, datetime_range
+from monkey_wrench.date_time import datetime_range
+from monkey_wrench.generic import Order
 from monkey_wrench.query import EumetsatAPI
 from tests.utils import make_dummy_file, make_dummy_files
 
@@ -46,8 +47,8 @@ def test_pattern_exist(pattern, kwargs, res):
 
 
 @pytest.mark.parametrize("order", [
-    Order.decreasing,
-    Order.increasing
+    Order.descending,
+    Order.ascending
 ])
 @pytest.mark.parametrize("pattern", [
     ".nc", ".", "nc", [".", "nc"], None, "", "2022", "non_existent_pattern"
@@ -56,11 +57,11 @@ def test_collect_files_in_dir(temp_dir, order, pattern):
     start_datetime = datetime(2022, 1, 1, 0, 12)
     end_datetime = datetime(2022, 1, 4)
     datetime_objs = list(datetime_range(start_datetime, end_datetime, timedelta(minutes=15)))
-    if order == Order.decreasing:
+    if order == Order.descending:
         datetime_objs = datetime_objs[::-1]
 
     make_dummy_datetime_files(datetime_objs, temp_dir)
-    files = input_output.collect_files_in_directory(temp_dir, order=order, pattern=pattern)
+    files = input_output.visit_files_in_directory(temp_dir, order=order, pattern=pattern)
 
     if pattern == "non_existent_pattern":
         assert len(files) == 0
@@ -83,8 +84,8 @@ def test_copy_files_between_directories(temp_dir, pattern):
     os.makedirs(dest_directory, exist_ok=True)
     input_output.copy_files_between_directories(temp_dir, dest_directory, pattern=pattern)
     make_dummy_file(dest_directory / "excluded.ex")
-    assert 4 == len(input_output.collect_files_in_directory(dest_directory))
-    assert 3 == len(input_output.collect_files_in_directory(dest_directory, pattern=pattern))
+    assert 4 == len(input_output.visit_files_in_directory(dest_directory))
+    assert 3 == len(input_output.visit_files_in_directory(dest_directory, pattern=pattern))
 
 
 def test_compare_files_against_reference(temp_dir):
@@ -92,7 +93,7 @@ def test_compare_files_against_reference(temp_dir):
     tolerance = 0.05
     files, expected_missing, expected_corrupted = make_dummy_files(temp_dir, number_of_files_to_remove=3)
 
-    collected_files = input_output.collect_files_in_directory(temp_dir)
+    collected_files = input_output.visit_files_in_directory(temp_dir)
     missing_files, corrupted_files = input_output.compare_files_against_reference(
         collected_files, reference_list=files, nominal_size=nominal_size, tolerance=tolerance, number_of_processes=1
     )

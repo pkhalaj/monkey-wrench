@@ -1,6 +1,7 @@
-"""Package to allow for resampling SEVIRI native files and feeding them into CHIMP, as well as filename conversions."""
+"""The package providing utilities for resampling SEVIRI native files, as well as filename conversions."""
 
 from ._common import (
+    datetime_to_filename,
     input_filename_from_datetime,
     input_filename_from_product_id,
     output_filename_from_datetime,
@@ -8,8 +9,11 @@ from ._common import (
 )
 from ._extension import seviri_extension_context
 from ._resampler import resample_seviri_native_file
+from ._types import ChimpFilesPrefix
 
 __all__ = [
+    "ChimpFilesPrefix",
+    "datetime_to_filename",
     "input_filename_from_datetime",
     "input_filename_from_product_id",
     "output_filename_from_datetime",

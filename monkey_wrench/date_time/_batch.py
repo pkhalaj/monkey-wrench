@@ -1,11 +1,13 @@
-"""The module which provides functions to generate datetime ranges and batches."""
+"""The module providing functions to generate datetime ranges and batches."""
 
 from datetime import datetime, timedelta
 from typing import Generator
 
 from pydantic import validate_call
 
-from ._common import Order, assert_start_time_is_before_end_time
+from monkey_wrench.generic import Order
+
+from ._common import assert_start_time_is_before_end_time
 
 
 @validate_call
@@ -17,7 +19,7 @@ def datetime_range(
     """Return datetime instances which are within the given datetime range and are equally spaced by the given interval.
 
     This function has a similar behaviour to the Python built-in function
-    `range() <https://docs.python.org/3/library/functions.html#func-range>`_, except that it returns datetime
+    `range() <https://docs.python.org/3/library/functions.html#func-range>`_, except that it returns ``datetime``
     instances. The built-in ``range()`` function has a default value of ``step=1``. However, this function does not
     have a default value for ``interval``, and it has to be explicitly provided.
 
@@ -60,7 +62,7 @@ def generate_datetime_batches(
         start_datetime: datetime,
         end_datetime: datetime,
         batch_interval: timedelta,
-        order: Order = Order.decreasing
+        order: Order = Order.descending
 ) -> Generator[tuple[datetime, datetime], None, None]:
     """Divide the specified datetime range into smaller intervals.
 
@@ -70,18 +72,21 @@ def generate_datetime_batches(
         end_datetime:
             The end of the datetime range (inclusive).
         batch_interval:
-            The datetime range of each batch.
+            The datetime interval of a single batch.
         order:
-            Either :obj:`Order.decreasing` or :obj:`Order.increasing`. Defaults to :obj:`Order.decreasing`.
+            Either :obj:`Order.ascending` or :obj:`tOrder.descending`. Defaults to :obj:`Order.descending`.
 
     Yields:
-        The batches, where each batch is a 2-tuple of the start and end datetime instances. The interval of each batch
-        is equal to ``batch_interval``, except for the last batch if ``end_datetime - start_datetime`` is not divisible
-        by ``batch_interval``.
+        A generator of batches, where each batch is a 2-tuple of the start and end datetime instances. The interval of
+        each batch, is equal to ``batch_interval``, except for the last batch if ``end_datetime - start_datetime`` is
+        not divisible by ``batch_interval``.
 
     Warning:
         Note that ``end_datetime`` is inclusive, i.e. it will show up in the last batch. This is different from
         :func:`datetime_range`, which treats ``end_datetime`` as exclusive.
+
+    Warning:
+        Depending on the value of ``order``, the batches can differ. See the examples below.
 
     Raises:
         ValueError:
@@ -91,21 +96,32 @@ def generate_datetime_batches(
         >>> from datetime import datetime, timedelta
         >>> from monkey_wrench.date_time import generate_datetime_batches
         >>> batches = generate_datetime_batches(datetime(2022, 1, 1), datetime(2022, 1, 8), timedelta(days=2))
+        >>> # Batches are returned in descending order, with respect to both the start and the end datetime.
         >>> for start, end in batches:
         ...     print(f"(start={start}, end={end})")
         (start=2022-01-06 00:00:00, end=2022-01-08 00:00:00)
         (start=2022-01-04 00:00:00, end=2022-01-06 00:00:00)
         (start=2022-01-02 00:00:00, end=2022-01-04 00:00:00)
         (start=2022-01-01 00:00:00, end=2022-01-02 00:00:00)
+        >>> # Compare with the following example in which the batches are returned in ascending order.
+        >>> batches = generate_datetime_batches(
+        ...   datetime(2022, 1, 1), datetime(2022, 1, 8), timedelta(days=2), order=Order.ascending
+        ... )
+        >>> for start, end in batches:
+        ...     print(f"(start={start}, end={end})")
+        (start=2022-01-01 00:00:00, end=2022-01-03 00:00:00)
+        (start=2022-01-03 00:00:00, end=2022-01-05 00:00:00)
+        (start=2022-01-05 00:00:00, end=2022-01-07 00:00:00)
+        (start=2022-01-07 00:00:00, end=2022-01-08 00:00:00)
     """
     assert_start_time_is_before_end_time(start_datetime, end_datetime)
 
     match order:
-        case Order.decreasing:
+        case Order.descending:
             while (next_start_datetime := end_datetime - batch_interval) >= start_datetime:
                 yield next_start_datetime, end_datetime
                 end_datetime = next_start_datetime
-        case Order.increasing:
+        case Order.ascending:
             while (next_end_datetime := start_datetime + batch_interval) < end_datetime:
                 yield start_datetime, next_end_datetime
                 start_datetime = next_end_datetime

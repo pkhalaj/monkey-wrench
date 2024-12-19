@@ -1,6 +1,6 @@
 """The module which defines the class for querying lists."""
 from datetime import datetime
-from typing import Any, Generator, Self, Type, TypeVar
+from typing import Any, Generator, Type
 
 import numpy as np
 from pydantic import PositiveInt, validate_call
@@ -9,10 +9,8 @@ from monkey_wrench.date_time import DateTimeParser, assert_start_time_is_before_
 
 from ._common import Query
 
-T = TypeVar("T")
 
-
-class List[T](Query):
+class List(Query):
     """A class to provide generic functionalities to query lists.
 
     Note:
@@ -25,7 +23,7 @@ class List[T](Query):
     @validate_call
     def __init__(
             self,
-            items: list[T],
+            items: list,
             datetime_parser: Type[DateTimeParser],
             log_context: str = "List"
     ) -> None:
@@ -55,7 +53,7 @@ class List[T](Query):
             else:
                 raise e
 
-    def __iter__(self) -> Generator[T, None, None]:
+    def __iter__(self) -> Generator:
         """Implement iteration over the items in the List object."""
         for item in self.__items_vector:
             yield item
@@ -67,7 +65,7 @@ class List[T](Query):
                 return False
         return True
 
-    def __getitem__(self, *indices) -> "List":
+    def __getitem__(self, *indices):
         """Get a new ``List`` object from the given indices."""
         new_list = List.__new__(List)
         super(List, new_list).__init__(log_context=self._log_context)
@@ -82,17 +80,17 @@ class List[T](Query):
         return str(self.__items_vector)
 
     @staticmethod
-    def len(item: "List") -> int:
+    def len(item) -> int:
         """Return the number of items in the List object."""
         return item.__items_vector.shape[0]
 
     @validate_call
-    def to_python_list(self) -> list[T]:
+    def to_python_list(self) -> list:
         """Convert the List object into a Python built-in list object."""
         return self.__items_vector.tolist()
 
     @validate_call
-    def query(self, start_datetime: datetime, end_datetime: datetime) -> Self:
+    def query(self, start_datetime: datetime, end_datetime: datetime):
         """Query items from the List object, given a start datetime and an end datetime.
 
         Args:
@@ -142,7 +140,7 @@ class List[T](Query):
     @validate_call
     def generate_k_sized_batches_by_index(
             self, k: PositiveInt, index_start: int = 0, index_end: int = -1, as_python_lists: bool = True
-    ) -> Generator[list, None, None] | Generator["List", None, None]:
+    ) -> Generator:
         """Return batches (sub-lists) of size ``k`` and move forward by ``1`` index each time.
 
         A batch consists of the item at the current index, as well as ``k-1`` previous items that immediately proceed

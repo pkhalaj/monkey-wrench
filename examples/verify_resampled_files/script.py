@@ -3,9 +3,9 @@ from pathlib import Path
 
 from monkey_wrench.date_time import FilenameParser, SeviriIDParser
 from monkey_wrench.input_output import (
-    collect_files_in_directory,
     compare_files_against_reference,
     read_items_from_txt_file,
+    visit_files_in_directory,
 )
 from monkey_wrench.query import List
 
@@ -26,7 +26,7 @@ product_ids = List(
 expected_datetime_instances = [SeviriIDParser.parse(i) for i in product_ids]
 
 collected_files = List(
-    collect_files_in_directory(input_directory),
+    visit_files_in_directory(input_directory),
     FilenameParser
 ).query(
     start_datetime,

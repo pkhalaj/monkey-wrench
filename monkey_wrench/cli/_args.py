@@ -1,4 +1,4 @@
-"""The module to provide main functions to parse CLI arguments."""
+"""The module providing main functions to parse CLI arguments."""
 
 import sys
 from typing import Any, ClassVar, Generator

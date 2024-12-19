@@ -6,11 +6,11 @@ from pydantic import NonNegativeInt, PositiveFloat, PositiveInt
 
 from monkey_wrench.date_time import FilenameParser, SeviriIDParser
 from monkey_wrench.input_output import (
-    collect_files_in_directory,
     compare_files_against_reference,
     create_datetime_directory,
     read_items_from_txt_file,
     seviri,
+    visit_files_in_directory,
 )
 from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import EumetsatAPI, List
@@ -42,7 +42,7 @@ class Verify(Task):
     def perform(self) -> dict[str, NonNegativeInt]:
         """Verify the product files using the reference."""
         files = List(
-            collect_files_in_directory(self.specifications.input_directory, pattern=self.specifications.pattern),
+            visit_files_in_directory(self.specifications.input_directory, pattern=self.specifications.pattern),
             FilenameParser
         ).query(
             self.specifications.start_datetime,

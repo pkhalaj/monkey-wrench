@@ -1,4 +1,4 @@
-"""The module which includes the :obj:`SEVIRI` class allowing to read SEVIRI resampled files."""
+"""The module providing the :obj:`SEVIRI` class allowing to read SEVIRI resampled files."""
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, Generator

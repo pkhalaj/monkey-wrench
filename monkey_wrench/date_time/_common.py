@@ -1,20 +1,10 @@
-"""The module which defines common functionalities needed in the :obj:`date_time` package."""
-
 from calendar import monthrange
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Annotated, Never
+from typing import Never
 
-from pydantic import Field, NonNegativeInt, PositiveInt, validate_call
+from pydantic import PositiveInt, validate_call
 
-Minutes = Annotated[NonNegativeInt, Field(lt=60)]
-"""Type alias for minutes."""
-
-
-class Order(Enum):
-    """An enum to determine the order of sorting."""
-    increasing = 1
-    decreasing = 2
+from ._types import Minute
 
 
 @validate_call
@@ -53,18 +43,19 @@ def number_of_days_in_month(year: PositiveInt, month: PositiveInt) -> int:
 
 
 @validate_call
-def floor_datetime_minutes_to_snapshots(
-        datetime_instance: datetime, snapshots: list[Minutes] | None = None
+def floor_datetime_minutes_to_specific_snapshots(
+        datetime_instance: datetime, snapshots: list[Minute] | None = None
 ) -> datetime:
-    """Round down or floor the given datetime to the closest minute from the snapshots.
+    """Round down or floor the given datetime instance to the closest minute from the given list of snapshots.
 
     Args:
         datetime_instance:
             The datetime instance to floor.
         snapshots:
-            A sorted list of minutes. Defaults to ``None``, which means the given datetime instance will be returned as
-            it is, without any modifications. As an example, for SEVIRI we have one snapshot per ``15`` minutes,
+            A (sorted) list of minutes. Defaults to ``None``, which means the given datetime instance will be returned
+            as it is, without any modifications. As an example, for SEVIRI we have one snapshot per ``15`` minutes,
             starting from the 12th minute. As a result, we have ``[12, 27, 42, 57]`` for SEVIRI snapshots in an hour.
+            The ``snapshots`` will be first sorted.
 
     Returns:
         A datetime instance which is smaller than or equal to ``datetime_instance``, such that the minute matches the
@@ -72,13 +63,17 @@ def floor_datetime_minutes_to_snapshots(
 
     Example:
           >>> from datetime import datetime
-          >>> from monkey_wrench.date_time import floor_datetime_minutes_to_snapshots
+          >>> from monkey_wrench.date_time import floor_datetime_minutes_to_specific_snapshots
           >>> seviri_snapshots = [12, 27, 42, 57]
-          >>> floor_datetime_minutes_to_snapshots(datetime(2020, 1, 1, 0, 3), seviri_snapshots)
+          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 0, 3), seviri_snapshots)
           datetime.datetime(2019, 12, 31, 23, 57)
-          >>> floor_datetime_minutes_to_snapshots(datetime(2020, 1, 1, 0, 58), seviri_snapshots)
+          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 0, 58), seviri_snapshots)
           datetime.datetime(2020, 1, 1, 0, 57)
-          >>> floor_datetime_minutes_to_snapshots(datetime(2020, 1, 1, 1, 30), seviri_snapshots)
+          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 30), seviri_snapshots)
+          datetime.datetime(2020, 1, 1, 1, 27)
+          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 27), seviri_snapshots)
+          datetime.datetime(2020, 1, 1, 1, 27)
+          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 27))
           datetime.datetime(2020, 1, 1, 1, 27)
     """
     if not snapshots:

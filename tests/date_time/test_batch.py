@@ -3,18 +3,18 @@ from collections import Counter
 import pytest
 
 from monkey_wrench.date_time import (
-    Order,
     datetime_range,
     generate_datetime_batches,
 )
+from monkey_wrench.generic import Order
 from tests.utils import intervals_equal
 
 from .const import END_DATETIME, INTERVAL, QUOTIENT, REMAINDER, START_DATETIME
 
 
 @pytest.mark.parametrize(("order", "first_batch", "last_batch"), [
-    (Order.decreasing, (END_DATETIME - INTERVAL, END_DATETIME), (START_DATETIME, START_DATETIME + REMAINDER)),
-    (Order.increasing, (START_DATETIME, START_DATETIME + INTERVAL), (END_DATETIME - REMAINDER, END_DATETIME))
+    (Order.descending, (END_DATETIME - INTERVAL, END_DATETIME), (START_DATETIME, START_DATETIME + REMAINDER)),
+    (Order.ascending, (START_DATETIME, START_DATETIME + INTERVAL), (END_DATETIME - REMAINDER, END_DATETIME))
 ])
 def test_generate_datetime_batches(order, first_batch, last_batch):
     batches = list(generate_datetime_batches(START_DATETIME, END_DATETIME, INTERVAL, order=order))
@@ -25,8 +25,8 @@ def test_generate_datetime_batches(order, first_batch, last_batch):
 
 
 @pytest.mark.parametrize("order", [
-    Order.decreasing,
-    Order.increasing,
+    Order.descending,
+    Order.ascending,
 ])
 def test_generate_datetime_batches_raise(order):
     with pytest.raises(ValueError, match="is later than"):

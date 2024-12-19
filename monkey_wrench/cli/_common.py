@@ -1,4 +1,4 @@
-"""The module which provide the main executable function for the CLI."""
+"""The module providing the main executable function for the CLI."""
 
 from functools import wraps
 from typing import Any, Callable
@@ -9,12 +9,20 @@ from pydantic import ValidationError
 from ._args import parse
 
 
-def make_error_message(e: Any) -> str:
-    """Make a concise error message."""
-    msg = e["msg"].lower() if e["msg"] else ""
-    loc = e["loc"] if e["loc"] else []
+def _make_better_error_message(exception: Any) -> str:
+    """Make a concise and a prettier error message.
+
+    Args:
+        exception:
+            The given exception instance.
+
+    Returns:
+        A string containing the aesthetically enhanced error message.
+    """
+    msg = exception["msg"].lower() if exception["msg"] else ""
+    loc = exception["loc"] if exception["loc"] else []
     loc = ".".join([str(i) for i in loc])
-    inp = e["input"]
+    inp = exception["input"]
 
     if not loc:
         return msg
@@ -33,13 +41,13 @@ def pretty_error_logs(func: Callable) -> Callable:
         except ValidationError as err:
             logger.error(f"Found {len(err.errors())} validation errors.")
             for i, e in enumerate(err.errors()):
-                logger.error(f"Validation error {i + 1} - {make_error_message(e)}")
+                logger.error(f"Validation error {i + 1} - {_make_better_error_message(e)}")
 
     return wrapper
 
 
 @pretty_error_logs
 def run() -> None:
-    """Main entrypoint when invoked from the CLI."""
+    """The main entrypoint, when `Monkey Wrench` is invoked from the CLI."""
     for task in parse():
         task.perform()
