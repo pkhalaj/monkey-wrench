@@ -12,4 +12,12 @@ In particular, you can:
 * Perform post-processing of CHIMP output as well as some visualization utilities
 * Use it as a task runner
 
+N.B. **Monkey Wrench** is a work in progress and under active development. As a result, the API and the scheme of task (YAML) files might and will change!
+
+
+**License & Disclaimer**
+
+  This program is distributed under the `GNU General Public License Version 3`_.  You should have received a copy of the GNU General Public License along with this program. If not, see `<https://www.gnu.org/licenses/gpl-3.0.html>`_.
+
 .. _CHIMP: https://github.com/simonpf/chimp
+.. _GNU General Public License Version 3: https://www.gnu.org/licenses/gpl-3.0.html
