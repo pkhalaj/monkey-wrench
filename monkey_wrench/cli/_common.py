@@ -10,7 +10,7 @@ from ._args import parse
 
 
 def _make_better_error_message(exception: Any) -> str:
-    """Make a concise and prettier error message.
+    """Make a concise and a prettier error message.
 
     Args:
         exception:
