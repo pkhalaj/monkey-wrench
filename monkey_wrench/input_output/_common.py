@@ -20,7 +20,9 @@ from ._types import AbsolutePath, Pattern, WriteMode
 
 
 @validate_call
-def pattern_exists(item: str, pattern: Pattern = None, match_all: bool = True, case_sensitive: bool = True) -> bool:
+def pattern_exists(
+        item: str, pattern: Pattern | None = None, match_all: bool = True, case_sensitive: bool = True
+) -> bool:
     """Check if a string or a list of strings exists in the given item.
 
     Args:

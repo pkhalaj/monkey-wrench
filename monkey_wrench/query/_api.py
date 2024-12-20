@@ -1,4 +1,4 @@
-"""The modules which defines the class for querying the EUMETSAT API."""
+"""The modules providing the class for querying the EUMETSAT API."""
 
 import fnmatch
 import shutil
@@ -25,12 +25,7 @@ from monkey_wrench.generic import Order
 
 from ._common import Query
 from ._meta import EumetsatAPIUrl, EumetsatCollection
-
-BoundingBox = tuple[float, float, float, float]
-"""The type alias for a tuple determining the bounds for (North, South, West, East)."""
-
-Polygon = list[tuple[float, float]]
-"""The """
+from ._types import BoundingBox, Polygon
 
 
 class EumetsatAPI(Query):

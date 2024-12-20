@@ -15,5 +15,5 @@ T = TypeVar("T", DirectoryPath, NewPath, FilePath)
 AbsolutePath = Annotated[T, AfterValidator(lambda x: x.absolute())]
 """Type annotation and Pydantic validator to represent (convert to) an absolute path."""
 
-Pattern = str | list[str] | None
+Pattern = str | list[str]
 """Type alias for a string or a list of strings that will be used as a pattern to search in other strings."""

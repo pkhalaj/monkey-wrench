@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
-from typing import Any, Generator
+from typing import Any
 
 from loguru import logger
 from pydantic import validate_call
@@ -10,10 +10,7 @@ from pydantic import validate_call
 from monkey_wrench.date_time import generate_datetime_batches
 from monkey_wrench.generic import Order
 
-Results = Generator[tuple[Any, int], None, None]
-"""Type alias for search results in batches.
-The first element in the tuple is the returned items and the second element is the number of the items.
-"""
+from ._types import Results
 
 
 class Query(ABC):
