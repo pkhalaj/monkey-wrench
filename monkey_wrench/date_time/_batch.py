@@ -5,9 +5,8 @@ from typing import Generator
 
 from pydantic import validate_call
 
+from monkey_wrench.date_time._common import assert_start_time_is_before_end_time
 from monkey_wrench.generic import Order
-
-from ._common import assert_start_time_is_before_end_time
 
 
 @validate_call
@@ -18,16 +17,15 @@ def datetime_range(
 ) -> Generator[datetime, None, None]:
     """Return datetime instances which are within the given datetime range and are equally spaced by the given interval.
 
-    This function has a similar behaviour to the Python built-in function
-    `range() <https://docs.python.org/3/library/functions.html#func-range>`_, except that it returns ``datetime``
-    instances. The built-in ``range()`` function has a default value of ``step=1``. However, this function does not
-    have a default value for ``interval``, and it has to be explicitly provided.
+    This function has a similar behaviour to the Python built-in function `range()`_, except that it returns
+    ``datetime`` instances. Moreover, the built-in ``range()`` function has a default value of ``step=1``. However,
+    this function does not have a default value for ``interval``, and it has to be explicitly provided.
 
     Args:
         start_datetime:
             The start of the datetime range (inclusive).
         end_datetime:
-            The end of the datetime range (exclusive), i.e. it is strictly larger than the last returned
+            The end of the datetime range (exclusive), i.e. it will be strictly larger than the last returned
             datetime instance.
         interval:
             The interval between two consecutive datetime instances.
@@ -41,6 +39,7 @@ def datetime_range(
     Example:
         >>> from datetime import datetime, timedelta
         >>> from monkey_wrench.date_time import datetime_range
+        >>>
         >>> dt_range = datetime_range(datetime(2022, 1, 1), datetime(2022, 1, 8), timedelta(days=2))
         >>> for datetime_instance in dt_range:
         ...     print(datetime_instance)
@@ -48,6 +47,8 @@ def datetime_range(
         2022-01-03 00:00:00
         2022-01-05 00:00:00
         2022-01-07 00:00:00
+
+    .. _range(): https://docs.python.org/3/library/functions.html#func-range
     """
     while (next_end_datetime := start_datetime + interval) < end_datetime:
         yield start_datetime
@@ -64,7 +65,7 @@ def generate_datetime_batches(
         batch_interval: timedelta,
         order: Order = Order.descending
 ) -> Generator[tuple[datetime, datetime], None, None]:
-    """Divide the specified datetime range into smaller intervals.
+    """Divide the specified datetime range into smaller batches, i.e. 2-tuples of start and datetime instances.
 
     Args:
         start_datetime:
@@ -72,9 +73,10 @@ def generate_datetime_batches(
         end_datetime:
             The end of the datetime range (inclusive).
         batch_interval:
-            The datetime interval of a single batch.
+            The datetime interval of a single batch. This is defined as the difference between the two datetime
+            instances in each batch.
         order:
-            Either :obj:`Order.ascending` or :obj:`tOrder.descending`. Defaults to :obj:`Order.descending`.
+            Either :obj:`Order.ascending` or :obj:`Order.descending`. Defaults to :obj:`Order.descending`.
 
     Yields:
         A generator of batches, where each batch is a 2-tuple of the start and end datetime instances. The interval of
@@ -95,6 +97,7 @@ def generate_datetime_batches(
     Example:
         >>> from datetime import datetime, timedelta
         >>> from monkey_wrench.date_time import generate_datetime_batches
+        >>>
         >>> batches = generate_datetime_batches(datetime(2022, 1, 1), datetime(2022, 1, 8), timedelta(days=2))
         >>> # Batches are returned in descending order, with respect to both the start and the end datetime.
         >>> for start, end in batches:
@@ -103,6 +106,7 @@ def generate_datetime_batches(
         (start=2022-01-04 00:00:00, end=2022-01-06 00:00:00)
         (start=2022-01-02 00:00:00, end=2022-01-04 00:00:00)
         (start=2022-01-01 00:00:00, end=2022-01-02 00:00:00)
+        >>>
         >>> # Compare with the following example in which the batches are returned in ascending order.
         >>> batches = generate_datetime_batches(
         ...   datetime(2022, 1, 1), datetime(2022, 1, 8), timedelta(days=2), order=Order.ascending
@@ -126,8 +130,8 @@ def generate_datetime_batches(
                 yield start_datetime, next_end_datetime
                 start_datetime = next_end_datetime
 
-    # The original datetime range might not necessarily be divisible by ``batch_interval``. For example, with ``365``
-    # days in total, and batches of ``30`` days, we have ``365 % 30 = 5``.
+    # The original datetime range might not necessarily be divisible by `batch_interval`. For example, with `365`
+    # days in total, and batches of `30` days, we have `365 % 30 = 5`.
     # Therefore, we need the following to fetch the remainder of the datetime range as the final batch.
     if start_datetime < end_datetime:
         yield start_datetime, end_datetime

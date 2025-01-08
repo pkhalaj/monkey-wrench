@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from monkey_wrench.date_time import FilenameParser, SeviriIDParser
+from monkey_wrench.date_time import FilePathParser, SeviriIDParser
 
 
 @pytest.mark.parametrize(("seviri_id", "expected_datetime_obj"), [
@@ -35,7 +35,7 @@ def test_seviri_id_parser_raise(seviri_id):
 ])
 def test_filename_parser(filename):
     for func in [Path, lambda x: x]:
-        datetime_obj = FilenameParser.parse(func(filename))
+        datetime_obj = FilePathParser.parse(func(filename))
         assert datetime_obj == datetime(2015, 7, 31, 22, 12)
 
 
@@ -52,4 +52,4 @@ def test_filename_parser(filename):
 def test_filename_parser_raise(filename):
     for func in [Path, lambda x: x]:
         with pytest.raises(ValueError, match="into a valid datetime object"):
-            FilenameParser.parse(func(filename))
+            FilePathParser.parse(func(filename))

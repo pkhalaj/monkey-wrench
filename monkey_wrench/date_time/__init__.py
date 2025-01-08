@@ -6,12 +6,12 @@ from ._common import (
     floor_datetime_minutes_to_specific_snapshots,
     number_of_days_in_month,
 )
-from ._parser import DateTimeParser, FilenameParser, SeviriIDParser
+from ._parser import DateTimeParser, FilePathParser, SeviriIDParser
 from ._types import Minute
 
 __all__ = [
     "DateTimeParser",
-    "FilenameParser",
+    "FilePathParser",
     "Minute",
     "SeviriIDParser",
     "assert_start_time_is_before_end_time",

@@ -1,4 +1,4 @@
-"""Module providing common utilities used in other modules."""
+"""The module providing common functions used in other modules."""
 
 from typing import Any, Callable
 
@@ -9,10 +9,13 @@ from ._types import IterableContainer
 
 @validate_call()
 def apply_to_single_or_all(func: Callable, single_item_or_items: IterableContainer | dict | Any) -> Any:
-    """Apply the given function to all items of the input (if it is a list/dict/set/tuple), or only on the single input.
+    """Apply the given function to all items of the input, if it is a list/dict/set/tuple, or only on the single input.
 
     Note:
-        In case of a dictionary, the func will be applied on the values.
+        In case of a dictionary, ``func`` will be applied on the values.
+
+    Warning:
+        A string, although being a sequence, is treated as a single item. boook
 
     Args:
         func:

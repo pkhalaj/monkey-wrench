@@ -3,7 +3,7 @@ from pathlib import Path
 
 from chimp import processing
 
-from monkey_wrench.date_time import FilenameParser
+from monkey_wrench.date_time import FilePathParser
 from monkey_wrench.input_output import (
     copy_files_between_directories,
     create_datetime_directory,
@@ -46,11 +46,11 @@ def run_chimp(batch: list[Path]):
     )
 
     datetime_dir = create_datetime_directory(
-        FilenameParser.parse(input_filenames[-1]),
+        FilePathParser.parse(input_filenames[-1]),
         parent=output_directory
     )
 
-    last_retrieved_snapshot = seviri.output_filename_from_datetime(FilenameParser.parse(batch[-1]))
+    last_retrieved_snapshot = seviri.output_filename_from_datetime(FilePathParser.parse(batch[-1]))
 
     copy_files_between_directories(
         temp_directory,
@@ -66,7 +66,7 @@ def run_chimp(batch: list[Path]):
 
 with seviri.seviri_extension_context("seviri"):
     files = visit_files_in_directory(input_directory)
-    lst = List(files, FilenameParser)
+    lst = List(files, FilePathParser)
     indices = lst.query_indices(
         start_datetime,
         end_datetime

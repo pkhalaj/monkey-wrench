@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from monkey_wrench.date_time import FilenameParser, SeviriIDParser
+from monkey_wrench.date_time import FilePathParser, SeviriIDParser
 from monkey_wrench.input_output import (
     compare_files_against_reference,
     read_items_from_txt_file,
@@ -27,7 +27,7 @@ expected_datetime_instances = [SeviriIDParser.parse(i) for i in product_ids]
 
 collected_files = List(
     visit_files_in_directory(input_directory),
-    FilenameParser
+    FilePathParser
 ).query(
     start_datetime,
     end_datetime
@@ -36,7 +36,7 @@ collected_files = List(
 missing, corrupted = compare_files_against_reference(
     collected_files,
     reference_list=expected_datetime_instances,
-    transform_function=FilenameParser.parse,
+    transform_function=FilePathParser.parse,
     nominal_size=0,  # replace 0 with the nominal size of a single file in bytes (positive integer!)
     tolerance=0.01
 )
