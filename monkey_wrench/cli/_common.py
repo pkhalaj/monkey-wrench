@@ -1,9 +1,8 @@
 """The module providing the main executable function for the CLI."""
 
+from monkey_wrench.cli._args import CommandLineArguments
 from monkey_wrench.error import pretty_error_logs
 from monkey_wrench.task import read_tasks_from_file
-
-from ._args import CommandLineArguments
 
 
 @pretty_error_logs
