@@ -1,3 +1,5 @@
+"""The module providing the common types that will be used in other sub-packages."""
+
 from enum import Enum
 from typing import TypeVar, Union
 

@@ -4,38 +4,41 @@ from typing import Any, Callable
 
 from pydantic import validate_call
 
-from ._types import IterableContainer
+from monkey_wrench.generic._types import IterableContainer
 
 
 @validate_call()
 def apply_to_single_or_all(func: Callable, single_item_or_items: IterableContainer | dict | Any) -> Any:
-    """Apply the given function to all items of the input, if it is a list/dict/set/tuple, or only on the single input.
+    """Apply the given function to all items of the input, if it is a dict/list/set/tuple, or only on the single input.
 
     Note:
         In case of a dictionary, ``func`` will be applied on the values.
 
     Warning:
-        A string, although being a sequence, is treated as a single item. boook
+        A string, although being a sequence, is treated as a single item.
 
     Args:
         func:
             The function to be applied.
         single_item_or_items:
-            Either a single item or a list/dict/set/tuple of items.
+            Either a single item or a dict/list/set/tuple of items.
 
     Returns:
-        Either a single output or a list/dict/set/tuple of outputs, resulting from applying the given function.
+        Either a single output or a dict/list/set/tuple of outputs, resulting from applying the given function.
 
     Example:
         >>> from monkey_wrench.generic import apply_to_single_or_all
+        >>>
         >>> apply_to_single_or_all(lambda x: x**2, [1, 2, 3])
         [1, 4, 9]
         >>> apply_to_single_or_all(lambda x: x**2, (1, 2, 3))
         (1, 4, 9)
         >>> apply_to_single_or_all(lambda x: x**2, {"a": 1, "b": 2, "c":3})
-        {"a": 1, "b": 4, "c": 9}
+        {'a': 1, 'b': 4, 'c': 9}
         >>> apply_to_single_or_all(lambda x: x**2, 3)
         9
+        >>> apply_to_single_or_all(lambda x: x*2, "book!")
+        'book!book!'
     """
     match single_item_or_items:
         case list():
@@ -52,7 +55,7 @@ def apply_to_single_or_all(func: Callable, single_item_or_items: IterableContain
 
 @validate_call
 def get_item_type(single_item_or_items: IterableContainer[Any] | dict | Any) -> Any:
-    """Return the type of the single item, or any item in case of an iterable of items.
+    """Return the type of the single item, or any item in case of a dict/list/set/tuple of items.
 
     Note:
         In case of a dictionary, the type of values will be considered.
@@ -63,7 +66,7 @@ def get_item_type(single_item_or_items: IterableContainer[Any] | dict | Any) -> 
 
     Args:
         single_item_or_items:
-            Either a single item or an iterable of items.
+            Either a single item or a dict/list/set/tuple of items.
 
     Returns:
         Either the type of the single input, or the type of an item from the iterable.
@@ -75,11 +78,12 @@ def get_item_type(single_item_or_items: IterableContainer[Any] | dict | Any) -> 
     Example:
         >>> from monkey_wrench.generic import get_item_type
         >>> get_item_type([3, 2, 1])
-        int
-        >>> get_item_type((3.0, 2, 1)) # Note that the types differ and the function does not check this!
-        float
+        <class 'int'>
+        >>> # Note that the types differ and the function does not check this!
+        >>> get_item_type((3.0, 2, 1))
+        <class 'float'>
         >>> get_item_type(3)
-        int
+        <class 'int'>
     """
     match single_item_or_items:
         case dict() | list() | set() | tuple():
