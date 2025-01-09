@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
-from monkey_wrench.task import read_tasks_from_file
+from monkey_wrench.task import InputFile, read_tasks_from_file
 from tests.task.const import END_DATETIME, START_DATETIME, ids
 from tests.utils import make_dummy_file, make_dummy_files, make_yaml_file, optional_modules_mocked
 
@@ -45,5 +45,5 @@ def test_retrieve_success(temp_dir):
     )
 
     with optional_modules_mocked():
-        validated_task = list(read_tasks_from_file(task_filename))[0]
+        validated_task = list(read_tasks_from_file(InputFile(input_filename=task_filename)))[0]
         validated_task.perform()

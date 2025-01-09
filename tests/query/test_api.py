@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from monkey_wrench.query import Polygon
 from tests.utils import EnvironmentVariables
 
 
@@ -17,13 +18,15 @@ def search_results(api):
     """Get search results."""
     start = datetime(2021, 1, 1, 0)
     end = datetime(2021, 1, 1, 6)
-    geometry = [  # polygon vertices (lon, lat) of small bounding box in central Sweden
-        (14.0, 64.0),
-        (16.0, 64.0),
-        (16.0, 62.0),
-        (14.0, 62.0),
-        (14.0, 64.0),
-    ]
+    # polygon vertices (lon, lat) of small bounding box in central Sweden
+    geometry = Polygon(
+        vertices=[
+            (14.0, 64.0),
+            (16.0, 64.0),
+            (16.0, 62.0),
+            (14.0, 62.0),
+            (14.0, 64.0),
+        ])
     return api.query(start, end, polygon=geometry)
 
 

@@ -1,4 +1,4 @@
-"""The modules providing the class for querying the EUMETSAT API."""
+"""The module providing the class for querying the EUMETSAT API."""
 
 import fnmatch
 import shutil
@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta
 from os import environ
 from pathlib import Path
-from typing import Any, ClassVar, Generator
+from typing import ClassVar, Generator
 
 from eumdac import AccessToken, DataStore, DataTailor
 from eumdac.collection import SearchResults
@@ -22,22 +22,22 @@ from monkey_wrench.date_time import (
     floor_datetime_minutes_to_specific_snapshots,
 )
 from monkey_wrench.generic import Order
-
-from ._common import Query
-from ._meta import EumetsatAPIUrl, EumetsatCollection
-from ._types import BoundingBox, Polygon
+from monkey_wrench.query._base import Query
+from monkey_wrench.query._common import seviri_collection_url
+from monkey_wrench.query._types import BoundingBox, EumetsatCollection, Polygon
 
 
 class EumetsatAPI(Query):
     """A class with utilities to simplify querying all the product IDs from the EUMETSAT API.
 
     Note:
-        This is basically a wrapper around
-        `eumdac <https://user.eumetsat.int/resources/user-guides/eumetsat-data-access-client-eumdac-guide>`_.
-        However, it does not expose all the functionalities of the ``eumdac``, only the few ones that we need!
+        This is basically a wrapper around `eumdac`_. However, it does not expose all the functionalities of the
+        `eumdac`, only the few ones that we need!
+
+    .. _eumdac: https://user.eumetsat.int/resources/user-guides/eumetsat-data-access-client-eumdac-guide
     """
 
-    # The following does not include any login credentials, therefore we supress Ruff linter rule S106.
+    # The following does not include any login credentials, therefore we suppress Ruff linter rule S106.
     credentials_env_vars: ClassVar[dict[str, str]] = dict(
         login="EUMETSAT_API_LOGIN",  # noqa: S106
         password="EUMETSAT_API_PASSWORD"  # noqa: S106
@@ -60,17 +60,17 @@ class EumetsatAPI(Query):
     ) -> None:
         """Initialize an instance of the class with API credentials read from the environment variables.
 
-        This constructor method sets up a private ``eumdac`` datastore by obtaining an authentication token using the
+        This constructor method sets up a private `eumdac` datastore by obtaining an authentication token using the
         provided API ``login`` and ``password`` which are read from the environment variables.
 
         Args:
             collection:
-                The collection. Defaults to :obj:`EumetsatCollection.seviri` for SEVIRI.
+                The collection, defaults to :obj:`~monkey_wrench.query._types.EumetsatCollection.seviri` for SEVIRI.
             log_context:
-                A string that will be used in log messages to determine the context. Defaults to empty string.
+                A string that will be used in log messages to determine the context. Defaults to an empty string.
 
         Note:
-            See `API key management`_ on the ``eumdac`` website for more information.
+            See `API key management`_ on the `eumdac` website for more information.
 
         .. _API key management: https://api.eumetsat.int/api-key
         """
@@ -101,21 +101,12 @@ class EumetsatAPI(Query):
         token_str = str(token)
         token_str = token_str[:3] + " ... " + token_str[-3:]
 
-        logger.info(f"Access token '{token_str}' issued at {datetime.now()} and expires {token.expiration}")
+        logger.info(f"Accessing token '{token_str}' issued at {datetime.now()} and expires {token.expiration}.")
         return token
 
     def len(self, product_ids: SearchResults) -> int:
         """Return the number of product IDs."""
         return product_ids.total_results
-
-    @staticmethod
-    def __stringify_polygon(polygon: Polygon | None = None) -> str | None:
-        """Convert the given polygon to a string representation which is expected by the API."""
-        if polygon is None:
-            return None
-
-        coordinates_str = ",".join([f"{lon} {lat}" for lon, lat in polygon])
-        return f"POLYGON(({coordinates_str}))"
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def query(
@@ -127,10 +118,10 @@ class EumetsatAPI(Query):
         """Query product IDs in a single batch.
 
         This method wraps around the ``eumdac.Collection().search()`` method to perform a search for product IDs
-        within a specified time range.
+        within a specified time range and the polygon.
 
         Note:
-            For a given SEVIRI collection of ``"EO:EUM:DAT:MSG:HRSEVIRI"``, an example product ID is
+            For a given SEVIRI collection, an example product ID is
             ``"MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA"``.
 
         Note:
@@ -144,11 +135,10 @@ class EumetsatAPI(Query):
             end_datetime:
                 The end datetime (exclusive).
             polygon:
-                A list of polygon vertices. Each vertex is a 2-tuple of geodetic coordinates, i.e.
-                ``(<longitude>, <latitude>)``.
+                An object of type :class:`~monkey_wrench.query._types.Polygon`.
 
         Returns:
-            The results of the search, containing the product IDs found within the specified time range.
+            The results of the search, containing the product IDs found within the specified time range and the polygon.
 
         Raises:
             ValueError:
@@ -158,8 +148,9 @@ class EumetsatAPI(Query):
         end_datetime = floor_datetime_minutes_to_specific_snapshots(
             end_datetime, self.__collection.value.snapshot_minutes
         )
-        polygon = EumetsatAPI.__stringify_polygon(polygon)
-        return self.__selected_collection.search(dtstart=start_datetime, dtend=end_datetime, geo=polygon)
+        return self.__selected_collection.search(
+            dtstart=start_datetime, dtend=end_datetime, geo=str(polygon) if polygon else None
+        )
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def query_in_batches(
@@ -167,7 +158,7 @@ class EumetsatAPI(Query):
             start_datetime: datetime = datetime(2022, 1, 1),
             end_datetime: datetime = datetime(2023, 1, 1),
             batch_interval: timedelta = timedelta(days=30),
-    ) -> Generator[tuple[SearchResults, int], Any, Any]:
+    ) -> Generator[tuple[SearchResults, int], None, None]:
         """Retrieve all the product IDs, given a time range and a batch interval, fetching one batch at a time.
 
         Args:
@@ -182,23 +173,24 @@ class EumetsatAPI(Query):
                 get an error regarding sending `too many requests` to the server.
 
         Note:
-            We expect to have one file (product ID) per ``15`` minutes, i.e. ``4`` files per hour or ``96`` files per
-            day. For example, suppose our re-analysis period is ``2022/01/01`` (inclusive) to ``2023/01/01``
+            An example, for SEVIRI, we expect to have one file (product ID) per ``15`` minutes, i.e. ``4`` files per
+            hour or ``96`` files per day. If our re-analysis period is ``2022/01/01`` (inclusive) to ``2023/01/01``
             (exclusive), i.e. ``365`` days. This results in a maximum of ``35040`` files.
 
-            For example, if we split our datetime range into intervals of ``30`` days and fetch product IDs in batches,
+            If we split our datetime range into intervals of ``30`` days and fetch product IDs in batches,
             there is a maximum of ``2880 = 96 x 30`` IDs in each batch retrieved by a single request. One might need to
             adapt this value to avoid running into the issue of sending `too many requests` to the server.
 
         Yields:
-            A generator of tuples. The first element of each tuple is the collection of products retrieved in that
+            A generator of 2-tuples. The first element of each tuple is the collection of products retrieved in that
             batch. The second element is the number of the retrieved products for that batch. The search results can be
             in turn iterated over to retrieve individual products.
 
         Example:
             >>> from datetime import datetime, timedelta
             >>> from monkey_wrench.query import EumetsatAPI
-            >>> start_datetime = datetime(2022, 1, 1, )
+            >>>
+            >>> start_datetime = datetime(2022, 1, 1)
             >>> end_datetime = datetime(2022, 1, 3)
             >>> batch_interval = timedelta(days=1)
             >>> api = EumetsatAPI()
@@ -322,6 +314,6 @@ class EumetsatAPI(Query):
             }
         }
         cache_str = f"::{cache}" if cache else ""
-        fstr = f"zip://*.nat{cache_str}::{EumetsatAPIUrl.full_seviri_collection_url()}/{product_id}"
+        fstr = f"zip://*.nat{cache_str}::{seviri_collection_url()}/{product_id}"
         logger.info(f"Opening {fstr}")
         return [FSFile(f) for f in open_files(fstr, https=https_header)][0]

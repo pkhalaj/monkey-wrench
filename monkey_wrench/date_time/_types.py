@@ -6,3 +6,6 @@ from pydantic import Field, NonNegativeInt
 
 Minute = Annotated[NonNegativeInt, Field(lt=60)]
 """Type annotation and Pydantic validator to represent minutes."""
+
+Minutes = list[Minute]
+"""Type alias for a list of minutes."""

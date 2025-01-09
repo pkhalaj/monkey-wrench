@@ -9,8 +9,8 @@ from typing import Any, Never
 from pydantic import validate_call
 
 
-class DateTimeParser:
-    """A static class for parsing items, e.g. product IDs or file paths, into datetime objects."""
+class DateTimeParserBase:
+    """A static base class for parsing items, e.g. product IDs or file paths, into datetime objects."""
 
     @staticmethod
     def _raise_value_error(item: Any) -> Never:
@@ -36,9 +36,9 @@ class DateTimeParser:
                 If the given item cannot be parsed.
 
         Example:
-            >>> from monkey_wrench.date_time import DateTimeParser
+            >>> from monkey_wrench.date_time import DateTimeParserBase
             >>>
-            >>> DateTimeParser.parse_by_regex(
+            >>> DateTimeParserBase.parse_by_regex(
             ... "20230102_22_30", r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$")
             datetime.datetime(2023, 1, 2, 22, 30)
         """
@@ -47,7 +47,7 @@ class DateTimeParser:
                 return datetime(*[int(m) for m in match.groups()])
             raise ValueError()
         except ValueError:
-            DateTimeParser._raise_value_error(item)
+            DateTimeParserBase._raise_value_error(item)
 
     @staticmethod
     @validate_call
@@ -69,15 +69,15 @@ class DateTimeParser:
 
         Example:
             >>> from datetime import datetime
-            >>> from monkey_wrench.date_time import DateTimeParser
+            >>> from monkey_wrench.date_time import DateTimeParserBase
             >>>
-            >>> DateTimeParser.parse_by_format_string("20230101_22_30", "%Y%m%d_%H_%M")
+            >>> DateTimeParserBase.parse_by_format_string("20230101_22_30", "%Y%m%d_%H_%M")
             datetime.datetime(2023, 1, 1, 22, 30)
         """
         try:
             return datetime.strptime(datetime_string, datetime_format_string)
         except ValueError:
-            DateTimeParser._raise_value_error(datetime_string)
+            DateTimeParserBase._raise_value_error(datetime_string)
 
     @staticmethod
     @abstractmethod
@@ -90,7 +90,7 @@ class DateTimeParser:
         pass
 
 
-class SeviriIDParser(DateTimeParser):
+class SeviriIDParser(DateTimeParserBase):
     """Static parser class for SEVIRI product IDs."""
 
     regex_pattern = (r"[0-9A-Za-z]+-SEVI-[0-9A-Za-z]+-[0-9]+-NA"
@@ -107,10 +107,10 @@ class SeviriIDParser(DateTimeParser):
             >>> SeviriIDParser.parse("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
             datetime.datetime(2015, 7, 31, 22, 12)
         """
-        return DateTimeParser.parse_by_regex(seviri_product_id, SeviriIDParser.regex_pattern)
+        return DateTimeParserBase.parse_by_regex(seviri_product_id, SeviriIDParser.regex_pattern)
 
 
-class FilePathParser(DateTimeParser):
+class FilePathParser(DateTimeParserBase):
     """Static parser class for file paths."""
 
     regex_pattern = r"[0-9A-Za-z]+_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})_([0-9]{2})"
@@ -152,4 +152,7 @@ class FilePathParser(DateTimeParser):
         if isinstance(filepath, str):
             filepath = Path(filepath)
 
-        return DateTimeParser.parse_by_regex(str(filepath.stem), FilePathParser.regex_pattern)
+        return DateTimeParserBase.parse_by_regex(str(filepath.stem), FilePathParser.regex_pattern)
+
+
+DateTimeParser = SeviriIDParser | FilePathParser

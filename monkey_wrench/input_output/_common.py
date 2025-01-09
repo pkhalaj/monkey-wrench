@@ -15,14 +15,14 @@ from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveI
 from monkey_wrench.generic import ListSetTuple, Order, StringOrStrings, pattern_exists
 from monkey_wrench.input_output._types import AbsolutePath, WriteMode
 from monkey_wrench.process import run_multiple_processes
-from monkey_wrench.query import Results
+from monkey_wrench.query import Batches
 
 
 @validate_call
 def visit_files_in_directory(
         directory: AbsolutePath[DirectoryPath],
         callback: Callable | None = None,
-        pattern: StringOrStrings = None,
+        pattern: StringOrStrings | None = None,
         order: Order = Order.ascending,
         recursive: bool = True,
         **kwargs
@@ -168,7 +168,7 @@ def write_items_to_txt_file(
 
 @validate_call
 def write_items_to_txt_file_in_batches(
-        batches: Results, items_list_filepath: AbsolutePath[FilePath] | AbsolutePath[NewPath]
+        batches: Batches, items_list_filepath: AbsolutePath[FilePath] | AbsolutePath[NewPath]
 ) -> NonNegativeInt:
     """Similar to :func:`write_items_to_txt_file`, but assumes that the input is in batches."""
     # First, create an empty file.

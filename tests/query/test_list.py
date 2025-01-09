@@ -123,7 +123,7 @@ def test_normalize_index_raise(index):
 
 @pytest.mark.parametrize(("k", "idx_start", "idx_end", "err", "msg"), [
     (-1, 0, 10, ValidationError, "greater than 0"),
-    (30, 0, 10, ValueError, "Batch size"),
+    (30, 0, 10, ValueError, "batch size"),
     (10, 15, 10, ValueError, "cannot be greater"),
 ])
 def test_k_sized_batches_raise(k, idx_start, idx_end, err, msg):

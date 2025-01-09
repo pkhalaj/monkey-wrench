@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.input_output import read_items_from_txt_file
-from monkey_wrench.task import read_tasks_from_file
+from monkey_wrench.task import InputFile, read_tasks_from_file
 from tests.task.const import (
     BATCH_INTERVAL,
     END_DATETIME,
@@ -23,7 +23,7 @@ from tests.utils import make_yaml_file
 def test_model_product_ids_success(temp_dir):
     filename = Path(temp_dir, "task.yaml")
     make_yaml_file(filename, task)
-    validated_task = list(read_tasks_from_file(filename))[0]
+    validated_task = list(read_tasks_from_file(InputFile(input_filename=filename)))[0]
 
     assert task["context"] == validated_task.context
     assert task["action"] == validated_task.action
@@ -51,7 +51,7 @@ def test_model_product_ids_raise(temp_dir, task, error_message):
     filename = Path(temp_dir, "task.yaml")
     make_yaml_file(filename, task)
     with pytest.raises(ValidationError, match=error_message):
-        list(read_tasks_from_file(filename))
+        list(read_tasks_from_file(InputFile(input_filename=filename)))
 
 
 def test_fetch_product_ids_success(get_token_or_skip, temp_dir):
@@ -59,7 +59,7 @@ def test_fetch_product_ids_success(get_token_or_skip, temp_dir):
     output_filename = Path(temp_dir, "products_ids.txt")
     make_yaml_file(filename, specification_with(output_filename=str(output_filename)))
 
-    validated_task = list(read_tasks_from_file(filename))[0]
+    validated_task = list(read_tasks_from_file(InputFile(input_filename=filename)))[0]
     validated_task.perform()
     data = read_items_from_txt_file(validated_task.specifications.output_filename)
     start = datetime(*START_DATETIME)

@@ -6,7 +6,7 @@ from typing import Never
 
 from pydantic import PositiveInt, validate_call
 
-from monkey_wrench.date_time._types import Minute
+from monkey_wrench.date_time._types import Minutes
 
 
 @validate_call
@@ -61,7 +61,7 @@ def number_of_days_in_month(year: PositiveInt, month: PositiveInt) -> int:
 
 @validate_call
 def floor_datetime_minutes_to_specific_snapshots(
-        datetime_instance: datetime, snapshots: list[Minute] | None = None
+        datetime_instance: datetime, snapshots: Minutes | None = None
 ) -> datetime:
     """Floor the given datetime instance to the closest minute from the given list of snapshots.
 
