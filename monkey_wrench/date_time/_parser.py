@@ -36,8 +36,6 @@ class DateTimeParserBase:
                 If the given item cannot be parsed.
 
         Example:
-            >>> from monkey_wrench.date_time import DateTimeParserBase
-            >>>
             >>> DateTimeParserBase.parse_by_regex(
             ... "20230102_22_30", r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$")
             datetime.datetime(2023, 1, 2, 22, 30)
@@ -68,9 +66,6 @@ class DateTimeParserBase:
                 If the given datetime string cannot be parsed.
 
         Example:
-            >>> from datetime import datetime
-            >>> from monkey_wrench.date_time import DateTimeParserBase
-            >>>
             >>> DateTimeParserBase.parse_by_format_string("20230101_22_30", "%Y%m%d_%H_%M")
             datetime.datetime(2023, 1, 1, 22, 30)
         """
@@ -102,8 +97,6 @@ class SeviriIDParser(DateTimeParserBase):
         """Parse the given SEVIRI product ID into a datetime object.
 
         Example:
-            >>> from monkey_wrench.date_time import SeviriIDParser
-            >>>
             >>> SeviriIDParser.parse("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
             datetime.datetime(2015, 7, 31, 22, 12)
         """
@@ -128,24 +121,26 @@ class FilePathParser(DateTimeParserBase):
                 anything except for an empty string. See the examples below.
 
         Examples:
-            >>> from pathlib import Path
-            >>> from monkey_wrench.date_time import FilePathParser
-            >>>
             >>> # Input is an absolute path of type `Path`.
             >>> FilePathParser.parse(Path("/home/user/dir/prefix_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12)
+
             >>> # Input is a relative path of type `Path`.
             >>> FilePathParser.parse(Path("prefix_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12)
+
             >>> # Input is an absolute path of type `str`.
             >>> FilePathParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
             datetime.datetime(2015, 7, 31, 22, 12)
+
             >>> # Input is a relative path of type `str` and does not have an extension.
             >>> FilePathParser.parse("prefix_20150731_22_12")
             datetime.datetime(2015, 7, 31, 22, 12)
-            >>> # Input is a relative path of type `str` and its extension is numeric, i.e. `68`.
-            >>> FilePathParser.parse("p_20150731_22_1268")
+
+            >>> # Input is a relative path of type `str` and its extension is even numeric, i.e. `72`.
+            >>> FilePathParser.parse("p_20150731_22_1272")
             datetime.datetime(2015, 7, 31, 22, 12)
+
             >>> # Input is not valid as it is missing the prefix. The following will raise an exception.
             >>> # FilePathParser.parse("20150731_22_12")
         """

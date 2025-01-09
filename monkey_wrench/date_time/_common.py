@@ -21,13 +21,10 @@ def assert_start_time_is_before_end_time(start_datetime: datetime, end_datetime:
         ValueError:
             If ``start_datetime`` is later than the ``end_datetime``.
 
-    Example:
-        >>> from datetime import datetime
-        >>> from monkey_wrench.date_time import assert_start_time_is_before_end_time
-        >>>
+    Examples:
         >>> # The following will not raise an exception.
         >>> assert_start_time_is_before_end_time(datetime(2020, 1, 1), datetime(2020, 12, 31))
-        >>>
+
         >>> # The following will raise an exception!
         >>> # assert_start_time_is_before_end_time(datetime(2020, 1, 2), datetime(2020, 1, 1))
     """
@@ -48,12 +45,13 @@ def number_of_days_in_month(year: PositiveInt, month: PositiveInt) -> int:
     Returns:
         The number of days in a month.
 
-    Example:
-        >>> from monkey_wrench.date_time import number_of_days_in_month
-        >>>
-        >>> number_of_days_in_month(2018, 2) # 2018 was a common year.
+    Examples:
+        >>> # `2018` was a common year.
+        >>> number_of_days_in_month(2018, 2)
         28
-        >>> number_of_days_in_month(2020, 2) # 2020 was a leap year.
+
+        >>> # `2020` was a leap year.
+        >>> number_of_days_in_month(2020, 2)
         29
     """
     return monthrange(year, month)[1]
@@ -78,19 +76,20 @@ def floor_datetime_minutes_to_specific_snapshots(
         A datetime instance which is smaller than or equal to the given ``datetime_instance``, such that the minute
         matches the closest minute from the ``snapshots``.
 
-    Example:
-          >>> from datetime import datetime
-          >>> from monkey_wrench.date_time import floor_datetime_minutes_to_specific_snapshots
-          >>>
+    Examples:
           >>> seviri_snapshots = [12, 27, 42, 57]
           >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 0, 3), seviri_snapshots)
           datetime.datetime(2019, 12, 31, 23, 57)
+
           >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 0, 58), seviri_snapshots)
           datetime.datetime(2020, 1, 1, 0, 57)
+
           >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 30), seviri_snapshots)
           datetime.datetime(2020, 1, 1, 1, 27)
+
           >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 27), seviri_snapshots)
           datetime.datetime(2020, 1, 1, 1, 27)
+
           >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 26))
           datetime.datetime(2020, 1, 1, 1, 26)
     """

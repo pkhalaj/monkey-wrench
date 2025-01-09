@@ -37,9 +37,6 @@ def datetime_range(
         A generator of datetime instances.
 
     Example:
-        >>> from datetime import datetime, timedelta
-        >>> from monkey_wrench.date_time import datetime_range
-        >>>
         >>> dt_range = datetime_range(datetime(2022, 1, 1), datetime(2022, 1, 8), timedelta(days=2))
         >>> for datetime_instance in dt_range:
         ...     print(datetime_instance)
@@ -94,19 +91,16 @@ def generate_datetime_batches(
         ValueError:
             Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
 
-    Example:
-        >>> from datetime import datetime, timedelta
-        >>> from monkey_wrench.date_time import generate_datetime_batches
-        >>>
+    Examples:
+        >>> # By default, batches are returned in descending order, with respect to both the start and the end datetime.
         >>> batches = generate_datetime_batches(datetime(2022, 1, 1), datetime(2022, 1, 8), timedelta(days=2))
-        >>> # Batches are returned in descending order, with respect to both the start and the end datetime.
         >>> for start, end in batches:
         ...     print(f"(start={start}, end={end})")
         (start=2022-01-06 00:00:00, end=2022-01-08 00:00:00)
         (start=2022-01-04 00:00:00, end=2022-01-06 00:00:00)
         (start=2022-01-02 00:00:00, end=2022-01-04 00:00:00)
         (start=2022-01-01 00:00:00, end=2022-01-02 00:00:00)
-        >>>
+
         >>> # Compare with the following example in which the batches are returned in ascending order.
         >>> batches = generate_datetime_batches(
         ...   datetime(2022, 1, 1), datetime(2022, 1, 8), timedelta(days=2), order=Order.ascending
