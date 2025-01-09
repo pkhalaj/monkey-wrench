@@ -15,7 +15,7 @@ def run_multiple_processes(
         # Suppress Ruff linter rule S108 regarding insecure use of temporary directory.
         temp_directory: Path = Path("/tmp")  # noqa: S108
 ) -> list[Any]:
-    """Call the provided function with different arguments in parallel.
+    """Call the provided function with different arguments using multiple processes.
 
     Args:
         function:
@@ -24,7 +24,7 @@ def run_multiple_processes(
             single input argument and then unpack, index, or iterate over them inside the function body.
             See the example below.
         arguments:
-            An iterable of arguments that will be passed to the function.
+            An iterable (list/set/tuple) of arguments that will be passed to the function.
         number_of_processes:
             Number of process to use. Defaults to ``2``.
         temp_directory:
@@ -32,15 +32,16 @@ def run_multiple_processes(
             when the space allocated for ``"/tmp"`` on the servers is limited.
 
     Returns:
-        A list of returned results from the function in the same order as the given arguments.
+        A list of returned results from the function in the same order as the given arguments (if not a set).
 
     Example:
         >>> from monkey_wrench.process import run_multiple_processes
-        >>> def add(x):  # Note that the function only accepts a single argument!
+        >>>
+        >>> def power(x):  # Note that the function only accepts a single argument!
         ...   return x[0] ** x[1]  # We use indices to extract our desired arguments from the single input argument.
         ...
-        >>> run_multiple_processes(add, [(1, 3), (2, 5)], number_of_processes=2)
-        [1, 243]
+        >>> run_multiple_processes(power, [(1, 3), (2, 5)], number_of_processes=2)
+        [1, 32]
     """
     with input_output.temp_directory(temp_directory):
         with Pool(processes=number_of_processes) as pool:
