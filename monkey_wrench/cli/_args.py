@@ -6,33 +6,30 @@ from typing import ClassVar, Self
 from pydantic import BaseModel, model_validator
 from pydantic_core import PydanticCustomError
 
+from monkey_wrench.task import InputFile
+
 
 class CommandLineArguments(BaseModel):
-    """Pydantic model to validate CLI arguments."""
+    """Pydantic model to validate CLI arguments.
 
-    task_filepath: ClassVar[str] = ""
-    """The path of the task file, which must end in `.yaml` or `.yml`."""
-
-    cli_args: ClassVar[list[str]] = sys.argv
-    """The list of CLI arguments which have been passed to the Monkey Wrench.
-
-    Warning:
-        The zeroth argument is always the path of the script that is being executed, i.e.
-        `<path>/monkey_wrench` in this case.
+    It reads the CLI arguments from ``sys.argv``, where ``sys.argv[0]`` is the path of the script which is being
+    executed, i.e. `monkey-wrench` in this case. As a result, the actual arguments are ``sys.argv[1:]``.
     """
+
+    task_filepath: ClassVar[InputFile]
+    """The path of the task file, which must end in `.yaml` or `.yml`, and point to an existing and valid YAML file."""
 
     # noinspection PyNestedDecorators
     @model_validator(mode="after")
     @classmethod
     def validate_number_of_inputs(cls, instance: Self) -> Self:
         """Ensure that the number of input arguments is correct."""
-        if len(cls.cli_args) != 2:
+        if len(sys.argv) != 2:
             raise PydanticCustomError(
                 "cli_arguments",
                 "Expected a single `command-line argument`, but received {n_args}.",
-                dict(n_args=len(cls.cli_args) - 1),
+                dict(n_args=len(sys.argv) - 1),
             )
-        cls.task_filepath = cls.cli_args[1]
         return instance
 
     # noinspection PyNestedDecorators
@@ -40,9 +37,18 @@ class CommandLineArguments(BaseModel):
     @classmethod
     def validate_task_filepath_extension(cls, instance: Self) -> Self:
         """Ensure that the task filepath ends in `.yaml` or `.yml`."""
-        if not (cls.task_filepath.endswith(".yaml") or cls.task_filepath.endswith(".yml")):
+        task_filepath = sys.argv[1]
+        if not (task_filepath.endswith(".yaml") or task_filepath.endswith(".yml")):
             raise PydanticCustomError(
                 "cli_arguments",
                 "The task filepath must end in `.yaml` or `.yml`.",
             )
+        return instance
+
+    # noinspection PyNestedDecorators
+    @model_validator(mode="after")
+    @classmethod
+    def validate_task_filepath_existence(cls, instance: Self) -> Self:
+        """Check that the task file exists and convert its path to an absolute path."""
+        cls.task_filepath = InputFile(input_filename=sys.argv[1])
         return instance

@@ -25,8 +25,7 @@ def __make_better_error_message(exception: Any) -> str:
 
     loc = ".".join([str(i) for i in loc])
 
-    return (f"{msg} - `{inp}` of type <{type(inp).__name__}> is invalid for assignment to "
-            f"`{loc}` of type <{type(loc).__name__}>.")
+    return f"{msg} -- `{inp}` of type <{type(inp).__name__}> is invalid for assignment to `{loc}`."
 
 
 def pretty_error_logs(func: Callable) -> Callable:
@@ -41,6 +40,6 @@ def pretty_error_logs(func: Callable) -> Callable:
             n_errors = len(err.errors())
             logger.error(f"Found {n_errors} validation error{'' if n_errors == 1 else 's'} in total.")
             for i, e in enumerate(err.errors()):
-                logger.error(f"Validation error {i + 1} - {__make_better_error_message(e)}")
+                logger.error(f"Validation error {i + 1} -- {__make_better_error_message(e)}")
 
     return wrapper
