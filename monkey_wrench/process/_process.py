@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import Any, Callable
 
 from monkey_wrench import input_output
-from monkey_wrench.generic import IterableContainer
+from monkey_wrench.generic import ListSetTuple
 
 
 def run_multiple_processes(
         function: Callable,
-        arguments: IterableContainer[Any],
+        arguments: ListSetTuple[Any],
         number_of_processes: int = 2,
         # Suppress Ruff linter rule S108 regarding insecure use of temporary directory.
         temp_directory: Path = Path("/tmp")  # noqa: S108

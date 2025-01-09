@@ -60,7 +60,7 @@ class Verify(Task):
         datetime_objs = [SeviriIDParser.parse(i) for i in product_ids]
         missing, corrupted = compare_files_against_reference(
             files,
-            reference_list=datetime_objs,
+            reference_items=datetime_objs,
             transform_function=FilePathParser.parse,
             nominal_size=self.specifications.nominal_size,
             tolerance=self.specifications.tolerance

@@ -1,3 +1,5 @@
+"""The module providing common types for the ``seviri`` sub-package."""
+
 from enum import Enum
 
 

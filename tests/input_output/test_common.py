@@ -17,35 +17,6 @@ END_DATETIME = datetime(2015, 6, 1, 5)
 BATCH_INTERVAL = timedelta(hours=1)
 
 
-@pytest.mark.parametrize(("pattern", "kwargs", "res"), [
-    ("This", dict(match_all=True, case_sensitive=True), True),
-    ("This", dict(match_all=False, case_sensitive=True), True),
-    ("This", dict(match_all=False, case_sensitive=False), True),
-    ("This", dict(match_all=True, case_sensitive=False), True),
-    #
-    ("this", dict(match_all=True, case_sensitive=True), False),
-    ("this", dict(match_all=False, case_sensitive=True), False),
-    ("this", dict(match_all=True, case_sensitive=False), True),
-    ("this", dict(match_all=False, case_sensitive=False), True),
-    #
-    (["this", "SAMPLE"], dict(match_all=True, case_sensitive=True), False),
-    (["this", "SAMPLE"], dict(match_all=True, case_sensitive=False), True),
-    (["This", "SAMPLE"], dict(match_all=False, case_sensitive=True), True),
-    (["This", "SAMPLE"], dict(match_all=False, case_sensitive=False), True),
-    # ,
-    (["This", "not"], dict(match_all=False, case_sensitive=True), True),
-    (["This", "not"], dict(match_all=False, case_sensitive=False), True),
-    (["This", "not"], dict(match_all=True, case_sensitive=True), False),
-    (["This", "not"], dict(match_all=True, case_sensitive=False), False),
-    #
-    (["This", "is", "a", "sample"], dict(match_all=True, case_sensitive=True), True),
-    (["This", "is", "a", "not", "sample"], dict(match_all=True, case_sensitive=True), False),
-    (["This", "is", "a", "not", "sample"], dict(match_all=False, case_sensitive=True), True),
-])
-def test_pattern_exist(pattern, kwargs, res):
-    assert res == input_output.pattern_exists("This is a sample!", pattern, **kwargs)
-
-
 @pytest.mark.parametrize("order", [
     Order.descending,
     Order.ascending
@@ -95,7 +66,7 @@ def test_compare_files_against_reference(temp_dir):
 
     collected_files = input_output.visit_files_in_directory(temp_dir)
     missing_files, corrupted_files = input_output.compare_files_against_reference(
-        collected_files, reference_list=files, nominal_size=nominal_size, tolerance=tolerance, number_of_processes=1
+        collected_files, reference_items=files, nominal_size=nominal_size, tolerance=tolerance, number_of_processes=1
     )
     assert (expected_missing, expected_corrupted) == (missing_files, corrupted_files)
 

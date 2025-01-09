@@ -1,4 +1,8 @@
-"""The module providing the :obj:`SEVIRI` class allowing to read SEVIRI resampled files."""
+"""The module providing a factory function and a context manager for the ``SEVIRI`` extension.
+
+The extension allows for reading SEVIRI resampled files.
+"""
+
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, Generator
@@ -23,20 +27,20 @@ CHANNEL_NAMES = [
 """Names of SEVIRI channels.
 
 Warning:
-    The order of channels matter. As a result, using `satpy.readers.seviri_base.CHANNEL_NAMES.values()` might not
-    work! It has the correct channels but not necessarily according to the following order!
+    The order of channels matter. As a result, using ``satpy.readers.seviri_base.CHANNEL_NAMES.values()`` does not
+    work! It has the correct channels but not according to the required order!
 """
 
 
 def _seviri_extension_factory():
-    """Instantiate the class with its name, so that it is now available in the CHIMP namespace."""
+    """Instantiate a class of type ``SEVIRI``, so that it will be available in the CHIMP namespace."""
     import torch
     import xarray as xr
     from chimp.data import InputDataset
     from chimp.data.utils import scale_slices
 
     class SEVIRI(InputDataset):
-        """A derivative class of obj:`chimp.data.InputDataset` enabling reading from SEVIRI resampled files."""
+        """A derivative class of ``chimp.data.InputDataset`` enabling reading from SEVIRI resampled files."""
 
         def __init__(self, name: str):
             """The constructor of the class which initializes the instance given a ``name`` for the dataset."""
@@ -104,12 +108,14 @@ def seviri_extension_context() -> Callable:
     """A context manager to load the SEVIRI extension.
 
     Yields:
-        A SEVIRI-aware chimp cli function which can perform a retrieval.
+        A SEVIRI-aware CHIMP cli function which can perform a retrieval.
 
     Example:
-        >>> from monkey_wrench.input_output.seviri.extension import seviri_extension_context
+        >>> from monkey_wrench.input_output.seviri import seviri_extension_context
+        >>>
         >>> with seviri_extension_context() as chimp_cli:
         ...     print("The `SEVIRI` extension is now available to CHIMP.")
+        The `SEVIRI` extension is now available to CHIMP.
     """
     from chimp import extensions, processing
 

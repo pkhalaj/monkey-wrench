@@ -35,7 +35,7 @@ collected_files = List(
 
 missing, corrupted = compare_files_against_reference(
     collected_files,
-    reference_list=expected_datetime_instances,
+    reference_items=expected_datetime_instances,
     transform_function=FilePathParser.parse,
     nominal_size=0,  # replace 0 with the nominal size of a single file in bytes (positive integer!)
     tolerance=0.01

@@ -1,4 +1,4 @@
-"""The module providing functions to read and resample SEVIRI native files from ``FSFile`` objects."""
+"""The module providing a function to read and resample SEVIRI native files from ``FSFile`` objects."""
 
 import os
 from pathlib import Path
@@ -12,8 +12,7 @@ from satpy import Scene
 from satpy.readers.seviri_base import CHANNEL_NAMES
 from satpy.readers.utils import FSFile
 
-# We prefer relative imports here and therefore supress Ruff linter rule  TID252.
-from .._types import AbsolutePath  # noqa: TID252
+from monkey_wrench.input_output._types import AbsolutePath
 
 DEFAULT_CHANNEL_NAMES = CHANNEL_NAMES.values()
 """Names of SEVIRI channels."""
@@ -39,10 +38,10 @@ def resample_seviri_native_file(
         output_filename_generator:
             A function using which an output filename will be generated from the given input filename
             (SEVIRI native file). The generated filename must end in ``".nc"`` and it is used to store the
-            resampled file. The generated output filename will be prefixed with ``output_path`` to compose a
-            fully-qualified path for the output file.
+            resampled file. The generated output filename will be prepended with ``output_path`` to compose a complete
+            filepath for the output file.
         area:
-            Either a filename (Path) or an object (AreaDefinition) which holds the area information according to which
+            Either a filepath or an object (AreaDefinition) which holds the area information according to which
             the data will be resampled.
         channel_names:
             The list of channels to load from the file. Defaults to
@@ -84,7 +83,7 @@ def resample_seviri_native_file(
     # of multiprocessing.
     log_id = uuid4()
 
-    logger.info(f"Resampling SEVIRI native file {fs_file} to {output_filename}. ID: {log_id}.")
+    logger.info(f"Resampling SEVIRI native file {fs_file} to {output_filename} -- ID: {log_id}.")
     scene = Scene([fs_file], "seviri_l1b_native")
     scene.load(channel_names)
     resampled_scene = scene.resample(area, radius_of_influence=radius_of_influence)

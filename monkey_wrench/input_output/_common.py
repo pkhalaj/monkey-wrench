@@ -12,59 +12,25 @@ import requests
 from loguru import logger
 from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveInt, validate_call
 
-from monkey_wrench.generic import IterableContainer, Order
+from monkey_wrench.generic import ListSetTuple, Order, StringOrStrings, pattern_exists
+from monkey_wrench.input_output._types import AbsolutePath, WriteMode
 from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import Results
-
-from ._types import AbsolutePath, Pattern, WriteMode
-
-
-@validate_call
-def pattern_exists(
-        item: str, pattern: Pattern | None = None, match_all: bool = True, case_sensitive: bool = True
-) -> bool:
-    """Check if a string or a list of strings exists in the given item.
-
-    Args:
-        item:
-            The string in which the pattern(s) will be looked for.
-        pattern:
-            The pattern(s) to look for. It can be either a single string, a list of strings, or  ``None.``.
-            Defaults to ``None``, which means that the function returns ``True``.
-        match_all:
-            A boolean indicating whether to match all pattern(s) in case of a pattern list. Defaults to ``True``.
-            When it is set to ``False``, only one match suffices. In the case of a single string this parameter does
-            not have any effect.
-        case_sensitive:
-            A boolean indicating whether to perform a case-sensitive match. Defaults to ``True``.
-
-    Returns:
-        A boolean indicating whether all or any (depending on ``match_all``) of the pattern(s) exist(s) in the given
-        item.
-    """
-    if pattern is None:
-        return True
-
-    if not isinstance(pattern, list):
-        pattern = [pattern]
-
-    if not case_sensitive:
-        item = item.lower()
-        pattern = [i.lower() for i in pattern]
-
-    func = all if match_all is True else any
-    return func(i in item for i in pattern)
 
 
 @validate_call
 def visit_files_in_directory(
         directory: AbsolutePath[DirectoryPath],
         callback: Callable | None = None,
-        pattern: Pattern = None,
+        pattern: StringOrStrings = None,
         order: Order = Order.ascending,
+        recursive: bool = True,
         **kwargs
 ) -> list[Path]:
-    """Visit all files in the directory tree recursively.
+    """Visit all files in the directory, either recursively or just the top-level files.
+
+    Note:
+        This function relies on :func:`~monkey_wrench.generic.pattern_exists`.
 
     Args:
         directory:
@@ -72,38 +38,56 @@ def visit_files_in_directory(
         callback:
             A function that will be called everytime a match is found for a file. Defaults to ``None``.
         pattern:
-            If given, it will be used to filter files, i.e. a file must have the pattern(s) as (a) substring(s) in its
-            name. Defaults to ``None`` which means no filtering. See :func:`pattern_exists` for more information.
+            If given, it will be used to filter files, i.e. a file must have the pattern item(s) as (a) substring(s) in
+            its name. Defaults to ``None`` which means no filtering. See :func:`~monkey_wrench.generic.pattern_exists`
+            for more information.
         order:
             Either :obj:`~monkey_wrench.date_time.Order.descending` or :obj:`~monkey_wrench.date_time.Order.ascending`.
-            Defaults to :obj:`~monkey_wrench.date_time.Order.descending`.
+            Defaults to :obj:`~monkey_wrench.date_time.Order.ascending`.
+        recursive:
+            A boolean flag determining whether to recursively visit all files in the directory tree, or just visit files
+            in the top-level directory. Defaults to ``True``.
         kwargs:
-            Other keyword arguments that will be directly passed to :func:`pattern_exists`.
+            Other keyword arguments that will be directly passed to :func:`~monkey_wrench.generic.pattern_exists`.
 
     Returns:
-        A sorted flat list of all files in the given directory that match the given pattern(s) and have been treated
+        A sorted flat list of all file paths in the given directory that match the given pattern and have been treated
         according to the ``callback`` function.
     """
     file_list = []
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if pattern_exists(file, pattern, **kwargs):
-                file_list.append(Path(root, file))
+
+    if recursive:
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if pattern_exists(file, pattern, **kwargs):
+                    file_list.append(Path(root, file))
+    else:
+        for item in os.listdir(directory):
+            if (file := Path(directory, item)).is_file():
+                if pattern_exists(item, pattern, **kwargs):
+                    file_list.append(file)
 
     if callback is not None:
-        [callback(f) for f in file_list]
+        for f in file_list:
+            callback(f)
 
-    return sorted(file_list, reverse=True if order == Order.descending else False)
+    return sorted(file_list, reverse=(order == Order.descending))
 
 
 @validate_call
 def copy_files_between_directories(
         source_directory: AbsolutePath[DirectoryPath],
         destination_directory: AbsolutePath[DirectoryPath],
-        pattern: Pattern = None,
+        pattern: StringOrStrings = None,
         **kwargs
 ) -> None:
-    """Copy files that match the pattern from one directory to another.
+    """Copy (top-level) files whose filename match the pattern from one directory to another.
+
+    Warning:
+        The copying is not performed recursively. Only the top-level files are copied.
+
+    Note:
+        This function relies on :func:`~monkey_wrench.generic.pattern_exists`.
 
     Args:
         source_directory:
@@ -113,36 +97,38 @@ def copy_files_between_directories(
         pattern:
             The pattern to filter the files.
         kwargs:
-            Other keyword arguments that will be directly passed to :func:`pattern_exists`.
+            Other keyword arguments that will be directly passed to :func:`~monkey_wrench.generic.pattern_exists`.
     """
     visit_files_in_directory(
         source_directory,
         lambda f: copy_single_file_to_directory(destination_directory, f),
         pattern=pattern,
+        recursive=False,
         **kwargs
     )
 
 
 @validate_call
 def copy_single_file_to_directory(
-        destination_directory: AbsolutePath[DirectoryPath], file_path: AbsolutePath[FilePath]
+        destination_directory: AbsolutePath[DirectoryPath], filepath: AbsolutePath[FilePath]
 ) -> None:
     """Copy a single file with the given path to another destination directory.
 
     Args:
         destination_directory:
             The destination directory to copy the given file to.
-        file_path:
+        filepath:
             The path of the file that needs to be copied.
     """
-    destination_file = destination_directory / file_path.name
-    logger.info(f"copying {file_path} to {destination_file}")
-    shutil.copy(file_path, destination_file)
+    destination_filepath = destination_directory / filepath.name
+    logger.info(f"Copying {filepath} to {destination_filepath}")
+    shutil.copy(filepath, destination_filepath)
 
 
 @validate_call
 def write_items_to_txt_file(
-        items: IterableContainer | Generator, items_list_filename: AbsolutePath[FilePath] | AbsolutePath[NewPath],
+        items: ListSetTuple | Generator,
+        items_list_filepath: AbsolutePath[FilePath] | AbsolutePath[NewPath],
         write_mode: WriteMode = WriteMode.overwrite
 ) -> NonNegativeInt:
     """Write items from an iterable (list, set, tuple, generator) to a text file, with one item per line.
@@ -155,7 +141,7 @@ def write_items_to_txt_file(
     Args:
         items:
             An iterable of items to be written to the file.
-        items_list_filename:
+        items_list_filepath:
             The path to the (text) file where the items will be written.
         write_mode:
             Either :obj:`~monkey_wrench.input_output.WriteMode.append` or
@@ -166,7 +152,7 @@ def write_items_to_txt_file(
         The number of items that are written to the file successfully.
     """
     number_of_items = 0
-    with open(items_list_filename, write_mode.value) as f:
+    with open(items_list_filepath, write_mode.value) as f:
         for item in items:
             try:
                 f.write(f"{item}\n")
@@ -182,20 +168,23 @@ def write_items_to_txt_file(
 
 @validate_call
 def write_items_to_txt_file_in_batches(
-        batches: Results, items_list_filename: AbsolutePath[FilePath] | AbsolutePath[NewPath]
+        batches: Results, items_list_filepath: AbsolutePath[FilePath] | AbsolutePath[NewPath]
 ) -> NonNegativeInt:
     """Similar to :func:`write_items_to_txt_file`, but assumes that the input is in batches."""
-    with open(items_list_filename, WriteMode.overwrite.value):
-        pass
+    # First, create an empty file.
+    with open(items_list_filepath, "w"): ...
+
     number_of_items = 0
     for batch, _ in batches:
-        number_of_items += write_items_to_txt_file(batch, items_list_filename, write_mode=WriteMode.append)
+        number_of_items += write_items_to_txt_file(batch, items_list_filepath, write_mode=WriteMode.append)
     return number_of_items
 
 
 @validate_call
 def read_items_from_txt_file(
-        items_list_filename: AbsolutePath[FilePath], transform_function: Callable | None = None
+        items_list_filepath: AbsolutePath[FilePath],
+        transform_function: Callable | None = None,
+        trim: bool = True,
 ) -> list[Any]:
     """Get the list of items from a text file, assuming each line corresponds to a single item.
 
@@ -206,21 +195,28 @@ def read_items_from_txt_file(
         items from a text file.
 
     Args:
-        items_list_filename:
+        items_list_filepath:
             The path to the (text) file containing the list of items.
-
         transform_function:
             If given, each item in the list will be first transformed according to the function before being
             appended to the list and returned. Defaults to ``None``, which means no transformation is performed and
             items will be returned as they are.
+        trim:
+            A boolean indicating whether to remove trailing/leading whitespaces, tabs, and newlines from each item.
+            Defaults to ``True``.
 
     Returns:
         A list of (transformed) items, where each item corresponds to a single line in the given file.
     """
-    with open(items_list_filename, "r") as f:
-        items = [line.strip() for line in f.readlines()]
+    with open(items_list_filepath, "r") as f:
+        items = f.readlines()
+
+    if trim:
+        items = [item.strip() for item in items]
+
     if transform_function:
         return [transform_function(i) for i in items]
+
     return items
 
 
@@ -238,14 +234,14 @@ def create_datetime_directory(
         datetime_object:
             The datetime object to create the directory for.
         format_string:
-            The format string to create subdirectories from the datetime object. Defaults to "%Y/%m/%d".
+            The format string to create subdirectories from the datetime object. Defaults to ``"%Y/%m/%d"``.
         parent:
-            The parent directory inside which the directory will be created. Defaults to ".".
+            The parent directory inside which the directory will be created. Defaults to ``"."``.
         remove_if_exists:
             A boolean indicating whether to remove the directory (recursively) if it already exists.
         dry_run:
             If ``True``, nothing will be created or removed and only the directory path will be returned.
-            Defaults to ``False``, meaning that changes will be made.
+            Defaults to ``False``, meaning that changes will be made to the disk.
 
     Returns:
         The full path of the (created) directory.
@@ -254,6 +250,7 @@ def create_datetime_directory(
         >>> from datetime import datetime
         >>> from pathlib import Path
         >>> from monkey_wrench.input_output import create_datetime_directory
+        >>>
         >>> path = create_datetime_directory(datetime(2022, 3, 12), format_string="%Y/%m/%d", parent=Path.home())
         >>> expected_path = Path.home() / Path("2022/03/12")
         >>> expected_path.exists()
@@ -275,8 +272,8 @@ def temp_directory(directory: AbsolutePath[DirectoryPath]) -> Path:
     """Create a temporary directory and set the global temporary directory to the given path.
 
     Note:
-        The reason to set the global temporary directory is to ensure that any other inner function that might invoke
-        ``tempfile.TemporaryDirectory()`` also uses the given global temporary directory.
+        The reason to set the global temporary directory is to ensure that any other inner functions or context managers
+         that might invoke ``tempfile.TemporaryDirectory()`` also use the given global temporary directory.
 
     Yields:
         The full path of the (created) temporary directory.
@@ -292,31 +289,34 @@ def temp_directory(directory: AbsolutePath[DirectoryPath]) -> Path:
 
 @validate_call
 def compare_files_against_reference(
-        files: IterableContainer[Path],
-        reference_list: IterableContainer | None = None,
+        filepaths: ListSetTuple[Path],
+        reference_items: ListSetTuple | None = None,
         transform_function: Callable | None = None,
         nominal_size: int | None = None,
         tolerance: float = 0.01,
         number_of_processes: PositiveInt = 20,
 ) -> tuple[set | None, set | None]:
-    """Compare an iterable of files with an iterable of reference items and report missing and corrupted files.
+    """Compare an iterable of file paths with an iterable of reference items and report missing and corrupted files.
+
+    Warning:
+        This function will convert iterables into sets. As a result, duplicate items are removed.
 
     Args:
-        files:
-            The iterable of files to perform the check on.
-        reference_list:
+        filepaths:
+            The iterable of file paths to perform the check on.
+        reference_items:
             The reference iterable of items to compare against. Defaults to ``None`` which means the search for
             missing files will not be performed.
         transform_function:
             A function to transform the files into new objects before comparing them against the reference. This can be
             e.g. a :func:`~monkey_wrench.date_time.DateTimeParser.parse` function to make datetime objects out of
-            files. Defaults to ``None`` which means no transformation is performed and the given files and the reference
-            items are compared as they are.
+            file paths. Defaults to ``None`` which means no transformation is performed and the given file paths and the
+            reference items are compared as they are.
         nominal_size:
-            The nominal size of the files in bytes. This is just an approximation. Defaults to ``None``, which means
-            the search for corrupted files will not be performed.
+            The nominal size of the files in bytes. Defaults to ``None``, which means the search for corrupted files
+            will not be performed.
         tolerance:
-            Maximum allowed relative difference in file size, before it can be marked as corrupted.
+            The maximum relative difference in file size, before it can be marked as corrupted.
             Any file whose size (``file_size``) satisfies ``abs(1 - file_size/nominal_size) > tolerance`` will be
             marked as corrupted. Defaults to ``0.01``, i.e. any file with a size difference larger than 1 percent of
             the nominal size will be marked as corrupted.
@@ -330,18 +330,19 @@ def compare_files_against_reference(
     missing_files, corrupted_files = None, None
 
     if transform_function:
-        files_transformed = {transform_function(f) for f in files}
+        files_transformed = {transform_function(f) for f in filepaths}
     else:
-        files_transformed = set(files)
+        files_transformed = set(filepaths)
 
-    if reference_list:
-        missing_files = set(reference_list) - files_transformed
+    if reference_items:
+        missing_files = set(reference_items) - files_transformed
 
     if nominal_size:
         if number_of_processes > 1:
-            results = run_multiple_processes(os.path.getsize, files, number_of_processes=number_of_processes)
-            corrupted_files = {f for f, r in zip(files, results, strict=False) if abs(1 - r / nominal_size) > tolerance}
+            results = run_multiple_processes(os.path.getsize, filepaths, number_of_processes=number_of_processes)
+            corrupted_files = {f for f, r in zip(filepaths, results, strict=True) if
+                               abs(1 - r / nominal_size) > tolerance}
         else:
-            corrupted_files = {f for f in files if abs(1 - f.stat().st_size / nominal_size) > tolerance}
+            corrupted_files = {f for f in filepaths if abs(1 - f.stat().st_size / nominal_size) > tolerance}
 
     return missing_files, corrupted_files
