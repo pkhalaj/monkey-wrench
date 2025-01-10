@@ -18,6 +18,11 @@ DateTimeLike = Iterable[int]
 """Type definition for a datetime like object such as ``[2022, 10, 27]``."""
 
 
+def noop(*_args, **_kwargs):
+    """Dummy function."""
+    pass
+
+
 class EnvironmentVariables:
     """A context manager to manipulate environment variables and restoring them upon exit."""
 

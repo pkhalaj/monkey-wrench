@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from requests import HTTPError
 
+from tests.utils import make_yaml_file
 from tests.utils.eumdac import EumdacPackage
 
 
@@ -35,3 +36,11 @@ def temp_dir() -> Path:
 def eumdac():
     with EumdacPackage.mocked() as _eumdac:
         yield _eumdac
+
+
+@pytest.fixture
+def empty_task_filepath(temp_dir) -> str:
+    """Fixture for an empty task file."""
+    filepath = Path(temp_dir, "task.yaml")
+    make_yaml_file(filepath, {})
+    return str(filepath)
