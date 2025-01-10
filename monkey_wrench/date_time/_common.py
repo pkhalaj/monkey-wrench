@@ -14,7 +14,7 @@ def assert_start_time_is_before_end_time(start_datetime: datetime, end_datetime:
     """Raise a ``ValueError`` if ``start_datetime`` is later than the ``end_datetime``, otherwise return ``None``.
 
     Warning:
-        Do not use an ``assert`` keyword in combination with this function. The assertion is implicitly done in the
+        Do not use ``assert`` in combination with this function. The assertion is implicitly done in the
         function.
 
     Raises:
@@ -77,20 +77,29 @@ def floor_datetime_minutes_to_specific_snapshots(
         matches the closest minute from the ``snapshots``.
 
     Examples:
-          >>> seviri_snapshots = [12, 27, 42, 57]
-          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 0, 3), seviri_snapshots)
+          >>> floor_datetime_minutes_to_specific_snapshots(
+          ...  datetime(2020, 1, 1, 0, 3), [12, 27, 42, 57]
+          ... )
           datetime.datetime(2019, 12, 31, 23, 57)
 
-          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 0, 58), seviri_snapshots)
+          >>> floor_datetime_minutes_to_specific_snapshots(
+          ...  datetime(2020, 1, 1, 0, 58), [12, 27, 42, 57]
+          ... )
           datetime.datetime(2020, 1, 1, 0, 57)
 
-          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 30), seviri_snapshots)
+          >>> floor_datetime_minutes_to_specific_snapshots(
+          ...  datetime(2020, 1, 1, 1, 30), [12, 27, 42, 57]
+          ... )
           datetime.datetime(2020, 1, 1, 1, 27)
 
-          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 27), seviri_snapshots)
+          >>> floor_datetime_minutes_to_specific_snapshots(
+          ...  datetime(2020, 1, 1, 1, 27), [12, 27, 42, 57]
+          ... )
           datetime.datetime(2020, 1, 1, 1, 27)
 
-          >>> floor_datetime_minutes_to_specific_snapshots(datetime(2020, 1, 1, 1, 26))
+          >>> floor_datetime_minutes_to_specific_snapshots(
+          ...  datetime(2020, 1, 1, 1, 26)
+          ... )
           datetime.datetime(2020, 1, 1, 1, 26)
     """
     if not snapshots:
