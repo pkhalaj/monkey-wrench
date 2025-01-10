@@ -17,7 +17,7 @@ class CommandLineArguments(BaseModel):
     """
 
     task_filepath: ClassVar[InputFile]
-    """The path of the task file, which must end in `.yaml` or `.yml`, and point to an existing and valid YAML file."""
+    """The path of the task file, which must point to an existing and valid YAML (`.yaml` or `.yml`) file."""
 
     # noinspection PyNestedDecorators
     @model_validator(mode="after")
@@ -27,7 +27,7 @@ class CommandLineArguments(BaseModel):
         if len(sys.argv) != 2:
             raise PydanticCustomError(
                 "cli_arguments",
-                "Expected a single `command-line argument`, but received {n_args}.",
+                "Expected a single command-line argument, but received {n_args} arguments.",
                 dict(n_args=len(sys.argv) - 1),
             )
         return instance

@@ -4,6 +4,7 @@ import os
 import random
 import sys
 from contextlib import contextmanager
+from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -57,6 +58,32 @@ class EnvironmentVariables:
         """Restore the original environment."""
         self.__delete_newly_added_variables()
         self.__reset_variables_to_original_values()
+
+
+class CLIArguments:
+    """A context manager to manipulate CLI arguments and restoring them upon exit."""
+
+    def __init__(self, *args, starting_index: int = 1):
+        """Initialise the context manager by making a copy of the original CLI arguments.
+
+        Args:
+            *args:
+                CLI arguments, as a list, that needs to be replaced.
+            starting_index:
+                The index of the CLI argument to start with. Defaults to ``1``, meaning the path of the executable will
+                not be changed.
+        """
+        self.__starting_index = starting_index
+        self.__args = deepcopy(args)
+        self.__original_args = deepcopy(sys.argv)
+
+    def __enter__(self):
+        """Enter the context manager by copying the new CLI arguments."""
+        sys.argv[self.__starting_index:] = self.__args
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Restore the original CLI arguments."""
+        sys.argv = deepcopy(self.__original_args)
 
 
 def shuffle_list(lst: list[Any]) -> tuple[list[int], list[Any]]:
