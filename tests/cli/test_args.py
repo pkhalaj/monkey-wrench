@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import pytest
-from cli import CommandLineArguments
 from pydantic import ValidationError
 
+from monkey_wrench.cli import CommandLineArguments
 from tests.utils import CLIArguments, make_yaml_file
 
 

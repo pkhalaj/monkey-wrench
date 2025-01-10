@@ -12,12 +12,14 @@ from monkey_wrench.task import InputFile
 class CommandLineArguments(BaseModel):
     """Pydantic model to validate CLI arguments.
 
-    It reads the CLI arguments from ``sys.argv``, where ``sys.argv[0]`` is the path of the script which is being
-    executed, i.e. `monkey-wrench` in this case. As a result, the actual arguments are ``sys.argv[1:]``.
+    It reads the CLI arguments from `sys.argv`_, where ``sys.argv[0]`` is the path of the script which is being
+    executed, i.e. ``monkey-wrench`` in this case. As a result, the actual arguments are ``sys.argv[1:]``.
+
+    .. _sys.argv: https://docs.python.org/3/library/sys.html#sys.argv
     """
 
     task_filepath: ClassVar[InputFile]
-    """The path of the task file, which must point to an existing and valid YAML (`.yaml` or `.yml`) file."""
+    """The path of the task file, which must point to an existing and valid YAML (``".yaml"`` or ``".yml"``) file."""
 
     # noinspection PyNestedDecorators
     @model_validator(mode="after")
@@ -36,7 +38,7 @@ class CommandLineArguments(BaseModel):
     @model_validator(mode="after")
     @classmethod
     def validate_task_filepath_extension(cls, instance: Self) -> Self:
-        """Ensure that the task filepath ends in `.yaml` or `.yml`."""
+        """Ensure that the task filepath ends in ``".yaml"`` or ``".yml"``."""
         task_filepath = sys.argv[1]
         if not (task_filepath.endswith(".yaml") or task_filepath.endswith(".yml")):
             raise PydanticCustomError(
