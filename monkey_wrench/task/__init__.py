@@ -1,4 +1,4 @@
-from typing import Any, Generator
+from typing import Generator
 
 import yaml
 from pydantic import BaseModel, validate_call
@@ -16,19 +16,18 @@ class _Task(BaseModel):
 
 
 @validate_call
-def read_tasks_from_file(filename: Any) -> Generator[Task, None, None]:
+def read_tasks_from_file(file: InputFile) -> Generator[Task, None, None]:
     """Read and parse task(s) from the given ``.yaml`` file.
 
     Args:
-        filename:
-            The name of the ``.yaml`` file to read the task(s) from. In case of multiple tasks in the same file,
+        file:
+            The path of the ``.yaml`` file to read the task(s) from. In case of multiple tasks in the same file,
             different tasks must be separated by three dashes ``"---"``. In the language of YAML files, each task is
             essentially a document.
 
     Yields:
         A generator yielding the task(s) from the given ``.yaml`` file.
     """
-    filename = InputFile(input_filename=filename).input_filename
-    with open(filename, "r") as f:
+    with open(file.input_filename, "r") as f:
         for document in yaml.safe_load_all(f):
             yield _Task(data=document).data

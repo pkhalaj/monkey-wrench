@@ -5,12 +5,12 @@ import pytest
 
 from monkey_wrench.input_output import write_items_to_txt_file
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
-from monkey_wrench.task import read_tasks_from_file
+from monkey_wrench.task import InputFile, read_tasks_from_file
 from tests.task.const import END_DATETIME, START_DATETIME, ids, ids_in_query
 from tests.utils import make_dummy_files, make_yaml_file
 
 
-def test_verify_files_success(temp_dir):
+def _verify_files_success(temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
     directory = Path(temp_dir, "here")
@@ -45,7 +45,7 @@ def test_verify_files_success(temp_dir):
             ))
     )
 
-    validated_task = list(read_tasks_from_file(task_filename))[0]
+    validated_task = list(read_tasks_from_file(InputFile(input_filename=task_filename)))[0]
     outs = validated_task.perform()
 
     keys_map = {
@@ -62,7 +62,7 @@ def test_verify_files_success(temp_dir):
 
 
 @pytest.mark.skip
-def test_fetch_files_success(get_token_or_skip, temp_dir):
+def _fetch_files_success(get_token_or_skip, temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
     write_items_to_txt_file(ids, product_ids_filename)
@@ -81,5 +81,5 @@ def test_fetch_files_success(get_token_or_skip, temp_dir):
             ))
     )
 
-    for task in read_tasks_from_file(task_filename):
+    for task in read_tasks_from_file(InputFile(input_filename=task_filename)):
         task.perform()

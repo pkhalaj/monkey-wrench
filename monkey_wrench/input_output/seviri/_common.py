@@ -6,107 +6,126 @@ from pathlib import Path
 from pydantic import validate_call
 
 from monkey_wrench.date_time import SeviriIDParser
-from monkey_wrench.generic import IterableContainer, apply_to_single_or_all, get_item_type
-
-from ._types import ChimpFilesPrefix
+from monkey_wrench.generic import ListSetTuple, StringOrStrings, apply_to_single_or_all, get_item_type
+from monkey_wrench.input_output.seviri._types import ChimpFilesPrefix
 
 
 @validate_call
-def input_filename_from_product_id(product_ids: str | IterableContainer[str]) -> Path | IterableContainer[Path]:
-    """Generate CHIMP-compliant input filename(s) based on SEVIRI product ID(s).
+def input_filename_from_product_id(
+        product_ids: str | ListSetTuple[str], extension: str = ".nc"
+) -> Path | ListSetTuple[Path]:
+    """Generate (a) CHIMP-compliant input filename(s) based on (a) SEVIRI product ID(s).
 
     Args:
         product_ids:
-            Either a single SEVIRI product ID or an iterable of SEVIRI product IDs.
+            Either a single SEVIRI product ID, or a list/set/tuple of SEVIRI product IDs.
+        extension:
+            The file extension, Defaults to ``".nc"``.
 
     Returns:
-        Depending on the input, either a single filename or an iterable of filenames. The type of the iterable container
-        matches the type of the input container, e.g. a tuple of strings as input will result in a tuple of paths.
+        Depending on the input, either a single filename, or a list/set/tuple of filenames. The type of the
+        output matches the type of the input in case of a list/set.tuple, e.g. a tuple of strings as input will result
+        in a tuple of paths.
 
     Example:
         >>> from monkey_wrench.input_output.seviri import input_filename_from_product_id
+        >>>
         >>> input_filename_from_product_id("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
-        'seviri_20150731_22_12.nc'
-        >>> input_filename_from_product_id({
+        PosixPath('seviri_20150731_22_12.nc')
+        >>> input_filename_from_product_id((
         ...  "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
         ...  "MSG3-SEVI-MSG15-0100-NA-20231231171242.800000000Z-NA"
-        ... })
-        {'seviri_20150731_22_12.nc', 'seviri_20231231_17_12.nc'}
+        ... ))
+        (PosixPath('seviri_20150731_22_12.nc'), PosixPath('seviri_20231231_17_12.nc'))
     """
-    return __dispatch(ChimpFilesPrefix.seviri, product_ids)
+    return __dispatch(ChimpFilesPrefix.seviri, product_ids, extension)
 
 
 @validate_call
 def input_filename_from_datetime(
-        datetime_objects: datetime | IterableContainer[datetime]
-) -> Path | IterableContainer[Path]:
-    """Generate CHIMP-compliant input filename(s) based on datetime object(s).
+        datetime_objects: datetime | ListSetTuple[datetime], extension: str = ".nc"
+) -> Path | ListSetTuple[Path]:
+    """Generate (a) CHIMP-compliant input filename(s) based on (a) datetime object(s).
 
     Args:
         datetime_objects:
-            Either a single datetime object or an iterable of datetime objects.
+            Either a single datetime object, or a list/set/tuple of datetime objects.
+        extension:
+            The file extension, Defaults to ``".nc"``.
 
     Returns:
-        Depending on the input, either a single filename or an iterable of filenames. The type of the iterable container
-        matches the type of the input container, e.g. a tuple of strings as input will result in a tuple of paths.
+        Depending on the input, either a single filename, or a list/set/tuple of filenames. The type of the
+        output matches the type of the input in case of a list/set.tuple, e.g. a tuple of strings as input will result
+        in a tuple of paths.
 
     Example:
         >>> from datetime import datetime
         >>> from monkey_wrench.input_output.seviri import input_filename_from_datetime
+        >>>
         >>> input_filename_from_datetime(datetime(2020, 1, 1, 0, 12))
-        'seviri_20200101_00_12.nc'
+        PosixPath('seviri_20200101_00_12.nc')
         >>> input_filename_from_datetime([datetime(2020, 1, 1, 0, 12), datetime(2020, 3, 4, 2, 42)])
-        ['seviri_20200101_00_12.nc', 'seviri_20200304_02_42.nc']
+        [PosixPath('seviri_20200101_00_12.nc'), PosixPath('seviri_20200304_02_42.nc')]
     """
-    return __dispatch(ChimpFilesPrefix.seviri, datetime_objects)
+    return __dispatch(ChimpFilesPrefix.seviri, datetime_objects, extension)
 
 
 @validate_call
-def output_filename_from_product_id(product_ids: str | list[str]) -> Path | list[Path]:
-    """Generate CHIMP-compliant output filename(s) based on SEVIRI product ID(s).
+def output_filename_from_product_id(
+        product_ids: StringOrStrings, extension: str = ".nc"
+) -> Path | list[Path]:
+    """Generate (a) CHIMP-compliant output filename(s) based on (a) SEVIRI product ID(s).
 
     Args:
         product_ids:
-            Either a single SEVIRI product ID or an iterable of SEVIRI product IDs.
+            Either a single SEVIRI product ID , or a list/set/tuple of SEVIRI product IDs.
+        extension:
+            The file extension, Defaults to ``".nc"``.
 
     Returns:
-        Depending on the input, either a single filename or an iterable of filenames. The type of the iterable container
-        matches the type of the input container, e.g. a tuple of strings as input will result in a tuple of paths.
+        Depending on the input, either a single filename, or a list/set/tuple of filenames. The type of the
+        output matches the type of the input in case of a list/set.tuple, e.g. a tuple of strings as input will result
+        in a tuple of paths.
 
     Example:
         >>> from monkey_wrench.input_output.seviri import output_filename_from_product_id
+        >>>
         >>> output_filename_from_product_id("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
-        'seviri_20150731_22_12.nc'
+        PosixPath('chimp_20150731_22_12.nc')
         >>> output_filename_from_product_id([
         ...  "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
         ...  "MSG3-SEVI-MSG15-0100-NA-20231231171242.800000000Z-NA"
         ... ])
-        ['chimp_20150731_22_12.nc', 'chimp_20231231_17_12.nc']
+        [PosixPath('chimp_20150731_22_12.nc'), PosixPath('chimp_20231231_17_12.nc')]
     """
-    return __dispatch(ChimpFilesPrefix.chimp, product_ids)
+    return __dispatch(ChimpFilesPrefix.chimp, product_ids, extension)
 
 
 @validate_call
 def output_filename_from_datetime(
-        datetime_objects: datetime | IterableContainer[datetime]
-) -> Path | IterableContainer[Path]:
-    """Generate CHIMP-compliant output filename(s) based on datetime object(s).
+        datetime_objects: datetime | ListSetTuple[datetime], extension: str = ".nc"
+) -> Path | ListSetTuple[Path]:
+    """Generate (a) CHIMP-compliant output filename(s) based on (a) datetime object(s).
 
     Args:
         datetime_objects:
-            Either a single datetime object or an iterable of datetime objects.
+            Either a single datetime object , or a list/set/tuple of datetime objects.
+        extension:
+            The file extension, Defaults to ``".nc"``.
 
     Returns:
-        Depending on the input, either a single filename or an iterable of filenames. The type of the iterable container
-        matches the type of the input container, e.g. a tuple of strings as input will result in a tuple of paths.
+        Depending on the input, either a single filename, or a list/set/tuple of filenames. The type of the
+        output matches the type of the input in case of a list/set.tuple, e.g. a tuple of strings as input will result
+        in a tuple of paths.
 
     Example:
         >>> from datetime import datetime
-        >>> from monkey_wrench.input_output.seviri import input_filename_from_datetime
-        >>> input_filename_from_datetime(datetime(2020, 1, 1, 0, 12))
-        'seviri_20200101_00_12.nc'
-        >>> input_filename_from_datetime([datetime(2020, 1, 1, 0, 12), datetime(2020, 3, 4, 2, 42)])
-        ['chimp_20200101_00_12.nc', 'chimp_20200304_02_42.nc']
+        >>> from monkey_wrench.input_output.seviri import output_filename_from_datetime
+        >>>
+        >>> output_filename_from_datetime(datetime(2020, 1, 1, 0, 12))
+        PosixPath('chimp_20200101_00_12.nc')
+        >>> output_filename_from_datetime([datetime(2020, 1, 1, 0, 12), datetime(2020, 3, 4, 2, 42)])
+        [PosixPath('chimp_20200101_00_12.nc'), PosixPath('chimp_20200304_02_42.nc')]
     """
     return __dispatch(ChimpFilesPrefix.chimp, datetime_objects)
 
@@ -124,7 +143,7 @@ def datetime_to_filename(prefix: ChimpFilesPrefix, datetime_object: datetime, ex
             The file extension, Defaults to ``".nc"``.
 
     Returns:
-        A filename with the following format ``"<prefix>_<year><month><day>_<hour>_<minute>.extension"``.
+        A filename with the following format ``"<prefix>_<year><month><day>_<hour>_<minute>.<extension>"``.
     """
     chimp_timestamp_str = datetime_object.strftime("%Y%m%d_%H_%M")
     return Path(f"{prefix.value}_{chimp_timestamp_str}{extension}")
@@ -133,15 +152,16 @@ def datetime_to_filename(prefix: ChimpFilesPrefix, datetime_object: datetime, ex
 @validate_call
 def __dispatch(
         prefix: ChimpFilesPrefix,
-        single_item_or_list: datetime | str | IterableContainer[datetime] | IterableContainer[str]
+        single_item_or_list: datetime | str | ListSetTuple[datetime] | ListSetTuple[str],
+        extension: str = ".nc"
 ) -> Path | list[Path]:
-    """Dispatch the given input to corresponding CHIMP compliant filename(s) functions."""
+    """Dispatch the given input to its corresponding CHIMP-compliant filename function."""
     tp = get_item_type(single_item_or_list)
     if tp is datetime:
         return apply_to_single_or_all(lambda x: datetime_to_filename(prefix, x), single_item_or_list)
     elif tp is str:
         return apply_to_single_or_all(
-            lambda x: datetime_to_filename(prefix, SeviriIDParser.parse(x)), single_item_or_list
+            lambda x: datetime_to_filename(prefix, SeviriIDParser.parse(x), extension), single_item_or_list
         )
     else:
-        raise TypeError(f"Do not know how to dispatch for type {tp}")
+        raise TypeError(f"I do not know how to dispatch for type {tp}.")

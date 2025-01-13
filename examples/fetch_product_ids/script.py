@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from query import EumetsatCollection
+
 from monkey_wrench.input_output import write_items_to_txt_file_in_batches
-from monkey_wrench.query import EumetsatAPI, EumetsatCollection
+from monkey_wrench.query import EumetsatAPI
 
 filename = Path("seviri_product_ids.txt")
 

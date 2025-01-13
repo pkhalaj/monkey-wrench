@@ -1,7 +1,9 @@
 from datetime import datetime
 from pathlib import Path
 
-from monkey_wrench.query import EumetsatAPI, EumetsatCollection
+from query import EumetsatCollection
+
+from monkey_wrench.query import EumetsatAPI
 
 output_directory = Path("<replace-with-directory-where-the-files-are-to-be-stored>")
 start_datetime = datetime(2021, 1, 1)

@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import Callable, ClassVar, Literal
 
-from monkey_wrench.date_time import FilenameParser
+from monkey_wrench.date_time import FilePathParser
 from monkey_wrench.input_output import (
     copy_files_between_directories,
     create_datetime_directory,
@@ -40,7 +40,7 @@ class Retrieve(Task):
         """Perform CHIMP retrievals."""
         with seviri_extension_context() as chimp_cli:
             files = visit_files_in_directory(self.specifications.input_directory)
-            lst = List(files, FilenameParser)
+            lst = List(files, FilePathParser)
             indices = lst.query_indices(
                 self.specifications.start_datetime,
                 self.specifications.end_datetime
@@ -76,11 +76,11 @@ class Retrieve(Task):
         )
 
         datetime_dir = create_datetime_directory(
-            FilenameParser.parse(input_filenames[-1]),
+            FilePathParser.parse(input_filenames[-1]),
             parent=self.specifications.output_directory
         )
 
-        last_retrieved_snapshot = output_filename_from_datetime(FilenameParser.parse(batch[-1]))
+        last_retrieved_snapshot = output_filename_from_datetime(FilePathParser.parse(batch[-1]))
 
         copy_files_between_directories(
             self.specifications.temp_directory,

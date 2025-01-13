@@ -1,4 +1,4 @@
-"""The module providing utilities for parsing product IDs or filenames into datetime objects."""
+"""The module providing utilities for parsing e.g. product IDs or file paths into datetime objects."""
 
 import re
 from abc import abstractmethod
@@ -9,8 +9,8 @@ from typing import Any, Never
 from pydantic import validate_call
 
 
-class DateTimeParser:
-    """A static class for parsing items, e.g. product IDs or filenames, into datetime objects."""
+class DateTimeParserBase:
+    """A static base class for parsing items, e.g. product IDs or file paths, into datetime objects."""
 
     @staticmethod
     def _raise_value_error(item: Any) -> Never:
@@ -19,42 +19,60 @@ class DateTimeParser:
 
     @staticmethod
     @validate_call
-    def parse_by_regex(regex_pattern: str, item: str) -> datetime:
-        """Parse the given item into a datetime object using a regular expression.
-
-        Raises:
-            ValueError:
-                If the given item cannot be parsed.
-        """
-        try:
-            if match := re.search(regex_pattern, item):
-                return datetime(*[int(m) for m in match.groups()])
-            raise ValueError()
-        except ValueError:
-            DateTimeParser._raise_value_error(item)
-
-    @staticmethod
-    @validate_call
-    def validate_datetime_string(datetime_string: str, datetime_format_string: str) -> datetime:
-        """Validate the given datetime string against the given format string.
+    def parse_by_regex(item: str, regex: str) -> datetime:
+        r"""Parse the given item into a datetime object using a regular expression.
 
         Args:
-            datetime_string:
-                The datetime string to validate.
-            datetime_format_string:
-                The format string to validate against, e.g. ``"%Y%m%d_%H_%M"``.
+            item:
+                The item to parse.
+            regex:
+                The regular expression to match against.
 
         Returns:
             The parsed datetime object, if successful.
 
         Raises:
             ValueError:
-                If the given datetime string cannot be validated or parsed properly.
+                If the given item cannot be parsed.
+
+        Example:
+            >>> regex = r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$"
+            >>> DateTimeParserBase.parse_by_regex("20230102_22_30", regex)
+            datetime.datetime(2023, 1, 2, 22, 30)
+        """
+        try:
+            if match := re.search(regex, item):
+                return datetime(*[int(m) for m in match.groups()])
+            raise ValueError()
+        except ValueError:
+            DateTimeParserBase._raise_value_error(item)
+
+    @staticmethod
+    @validate_call
+    def parse_by_format_string(datetime_string: str, datetime_format_string: str) -> datetime:
+        """Parse the given datetime string into a datetime object using the given format string.
+
+        Args:
+            datetime_string:
+                The datetime string to parse.
+            datetime_format_string:
+                The format string using which the parsing is done, e.g. ``"%Y%m%d_%H_%M"``.
+
+        Returns:
+            The parsed datetime object, if successful.
+
+        Raises:
+            ValueError:
+                If the given datetime string cannot be parsed.
+
+        Example:
+            >>> DateTimeParserBase.parse_by_format_string("20230101_22_30", "%Y%m%d_%H_%M")
+            datetime.datetime(2023, 1, 1, 22, 30)
         """
         try:
             return datetime.strptime(datetime_string, datetime_format_string)
         except ValueError:
-            DateTimeParser._raise_value_error(datetime_string)
+            DateTimeParserBase._raise_value_error(datetime_string)
 
     @staticmethod
     @abstractmethod
@@ -62,16 +80,16 @@ class DateTimeParser:
         """Parse the given item into a datetime object.
 
         Warning:
-            This is an abstract method and needs to be implemented for each derived class.
+            This is an abstract static method and needs to be implemented for each derived class.
         """
-        pass
+        raise NotImplementedError()
 
 
-class SeviriIDParser(DateTimeParser):
+class SeviriIDParser(DateTimeParserBase):
     """Static parser class for SEVIRI product IDs."""
 
-    regex_pattern = (r"[0-9A-Za-z]+-SEVI-[0-9A-Za-z]+-[0-9]+-NA"
-                     r"-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})[0-9]{2}\.[0-9]+Z-NA")
+    regex = (r"[0-9A-Za-z]+-SEVI-[0-9A-Za-z]+-[0-9]+-NA"
+             r"-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})[0-9]{2}\.[0-9]+Z-NA")
 
     @staticmethod
     @validate_call
@@ -79,39 +97,60 @@ class SeviriIDParser(DateTimeParser):
         """Parse the given SEVIRI product ID into a datetime object.
 
         Example:
-            >>> from monkey_wrench.date_time import SeviriIDParser
-            >>> valid_Seviri_product_id = "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA"
-            >>> SeviriIDParser.parse()
+            >>> SeviriIDParser.parse("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
             datetime.datetime(2015, 7, 31, 22, 12)
         """
-        return DateTimeParser.parse_by_regex(SeviriIDParser.regex_pattern, seviri_product_id)
+        return DateTimeParserBase.parse_by_regex(seviri_product_id, SeviriIDParser.regex)
 
 
-class FilenameParser(DateTimeParser):
-    """Static parser class for filenames."""
+class FilePathParser(DateTimeParserBase):
+    """Static parser class for file paths."""
 
-    regex_pattern = r"[0-9A-Za-z]+_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})_([0-9]{2})"
+    regex = r"[0-9A-Za-z]+_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})_([0-9]{2})"
 
     @staticmethod
     @validate_call
-    def parse(filename: Path | str) -> datetime:
-        """Parse the given filename into a datetime object.
+    def parse(filepath: Path | str) -> datetime:
+        """Parse the given filepath into a datetime object.
 
-        The filename can be either the full path or just the basename.
+        Args:
+            filepath:
+                The filepath to parse. It can be either an absolute path or a relative path (e.g. just the base name).
+                For the parsing to be successful, the ``filepath`` must have the following format:
+                ``<optional_path><prefix>_<YYYY>_<mm>_<DD>_<HH>_<MM><optional_extension>``, where ``<prefix>`` is
+                mandatory but can be anything except for an empty string. See the examples below.
 
-        Example:
-            >>> from pathlib import Path
-            >>> from monkey_wrench.date_time import FilenameParser
-            >>> FilenameParser.parse(Path("/home/user/dir/prefix_20150731_22_12.extension"))
+        Examples:
+            >>> # Input is an absolute path of type `Path`.
+            >>> FilePathParser.parse(Path("/home/user/dir/seviri_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12)
-            >>> FilenameParser.parse(Path("prefix_20150731_22_12.extension"))
+
+            >>> # Input is a relative path of type `Path`.
+            >>> FilePathParser.parse(Path("chimp_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12)
-            >>> FilenameParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
+
+            >>> # Input is an absolute path of type `str`.
+            >>> FilePathParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
             datetime.datetime(2015, 7, 31, 22, 12)
-            >>> FilenameParser.parse("prefix_20150731_22_12.extension")
+
+            >>> # Input is a relative path of type `str` and does not have an extension.
+            >>> FilePathParser.parse("seviri_20150731_22_12")
             datetime.datetime(2015, 7, 31, 22, 12)
+
+            >>> # Input is a relative path of type `str` and its extension is numeric, i.e. `72`.
+            >>> FilePathParser.parse("p_20150731_22_1272")
+            datetime.datetime(2015, 7, 31, 22, 12)
+
+            >>> # Input is invalid (missing prefix). The following will raise an exception!
+            >>> # FilePathParser.parse("20150731_22_12")
+
+            >>> # Input is invalid (empty prefix). The following will raise an exception!
+            >>> # FilePathParser.parse("_20150731_22_12")
         """
-        if isinstance(filename, str):
-            filename = Path(filename)
+        if isinstance(filepath, str):
+            filepath = Path(filepath)
 
-        return DateTimeParser.parse_by_regex(FilenameParser.regex_pattern, str(filename.stem))
+        return DateTimeParserBase.parse_by_regex(str(filepath.stem), FilePathParser.regex)
+
+
+DateTimeParser = SeviriIDParser | FilePathParser

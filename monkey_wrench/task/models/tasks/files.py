@@ -4,7 +4,7 @@ from typing import ClassVar, Literal
 
 from pydantic import NonNegativeInt, PositiveFloat, PositiveInt
 
-from monkey_wrench.date_time import FilenameParser, SeviriIDParser
+from monkey_wrench.date_time import FilePathParser, SeviriIDParser
 from monkey_wrench.input_output import (
     compare_files_against_reference,
     create_datetime_directory,
@@ -43,7 +43,7 @@ class Verify(Task):
         """Verify the product files using the reference."""
         files = List(
             visit_files_in_directory(self.specifications.input_directory, pattern=self.specifications.pattern),
-            FilenameParser
+            FilePathParser
         ).query(
             self.specifications.start_datetime,
             self.specifications.end_datetime
@@ -60,8 +60,8 @@ class Verify(Task):
         datetime_objs = [SeviriIDParser.parse(i) for i in product_ids]
         missing, corrupted = compare_files_against_reference(
             files,
-            reference_list=datetime_objs,
-            transform_function=FilenameParser.parse,
+            reference_items=datetime_objs,
+            transform_function=FilePathParser.parse,
             nominal_size=self.specifications.nominal_size,
             tolerance=self.specifications.tolerance
         )

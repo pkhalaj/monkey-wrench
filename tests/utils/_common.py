@@ -4,6 +4,7 @@ import os
 import random
 import sys
 from contextlib import contextmanager
+from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -15,6 +16,11 @@ from pydantic import NonNegativeInt, validate_call
 
 DateTimeLike = Iterable[int]
 """Type definition for a datetime like object such as ``[2022, 10, 27]``."""
+
+
+def noop(*_args, **_kwargs):
+    """Dummy function."""
+    pass
 
 
 class EnvironmentVariables:
@@ -57,6 +63,25 @@ class EnvironmentVariables:
         """Restore the original environment."""
         self.__delete_newly_added_variables()
         self.__reset_variables_to_original_values()
+
+
+@contextmanager
+def cli_arguments(*args, starting_index: int = 1):
+    """A context manager to manipulate CLI arguments and restoring them upon exit.
+
+    Args:
+        *args:
+            CLI arguments, as a list, that needs to be replaced.
+        starting_index:
+            The index of the CLI argument to start with. Defaults to ``1``, meaning the path of the executable will
+            not be changed.
+    """
+    _original_args = deepcopy(sys.argv)
+    try:
+        sys.argv[starting_index:] = deepcopy(args)
+        yield
+    finally:
+        sys.argv = deepcopy(_original_args)
 
 
 def shuffle_list(lst: list[Any]) -> tuple[list[int], list[Any]]:

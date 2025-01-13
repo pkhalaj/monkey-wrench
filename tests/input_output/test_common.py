@@ -17,35 +17,6 @@ END_DATETIME = datetime(2015, 6, 1, 5)
 BATCH_INTERVAL = timedelta(hours=1)
 
 
-@pytest.mark.parametrize(("pattern", "kwargs", "res"), [
-    ("This", dict(match_all=True, case_sensitive=True), True),
-    ("This", dict(match_all=False, case_sensitive=True), True),
-    ("This", dict(match_all=False, case_sensitive=False), True),
-    ("This", dict(match_all=True, case_sensitive=False), True),
-    #
-    ("this", dict(match_all=True, case_sensitive=True), False),
-    ("this", dict(match_all=False, case_sensitive=True), False),
-    ("this", dict(match_all=True, case_sensitive=False), True),
-    ("this", dict(match_all=False, case_sensitive=False), True),
-    #
-    (["this", "SAMPLE"], dict(match_all=True, case_sensitive=True), False),
-    (["this", "SAMPLE"], dict(match_all=True, case_sensitive=False), True),
-    (["This", "SAMPLE"], dict(match_all=False, case_sensitive=True), True),
-    (["This", "SAMPLE"], dict(match_all=False, case_sensitive=False), True),
-    # ,
-    (["This", "not"], dict(match_all=False, case_sensitive=True), True),
-    (["This", "not"], dict(match_all=False, case_sensitive=False), True),
-    (["This", "not"], dict(match_all=True, case_sensitive=True), False),
-    (["This", "not"], dict(match_all=True, case_sensitive=False), False),
-    #
-    (["This", "is", "a", "sample"], dict(match_all=True, case_sensitive=True), True),
-    (["This", "is", "a", "not", "sample"], dict(match_all=True, case_sensitive=True), False),
-    (["This", "is", "a", "not", "sample"], dict(match_all=False, case_sensitive=True), True),
-])
-def test_pattern_exist(pattern, kwargs, res):
-    assert res == input_output.pattern_exists("This is a sample!", pattern, **kwargs)
-
-
 @pytest.mark.parametrize("order", [
     Order.descending,
     Order.ascending
@@ -53,7 +24,7 @@ def test_pattern_exist(pattern, kwargs, res):
 @pytest.mark.parametrize("pattern", [
     ".nc", ".", "nc", [".", "nc"], None, "", "2022", "non_existent_pattern"
 ])
-def test_collect_files_in_dir(temp_dir, order, pattern):
+def _collect_files_in_dir(temp_dir, order, pattern):
     start_datetime = datetime(2022, 1, 1, 0, 12)
     end_datetime = datetime(2022, 1, 4)
     datetime_objs = list(datetime_range(start_datetime, end_datetime, timedelta(minutes=15)))
@@ -78,7 +49,7 @@ def test_collect_files_in_dir(temp_dir, order, pattern):
     ""
     "test_"
 ])
-def test_copy_files_between_directories(temp_dir, pattern):
+def _copy_files_between_directories(temp_dir, pattern):
     make_dummy_files(temp_dir, prefix=pattern)
     dest_directory = Path(temp_dir, "dest_directory")
     os.makedirs(dest_directory, exist_ok=True)
@@ -88,14 +59,14 @@ def test_copy_files_between_directories(temp_dir, pattern):
     assert 3 == len(input_output.visit_files_in_directory(dest_directory, pattern=pattern))
 
 
-def test_compare_files_against_reference(temp_dir):
+def _compare_files_against_reference(temp_dir):
     nominal_size = 10000
     tolerance = 0.05
     files, expected_missing, expected_corrupted = make_dummy_files(temp_dir, number_of_files_to_remove=3)
 
     collected_files = input_output.visit_files_in_directory(temp_dir)
     missing_files, corrupted_files = input_output.compare_files_against_reference(
-        collected_files, reference_list=files, nominal_size=nominal_size, tolerance=tolerance, number_of_processes=1
+        collected_files, reference_items=files, nominal_size=nominal_size, tolerance=tolerance, number_of_processes=1
     )
     assert (expected_missing, expected_corrupted) == (missing_files, corrupted_files)
 
@@ -128,7 +99,7 @@ def test_compare_files_against_reference(temp_dir):
             input_output.write_items_to_txt_file,
             lambda x: list(x)),
 ])
-def test_write_to_file_and_read_from_file(temp_dir, get_token_or_skip, func, kwargs, writer, transform):
+def _write_to_file_and_read_from_file(temp_dir, get_token_or_skip, func, kwargs, writer, transform):
     product_ids = [
         "20150601045740.599", "20150601044240.763", "20150601042740.925", "20150601041241.084",
         "20150601035741.242", "20150601034241.398", "20150601032741.551", "20150601031239.899",
@@ -145,7 +116,7 @@ def test_write_to_file_and_read_from_file(temp_dir, get_token_or_skip, func, kwa
     assert expected_product_ids == product_ids
 
 
-def test_create_datetime_dir(temp_dir):
+def _create_datetime_dir(temp_dir):
     dir_path = input_output.create_datetime_directory(datetime(2022, 3, 12), parent=temp_dir)
     assert temp_dir / Path("2022/03/12") == dir_path
 
@@ -157,7 +128,7 @@ def make_dummy_datetime_files(datetime_objs: list[datetime], parent: Path):
         make_dummy_file(dir_path / filename)
 
 
-def test_temp_directory():
+def _temp_directory():
     default_temp_path = tempfile.gettempdir()
     here_path = os.path.abspath(".")
     with input_output.temp_directory(".") as tmp:

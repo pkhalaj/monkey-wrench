@@ -1,15 +1,19 @@
-"""The package including all utilities for querying items."""
+"""The package providing all utilities for querying items."""
 
 from ._api import EumetsatAPI
-from ._common import Query, Results
+from ._base import Query
+from ._common import make_collection_url, seviri_collection_url
 from ._list import List
-from ._meta import EumetsatAPIUrl, EumetsatCollection
+from ._types import Batches, BoundingBox, EumetsatCollection, Polygon
 
 __all__ = [
+    "BoundingBox",
     "EumetsatAPI",
-    "EumetsatAPIUrl",
     "EumetsatCollection",
     "List",
     "Query",
-    "Results"
+    "Polygon",
+    "Batches",
+    "make_collection_url",
+    "seviri_collection_url"
 ]

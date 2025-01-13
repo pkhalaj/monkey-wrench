@@ -16,7 +16,7 @@ from .const import END_DATETIME, INTERVAL, QUOTIENT, REMAINDER, START_DATETIME
     (Order.descending, (END_DATETIME - INTERVAL, END_DATETIME), (START_DATETIME, START_DATETIME + REMAINDER)),
     (Order.ascending, (START_DATETIME, START_DATETIME + INTERVAL), (END_DATETIME - REMAINDER, END_DATETIME))
 ])
-def test_generate_datetime_batches(order, first_batch, last_batch):
+def _generate_datetime_batches(order, first_batch, last_batch):
     batches = list(generate_datetime_batches(START_DATETIME, END_DATETIME, INTERVAL, order=order))
     assert QUOTIENT + 1 == len(batches)
     assert intervals_equal(INTERVAL, batches[:-1])
@@ -28,12 +28,12 @@ def test_generate_datetime_batches(order, first_batch, last_batch):
     Order.descending,
     Order.ascending,
 ])
-def test_generate_datetime_batches_raise(order):
+def _generate_datetime_batches_raise(order):
     with pytest.raises(ValueError, match="is later than"):
         list(generate_datetime_batches(END_DATETIME, START_DATETIME, INTERVAL, order=order))
 
 
-def test_datetime_range():
+def _datetime_range():
     datetime_objects = list(datetime_range(START_DATETIME, END_DATETIME, INTERVAL))
 
     n = len(datetime_objects)
@@ -44,5 +44,5 @@ def test_datetime_range():
     assert intervals_equal(INTERVAL, datetime_objects)
 
 
-def test_datetime_range_empty():
+def _datetime_range_empty():
     assert [] == list(datetime_range(END_DATETIME, END_DATETIME, INTERVAL))

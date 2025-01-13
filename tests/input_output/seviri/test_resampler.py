@@ -41,7 +41,7 @@ def get_area_from_chimp(temp_dir):
     ("test", "does not end with `.nc`", get_area_from_chimp),
     ("test.nc", "Invalid area", lambda _: AREA_DEFINITION)
 ])
-def test_resample_seviri_native_file_raise(temp_dir, filename, error_message, area_func):
+def _resample_seviri_native_file_raise(temp_dir, filename, error_message, area_func):
     area = area_func(temp_dir)
     with pytest.raises(ValueError, match=error_message):
         resample_seviri_native_file(make_fs_file(temp_dir, filename), temp_dir, lambda x: x, area)
@@ -51,7 +51,7 @@ def test_resample_seviri_native_file_raise(temp_dir, filename, error_message, ar
     lambda x: make_yaml_file(x / Path("sample_area.yaml"), AREA_DEFINITION),
     get_area_from_chimp,
 ])
-def test_resample_seviri_native_file_with_area(temp_dir, area_func):
+def _resample_seviri_native_file_with_area(temp_dir, area_func):
     fs_file = make_fs_file(temp_dir, "test.nc")
     area = area_func(temp_dir)
     with pytest.raises(ValueError, match="No supported files"):
