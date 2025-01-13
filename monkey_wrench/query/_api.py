@@ -18,7 +18,7 @@ from pydantic import ConfigDict, PositiveInt, validate_call
 from satpy.readers.utils import FSFile
 
 from monkey_wrench.date_time import (
-    assert_start_time_is_before_end_time,
+    assert_start_precedes_end,
     floor_datetime_minutes_to_specific_snapshots,
 )
 from monkey_wrench.generic import Order
@@ -144,7 +144,7 @@ class EumetsatAPI(Query):
             ValueError:
                 Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
         """
-        assert_start_time_is_before_end_time(start_datetime, end_datetime)
+        assert_start_precedes_end(start_datetime, end_datetime)
         end_datetime = floor_datetime_minutes_to_specific_snapshots(
             end_datetime, self.__collection.value.snapshot_minutes
         )

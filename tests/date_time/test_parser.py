@@ -5,8 +5,10 @@ import pytest
 
 from monkey_wrench.date_time import DateTimeParserBase, FilePathParser, SeviriIDParser
 
+# ======================================================
+### Tests for DateTimeParserBase
 
-def _abstract_datetime_parser_base_parse_fail():
+def _DateTimeParserBase_parse_raise():
     with pytest.raises(NotImplementedError):
         DateTimeParserBase.parse(None)
 
@@ -15,7 +17,7 @@ def _abstract_datetime_parser_base_parse_fail():
     ("20230102_22_30", (2023, 1, 2, 22, 30)),
     ("20001212_21_41", (2000, 12, 12, 21, 41))
 ])
-def _abstract_datetime_parser_base_parse_by_regex_success(datetime_string, datetime_tuple):
+def _DateTimeParserBase_parse_by_regex(datetime_string, datetime_tuple):
     regex = r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$"
     parsed = DateTimeParserBase.parse_by_regex(datetime_string, regex)
     assert datetime(*datetime_tuple) == parsed
@@ -34,7 +36,7 @@ def _abstract_datetime_parser_base_parse_by_regex_success(datetime_string, datet
     "2301022_22_30_",
     "_2301022_22_30"
 ])
-def _abstract_datetime_parser_base_parse_by_regex_fail(datetime_string):
+def _DateTimeParserBase_parse_by_regex_fail(datetime_string):
     regex = r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$"
     with pytest.raises(ValueError, match="parse"):
         DateTimeParserBase.parse_by_regex(datetime_string, regex)
@@ -45,7 +47,7 @@ def _abstract_datetime_parser_base_parse_by_regex_fail(datetime_string):
     ("20001212_21_41", (2000, 12, 12, 21, 41)),
     ("19980101_12_3", (1998, 1, 1, 12, 3))
 ])
-def _abstract_datetime_parser_base_parse_by_format_success(datetime_string, datetime_tuple):
+def _DateTimeParserBase_parse_by_format_success(datetime_string, datetime_tuple):
     parsed = DateTimeParserBase.parse_by_format_string(datetime_string, "%Y%m%d_%H_%M")
     assert datetime(*datetime_tuple) == parsed
 
@@ -60,16 +62,19 @@ def _abstract_datetime_parser_base_parse_by_format_success(datetime_string, date
     "20230102_22_30_",
     "_20230102_22_30"
 ])
-def _abstract_datetime_parser_base_parse_by_format_fail(datetime_string):
+def _DateTimeParserBase_parse_by_format_fail(datetime_string):
     with pytest.raises(ValueError, match="parse"):
         DateTimeParserBase.parse_by_format_string(datetime_string, "%Y%m%d_%H_%M")
 
+
+# ======================================================
+### Tests for SeviriIDParser
 
 @pytest.mark.parametrize(("seviri_id", "expected_datetime_tuple"), [
     ("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA", (2015, 7, 31, 22, 12)),
     ("MSG3-SEVI-MSG15-0100-NA-20241120172743.016000000Z-NA", (2024, 11, 20, 17, 27))
 ])
-def _seviri_id_parser(seviri_id, expected_datetime_tuple):
+def _SeviriIDParser_parse(seviri_id, expected_datetime_tuple):
     datetime_obj = SeviriIDParser.parse(seviri_id)
     assert datetime(*expected_datetime_tuple) == datetime_obj
 
@@ -82,10 +87,13 @@ def _seviri_id_parser(seviri_id, expected_datetime_tuple):
     "MSG3-SEVI-MSG15-0100-NA-20150731221240-036000000Z-NA",
     "201507312212",
 ])
-def _seviri_id_parser_raise(seviri_id):
+def _SeviriIDParser_raise(seviri_id):
     with pytest.raises(ValueError, match=f"{seviri_id} into a valid datetime object"):
         SeviriIDParser.parse(seviri_id)
 
+
+# ======================================================
+### Tests for FilePathParser
 
 @pytest.mark.parametrize("filename", [
     "/home/user/dir/some_prefix_20150731_22_12.extension",
@@ -94,7 +102,7 @@ def _seviri_id_parser_raise(seviri_id):
     "prefix_20150731_22_1272",
     "some_prefix_20150731_22_12"
 ])
-def _filename_parser(filename):
+def _FilePathParser_parse(filename):
     for func in [Path, lambda x: x]:
         datetime_obj = FilePathParser.parse(func(filename))
         assert datetime_obj == datetime(2015, 7, 31, 22, 12)
@@ -111,7 +119,7 @@ def _filename_parser(filename):
     "20150731_22_",
     "20150731_22_1",
 ])
-def _filename_parser_raise(filename):
+def _FilePathParser_raise(filename):
     for func in [Path, lambda x: x]:
         with pytest.raises(ValueError, match="into a valid datetime object"):
             FilePathParser.parse(func(filename))

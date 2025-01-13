@@ -3,25 +3,27 @@ from datetime import datetime
 import pytest
 
 from monkey_wrench.date_time import (
-    assert_start_time_is_before_end_time,
+    assert_start_precedes_end,
     floor_datetime_minutes_to_specific_snapshots,
     number_of_days_in_month,
 )
 
-from .const import END_DATETIME, START_DATETIME
+from .const import end_datetime, start_datetime
+
+# ======================================================
+### Tests for assert_start_precedes_end()
+
+def _assert_start_precedes_end():
+    assert_start_precedes_end(start_datetime, end_datetime)
 
 
-@pytest.mark.parametrize(("start_datetime", "end_datetime", "error_message"), [
-    (START_DATETIME, END_DATETIME, None),
-    (END_DATETIME, START_DATETIME, "is later than"),
-])
-def _assert_start_time_before_end_time(start_datetime, end_datetime, error_message):
-    if error_message is None:
-        assert_start_time_is_before_end_time(start_datetime, end_datetime)
-    else:
-        with pytest.raises(ValueError, match=error_message):
-            assert_start_time_is_before_end_time(start_datetime, end_datetime)
+def _assert_start_precedes_end_raise():
+    with pytest.raises(ValueError, match="is later than"):
+        assert_start_precedes_end(end_datetime, start_datetime)
 
+
+# ======================================================
+### Tests for days_in_a_month()
 
 @pytest.mark.parametrize(("year", "month", "number_of_days"), [
     (2012, 2, 29),
@@ -33,6 +35,9 @@ def _assert_start_time_before_end_time(start_datetime, end_datetime, error_messa
 def _days_in_a_month(year, month, number_of_days):
     assert number_of_days == number_of_days_in_month(year, month)
 
+
+# ======================================================
+### Tests for floor_datetime_minutes()
 
 @pytest.mark.parametrize(("instance", "snapshots", "res"), [
     ([2022, 1, 1, 1, 13], [12, 27, 42, 57], [2022, 1, 1, 1, 12]),

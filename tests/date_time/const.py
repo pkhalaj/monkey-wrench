@@ -1,9 +1,9 @@
-"""The module to define constant values to be used for testing :obj:`date_time` package."""
+"""The module to define constant values to be used for testing the `date_time` package."""
 
 from datetime import datetime, timedelta
 
-START_DATETIME = datetime(2020, 1, 1)
-END_DATETIME = datetime(2021, 1, 1)
-INTERVAL = timedelta(days=30)
-REMAINDER = (END_DATETIME - START_DATETIME) % INTERVAL
-QUOTIENT = (END_DATETIME - START_DATETIME) // INTERVAL
+start_datetime = datetime(2020, 1, 1)
+end_datetime = datetime(2021, 1, 1)
+interval = timedelta(days=30)
+remainder = (end_datetime - start_datetime) % interval
+quotient = (end_datetime - start_datetime) // interval
