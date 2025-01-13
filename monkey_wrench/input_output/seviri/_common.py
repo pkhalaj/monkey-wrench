@@ -6,7 +6,7 @@ from pathlib import Path
 from pydantic import validate_call
 
 from monkey_wrench.date_time import SeviriIDParser
-from monkey_wrench.generic import ListSetTuple, StringOrStrings, apply_to_single_or_all, get_item_type
+from monkey_wrench.generic import ListSetTuple, StringOrStrings, apply_to_single_or_collection, element_type
 from monkey_wrench.input_output.seviri._types import ChimpFilesPrefix
 
 
@@ -156,11 +156,11 @@ def __dispatch(
         extension: str = ".nc"
 ) -> Path | list[Path]:
     """Dispatch the given input to its corresponding CHIMP-compliant filename function."""
-    tp = get_item_type(single_item_or_list)
+    tp = element_type(single_item_or_list)
     if tp is datetime:
-        return apply_to_single_or_all(lambda x: datetime_to_filename(prefix, x), single_item_or_list)
+        return apply_to_single_or_collection(lambda x: datetime_to_filename(prefix, x), single_item_or_list)
     elif tp is str:
-        return apply_to_single_or_all(
+        return apply_to_single_or_collection(
             lambda x: datetime_to_filename(prefix, SeviriIDParser.parse(x), extension), single_item_or_list
         )
     else:
