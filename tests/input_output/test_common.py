@@ -8,7 +8,6 @@ import pytest
 
 from monkey_wrench import input_output
 from monkey_wrench.date_time import datetime_range
-from monkey_wrench.generic import Order
 from monkey_wrench.query import EumetsatAPI
 from tests.utils import make_dummy_file, make_dummy_files
 
@@ -17,22 +16,22 @@ END_DATETIME = datetime(2015, 6, 1, 5)
 BATCH_INTERVAL = timedelta(hours=1)
 
 
-@pytest.mark.parametrize("order", [
-    Order.descending,
-    Order.ascending
+@pytest.mark.parametrize("reverse", [
+    True,
+    False
 ])
 @pytest.mark.parametrize("pattern", [
     ".nc", ".", "nc", [".", "nc"], None, "", "2022", "non_existent_pattern"
 ])
-def _collect_files_in_dir(temp_dir, order, pattern):
+def _collect_files_in_dir(temp_dir, reverse, pattern):
     start_datetime = datetime(2022, 1, 1, 0, 12)
     end_datetime = datetime(2022, 1, 4)
     datetime_objs = list(datetime_range(start_datetime, end_datetime, timedelta(minutes=15)))
-    if order == Order.descending:
+    if reverse:
         datetime_objs = datetime_objs[::-1]
 
     make_dummy_datetime_files(datetime_objs, temp_dir)
-    files = input_output.visit_files_in_directory(temp_dir, order=order, pattern=pattern)
+    files = input_output.visit_files_in_directory(temp_dir, reverse=reverse, pattern=pattern)
 
     if pattern == "non_existent_pattern":
         assert len(files) == 0

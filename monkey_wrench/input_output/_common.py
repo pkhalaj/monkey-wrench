@@ -12,7 +12,7 @@ import requests
 from loguru import logger
 from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveInt, validate_call
 
-from monkey_wrench.generic import ListSetTuple, Order, StringOrStrings, pattern_exists
+from monkey_wrench.generic import ListSetTuple, StringOrStrings, pattern_exists
 from monkey_wrench.input_output._types import AbsolutePath, WriteMode
 from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import Batches
@@ -23,7 +23,7 @@ def visit_files_in_directory(
         directory: AbsolutePath[DirectoryPath],
         callback: Callable | None = None,
         pattern: StringOrStrings | None = None,
-        order: Order = Order.ascending,
+        reverse: bool = False,
         recursive: bool = True,
         **kwargs
 ) -> list[Path]:
@@ -41,9 +41,9 @@ def visit_files_in_directory(
             If given, it will be used to filter files, i.e. a file must have the pattern item(s) as (a) substring(s) in
             its name. Defaults to ``None`` which means no filtering. See :func:`~monkey_wrench.generic.pattern_exists`
             for more information.
-        order:
-            Either :obj:`~monkey_wrench.date_time.Order.descending` or :obj:`~monkey_wrench.date_time.Order.ascending`.
-            Defaults to :obj:`~monkey_wrench.date_time.Order.ascending`.
+        reverse:
+            A boolean flag to determine whether to sort files in reverse order. Defaults to ``True``, which means
+            sorting is in alphabetical order.
         recursive:
             A boolean flag determining whether to recursively visit all files in the directory tree, or just visit files
             in the top-level directory. Defaults to ``True``.
@@ -71,7 +71,7 @@ def visit_files_in_directory(
         for f in file_list:
             callback(f)
 
-    return sorted(file_list, reverse=(order == Order.descending))
+    return sorted(file_list, reverse=reverse)
 
 
 @validate_call

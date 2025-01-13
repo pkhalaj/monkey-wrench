@@ -21,7 +21,6 @@ from monkey_wrench.date_time import (
     assert_start_precedes_end,
     floor_datetime_minutes_to_specific_snapshots,
 )
-from monkey_wrench.generic import Order
 from monkey_wrench.query._base import Query
 from monkey_wrench.query._common import seviri_collection_url
 from monkey_wrench.query._types import BoundingBox, EumetsatCollection, Polygon
@@ -205,7 +204,6 @@ class EumetsatAPI(Query):
             start_datetime,
             end_datetime,
             batch_interval,
-            order=Order.descending,
             expected_total_count=expected_total_count
         )
 
