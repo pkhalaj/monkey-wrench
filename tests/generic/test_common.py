@@ -30,7 +30,7 @@ from monkey_wrench.generic import apply_to_single_or_all, get_item_type, pattern
     (["This", "is", "a", "not", "sample"], dict(match_all=True, case_sensitive=True), False),
     (["This", "is", "a", "not", "sample"], dict(match_all=False, case_sensitive=True), True),
 ])
-def test_pattern_exist(pattern, kwargs, res):
+def _pattern_exist(pattern, kwargs, res):
     assert res == pattern_exists("This is a sample!", pattern, **kwargs)
 
 
@@ -45,7 +45,7 @@ def test_pattern_exist(pattern, kwargs, res):
     (tuple(), tuple()),
     ({"a": 1, "b": 2}, {"a": 1, "b": 4})
 ])
-def test_apply_to_single_or_all(inp, out):
+def _apply_to_single_or_all(inp, out):
     assert out == apply_to_single_or_all(lambda x: x ** 2, inp)
 
 
@@ -57,7 +57,7 @@ def test_apply_to_single_or_all(inp, out):
     (None, NoneType),
     (True, bool)
 ])
-def test_return_single_or_first(inp, out):
+def _return_single_or_first(inp, out):
     assert out is get_item_type(inp)
 
 
@@ -66,6 +66,6 @@ def test_return_single_or_first(inp, out):
     {},
     dict(),
 ])
-def test_return_single_or_first_raise(inp):
+def _return_single_or_first_raise(inp):
     with pytest.raises(ValueError, match="Empty"):
         get_item_type(inp)

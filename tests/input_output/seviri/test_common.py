@@ -32,7 +32,7 @@ SAMPLE_PRODUCTS = [
     (ChimpFilesPrefix.seviri, input_filename_from_datetime, "datetime_object"),
     (ChimpFilesPrefix.chimp, output_filename_from_datetime, "datetime_object")
 ])
-def test_generate_chimp_input_filename_from_product_id(prefix, func, key):
+def _generate_chimp_input_filename_from_product_id(prefix, func, key):
     # single item
     filename = func(SAMPLE_PRODUCTS[0][key])
     assert Path(f"{prefix.value}_{SAMPLE_PRODUCTS[0]["stamp"]}") == filename

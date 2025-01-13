@@ -1,6 +1,6 @@
 from ._common import (
-    CLIArguments,
     EnvironmentVariables,
+    cli_arguments,
     convert_datetime_like_items_to_datetime_objects,
     get_items_from_shuffled_list_by_original_indices,
     intervals_equal,
@@ -14,8 +14,8 @@ from ._common import (
 )
 
 __all__ = [
-    "CLIArguments",
     "EnvironmentVariables",
+    "cli_arguments",
     "convert_datetime_like_items_to_datetime_objects",
     "get_items_from_shuffled_list_by_original_indices",
     "intervals_equal",

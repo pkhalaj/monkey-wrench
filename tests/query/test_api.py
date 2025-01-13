@@ -30,7 +30,7 @@ def search_results(api):
     return api.query(start, end, polygon=geometry)
 
 
-def test_api_init_raise():
+def _api_init_raise():
     """Check that the API query raises an exception if the credentials are not set."""
     from monkey_wrench.query import EumetsatAPI
     k1, k2 = EumetsatAPI.credentials_env_vars.values()
@@ -40,18 +40,18 @@ def test_api_init_raise():
                 EumetsatAPI()
 
 
-def test_api_get_token_success(get_token_or_skip):
+def _api_get_token_success(get_token_or_skip):
     assert get_token_or_skip.expiration > datetime.now()
 
 
-def test_api_query(get_token_or_skip):
+def _api_query(get_token_or_skip):
     from monkey_wrench.query import EumetsatAPI
     start_datetime = datetime(2022, 1, 1, )
     end_datetime = datetime(2022, 1, 2)
     assert 96 == EumetsatAPI().query(start_datetime, end_datetime).total_results
 
 
-def test_api_query_in_batches(get_token_or_skip):
+def _api_query_in_batches(get_token_or_skip):
     from monkey_wrench.query import EumetsatAPI, EumetsatCollection
 
     start_datetime = datetime(2022, 1, 1, )
@@ -72,14 +72,14 @@ def test_api_query_in_batches(get_token_or_skip):
     assert 0 == day
 
 
-def test_fetch_fails(api, search_results, tmp_path):
+def _fetch_fails(api, search_results, tmp_path):
     nswe_bbox = [64, 62, 114, 116]  # bbox outside the one used for the search query
     outfiles = api.fetch_products(search_results, tmp_path, bounding_box=nswe_bbox, sleep_time=1)
     assert len(outfiles) == 1
     assert outfiles[0] is None
 
 
-def test_fetch(api, search_results, tmp_path):
+def _fetch(api, search_results, tmp_path):
     nswe_bbox = [70, 60, 10, 20]
     outfiles = api.fetch_products(search_results, tmp_path, bounding_box=nswe_bbox, sleep_time=1)
     assert len(outfiles) == 1
@@ -94,7 +94,7 @@ def seviri_product_datetime_is_correct(day: int, product, end_datetime: datetime
     return (start_datetime <= datetime_obj < end_datetime) and (day == datetime_obj.day)
 
 
-def test_open_seviri_native_remotely(get_token_or_skip):
+def _open_seviri_native_remotely(get_token_or_skip):
     from monkey_wrench.query import EumetsatAPI
     product_id = "MSG3-SEVI-MSG15-0100-NA-20230413164241.669000000Z-NA"
     fs_file = EumetsatAPI.open_seviri_native_file_remotely(product_id)

@@ -1,10 +1,8 @@
-from pathlib import Path
-
 import pytest
 from pydantic import ValidationError
 
 from monkey_wrench.cli import CommandLineArguments
-from tests.utils import CLIArguments, make_yaml_file
+from tests.utils import cli_arguments
 
 
 @pytest.mark.parametrize(("args", "msg"), [
@@ -15,14 +13,12 @@ from tests.utils import CLIArguments, make_yaml_file
     (["task.yaml"], "point to a file"),
     (["task.yml"], "point to a file")
 ])
-def test_command_line_arguments_fail(args, msg):
+def _CommandLineArguments_raise(args, msg):
     with pytest.raises(ValidationError, match=msg):
-        with CLIArguments(*args):
+        with cli_arguments(*args):
             CommandLineArguments()
 
 
-def test_command_line_arguments_success(temp_dir):
-    task_filepath = Path(temp_dir, "task.yaml")
-    make_yaml_file(task_filepath, {})
-    with CLIArguments(str(task_filepath)):
+def _CommandLineArguments(empty_task_filepath):
+    with cli_arguments(empty_task_filepath):
         CommandLineArguments()

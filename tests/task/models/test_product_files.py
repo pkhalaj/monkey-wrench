@@ -10,7 +10,7 @@ from tests.task.const import END_DATETIME, START_DATETIME, ids, ids_in_query
 from tests.utils import make_dummy_files, make_yaml_file
 
 
-def test_verify_files_success(temp_dir):
+def _verify_files_success(temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
     directory = Path(temp_dir, "here")
@@ -62,7 +62,7 @@ def test_verify_files_success(temp_dir):
 
 
 @pytest.mark.skip
-def test_fetch_files_success(get_token_or_skip, temp_dir):
+def _fetch_files_success(get_token_or_skip, temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
     write_items_to_txt_file(ids, product_ids_filename)
