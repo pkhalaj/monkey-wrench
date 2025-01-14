@@ -5,6 +5,8 @@ from monkey_wrench.cli import run
 from monkey_wrench.task import InputFile
 from tests.utils import cli_arguments
 
+# ======================================================
+### Tests for run()
 
 def _run(empty_task_filepath):
     Task = namedtuple("Task", ["perform"])

@@ -4,6 +4,8 @@ from pydantic import ValidationError
 from monkey_wrench.cli import CommandLineArguments
 from tests.utils import cli_arguments
 
+# ======================================================
+### Tests for CommandLineArguments
 
 @pytest.mark.parametrize(("args", "msg"), [
     ([], "single"),
