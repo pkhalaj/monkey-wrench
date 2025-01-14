@@ -17,7 +17,7 @@ from tests.task.const import BATCH_INTERVAL, END_DATETIME, FUTURE_DATETIME, STAR
     Specifications,
     TaskBase
 ])
-def _extra_arguments_raise(model):
+def test_extra_arguments_raise(model):
     with pytest.raises(ValidationError, match="Extra inputs"):
         model(extra_arguments="extra arguments are not allowed!")
 
@@ -26,7 +26,7 @@ def _extra_arguments_raise(model):
     (StartDateTime, "start_datetime"),
     (EndDateTime, "end_datetime"),
 ])
-def _start_end_datetime(model, key):
+def test_start_end_datetime(model, key):
     with pytest.raises(ValidationError, match="should be in the past"):
         model(**{f"{key}": FUTURE_DATETIME})
 
@@ -44,7 +44,7 @@ def _start_end_datetime(model, key):
     (DateTimeRange, {}),
     (DateTimeRangeInBatches, dict(batch_interval=BATCH_INTERVAL))
 ])
-def _datetime_range_start_is_before_end_fail(model, extra_arguments):
+def test_datetime_range_start_is_before_end_fail(model, extra_arguments):
     with pytest.raises(ValidationError, match="is later than"):
         model(start_datetime=END_DATETIME, end_datetime=START_DATETIME, **extra_arguments)
 
@@ -53,6 +53,6 @@ def _datetime_range_start_is_before_end_fail(model, extra_arguments):
     ("./this_is_directory_like/", "cannot end with a '/'"),
     (__file__, "already exists"),
 ])
-def _output_filename_fail(output_filename, error_message):
+def test_output_filename_fail(output_filename, error_message):
     with pytest.raises(ValidationError, match=error_message):
         OutputFile(output_filename=output_filename)

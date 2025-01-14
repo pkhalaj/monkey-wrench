@@ -26,7 +26,7 @@ ELEMENTS = [input_filename_from_datetime(i) for i in DATETIME_OBJS]
     ((2023, 7, 31, 22, 10), (2023, 7, 31, 22, 17), []),
     ((2021, 7, 31, 22, 11), (2021, 7, 31, 22, 11), []),
 ])
-def _list_query(start_datetime, end_datetime, reference_indices):
+def test_list_query(start_datetime, end_datetime, reference_indices):
     for _ in range(10):
         indices, items = shuffle_list([
             "seviri_20150731_22_16.nc",
@@ -52,7 +52,7 @@ def _list_query(start_datetime, end_datetime, reference_indices):
     (2, ["seviri_20150731_22_16.nc", "seviri_20150731_22_17.nc"]),
     (1, ["seviri_20150731_22_16.nc"])
 ])
-def _list_as_list(expected_length, items):
+def test_list_as_list(expected_length, items):
     lq = List(items, FilePathParser)
     assert items == lq
     assert items == lq.to_python_list()
@@ -61,12 +61,12 @@ def _list_as_list(expected_length, items):
     assert expected_length == List.len(lq)
 
 
-def _list_parse_raises():
+def test_list_parse_raises():
     with pytest.raises(ValueError, match="a valid datetime object"):
         List(["20150731_22_12", "wrong_format"], FilePathParser)
 
 
-def _list_empty_raises():
+def test_list_empty_raises():
     with pytest.raises(ValueError, match="List is empty"):
         List([], FilePathParser)
 
@@ -75,12 +75,12 @@ def _list_empty_raises():
     "test1",
     "",
 ])
-def _list_log_context(log_context):
+def test_list_log_context(log_context):
     lq = List(["prefix_20150731_22_12.extension"], FilePathParser, log_context=log_context)
     assert log_context == lq.log_context
 
 
-def _list_query_in_batches():
+def test_list_query_in_batches():
     start_datetime = datetime(2022, 12, 1, 0, 12)
     end_datetime = datetime(2023, 2, 1)
 
@@ -105,7 +105,7 @@ def _list_query_in_batches():
     (20, 20),
     (12, 12),
 ])
-def _normalize_index(index, res):
+def test_normalize_index(index, res):
     lst = List(ELEMENTS, FilePathParser)
     assert res == lst.normalize_index(index)
 
@@ -116,7 +116,7 @@ def _normalize_index(index, res):
     -49,
     22,
 ])
-def _normalize_index_raise(index):
+def test_normalize_index_raise(index):
     with pytest.raises(IndexError, match="out of range"):
         List(ELEMENTS, FilePathParser).normalize_index(index)
 
@@ -126,7 +126,7 @@ def _normalize_index_raise(index):
     (30, 0, 10, ValueError, "batch size"),
     (10, 15, 10, ValueError, "cannot be greater"),
 ])
-def _k_sized_batches_raise(k, idx_start, idx_end, err, msg):
+def test_k_sized_batches_raise(k, idx_start, idx_end, err, msg):
     with pytest.raises(err, match=msg):
         list(List(ELEMENTS, FilePathParser).generate_k_sized_batches_by_index(k, idx_start, idx_end))
 
@@ -138,7 +138,7 @@ def _k_sized_batches_raise(k, idx_start, idx_end, err, msg):
     (16, 10, 14),
     (19, 18, 18)
 ])
-def _k_sized_batches(k, idx_start, idx_end):
+def test_k_sized_batches(k, idx_start, idx_end):
     elements, available, removed = randomly_remove_from_list(ELEMENTS, 2)
     lst = List(sorted(list(available)), FilePathParser)
 

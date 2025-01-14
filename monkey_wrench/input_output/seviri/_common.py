@@ -28,10 +28,11 @@ def input_filename_from_product_id(
         in a tuple of paths.
 
     Example:
-        >>> from monkey_wrench.input_output.seviri import input_filename_from_product_id
-        >>>
-        >>> input_filename_from_product_id("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
+        >>> input_filename_from_product_id(
+        ...  "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA"
+        ... )
         PosixPath('seviri_20150731_22_12.nc')
+
         >>> input_filename_from_product_id((
         ...  "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
         ...  "MSG3-SEVI-MSG15-0100-NA-20231231171242.800000000Z-NA"
@@ -59,12 +60,12 @@ def input_filename_from_datetime(
         in a tuple of paths.
 
     Example:
-        >>> from datetime import datetime
-        >>> from monkey_wrench.input_output.seviri import input_filename_from_datetime
-        >>>
         >>> input_filename_from_datetime(datetime(2020, 1, 1, 0, 12))
         PosixPath('seviri_20200101_00_12.nc')
-        >>> input_filename_from_datetime([datetime(2020, 1, 1, 0, 12), datetime(2020, 3, 4, 2, 42)])
+
+        >>> input_filename_from_datetime(
+        ...  [datetime(2020, 1, 1, 0, 12), datetime(2020, 3, 4, 2, 42)]
+        ... )
         [PosixPath('seviri_20200101_00_12.nc'), PosixPath('seviri_20200304_02_42.nc')]
     """
     return __dispatch(ChimpFilesPrefix.seviri, datetime_objects, extension)
@@ -88,10 +89,11 @@ def output_filename_from_product_id(
         in a tuple of paths.
 
     Example:
-        >>> from monkey_wrench.input_output.seviri import output_filename_from_product_id
-        >>>
-        >>> output_filename_from_product_id("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
+        >>> output_filename_from_product_id(
+        ...  "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA"
+        ... )
         PosixPath('chimp_20150731_22_12.nc')
+
         >>> output_filename_from_product_id([
         ...  "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
         ...  "MSG3-SEVI-MSG15-0100-NA-20231231171242.800000000Z-NA"
@@ -119,12 +121,12 @@ def output_filename_from_datetime(
         in a tuple of paths.
 
     Example:
-        >>> from datetime import datetime
-        >>> from monkey_wrench.input_output.seviri import output_filename_from_datetime
-        >>>
         >>> output_filename_from_datetime(datetime(2020, 1, 1, 0, 12))
         PosixPath('chimp_20200101_00_12.nc')
-        >>> output_filename_from_datetime([datetime(2020, 1, 1, 0, 12), datetime(2020, 3, 4, 2, 42)])
+
+        >>> output_filename_from_datetime(
+        ...  [datetime(2020, 1, 1, 0, 12), datetime(2020, 3, 4, 2, 42)]
+        ... )
         [PosixPath('chimp_20200101_00_12.nc'), PosixPath('chimp_20200304_02_42.nc')]
     """
     return __dispatch(ChimpFilesPrefix.chimp, datetime_objects)
@@ -143,7 +145,7 @@ def datetime_to_filename(prefix: ChimpFilesPrefix, datetime_object: datetime, ex
             The file extension, Defaults to ``".nc"``.
 
     Returns:
-        A filename with the following format ``"<prefix>_<year><month><day>_<hour>_<minute>.<extension>"``.
+        A filename with the following format ``"<prefix>_<year><month><day>_<hour>_<minute><extension>"``.
     """
     chimp_timestamp_str = datetime_object.strftime("%Y%m%d_%H_%M")
     return Path(f"{prefix.value}_{chimp_timestamp_str}{extension}")

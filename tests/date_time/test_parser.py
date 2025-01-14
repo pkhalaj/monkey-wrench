@@ -8,7 +8,7 @@ from monkey_wrench.date_time import DateTimeParserBase, FilePathParser, SeviriID
 # ======================================================
 ### Tests for DateTimeParserBase
 
-def _DateTimeParserBase_parse_raise():
+def test_DateTimeParserBase_parse_raise():
     with pytest.raises(NotImplementedError):
         DateTimeParserBase.parse(None)
 
@@ -17,7 +17,7 @@ def _DateTimeParserBase_parse_raise():
     ("20230102_22_30", (2023, 1, 2, 22, 30)),
     ("20001212_21_41", (2000, 12, 12, 21, 41))
 ])
-def _DateTimeParserBase_parse_by_regex(datetime_string, datetime_tuple):
+def test_DateTimeParserBase_parse_by_regex(datetime_string, datetime_tuple):
     regex = r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$"
     parsed = DateTimeParserBase.parse_by_regex(datetime_string, regex)
     assert datetime(*datetime_tuple) == parsed
@@ -36,7 +36,7 @@ def _DateTimeParserBase_parse_by_regex(datetime_string, datetime_tuple):
     "2301022_22_30_",
     "_2301022_22_30"
 ])
-def _DateTimeParserBase_parse_by_regex_raise(datetime_string):
+def test_DateTimeParserBase_parse_by_regex_raise(datetime_string):
     regex = r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$"
     with pytest.raises(ValueError, match="parse"):
         DateTimeParserBase.parse_by_regex(datetime_string, regex)
@@ -47,7 +47,7 @@ def _DateTimeParserBase_parse_by_regex_raise(datetime_string):
     ("20001212_21_41", (2000, 12, 12, 21, 41)),
     ("19980101_12_3", (1998, 1, 1, 12, 3))
 ])
-def _DateTimeParserBase_parse_by_format(datetime_string, datetime_tuple):
+def test_DateTimeParserBase_parse_by_format(datetime_string, datetime_tuple):
     parsed = DateTimeParserBase.parse_by_format_string(datetime_string, "%Y%m%d_%H_%M")
     assert datetime(*datetime_tuple) == parsed
 
@@ -62,7 +62,7 @@ def _DateTimeParserBase_parse_by_format(datetime_string, datetime_tuple):
     "20230102_22_30_",
     "_20230102_22_30"
 ])
-def _DateTimeParserBase_parse_by_format_raise(datetime_string):
+def test_DateTimeParserBase_parse_by_format_raise(datetime_string):
     with pytest.raises(ValueError, match="parse"):
         DateTimeParserBase.parse_by_format_string(datetime_string, "%Y%m%d_%H_%M")
 
@@ -74,7 +74,7 @@ def _DateTimeParserBase_parse_by_format_raise(datetime_string):
     ("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA", (2015, 7, 31, 22, 12)),
     ("MSG3-SEVI-MSG15-0100-NA-20241120172743.016000000Z-NA", (2024, 11, 20, 17, 27))
 ])
-def _SeviriIDParser_parse(seviri_id, expected_datetime_tuple):
+def test_SeviriIDParser_parse(seviri_id, expected_datetime_tuple):
     datetime_obj = SeviriIDParser.parse(seviri_id)
     assert datetime(*expected_datetime_tuple) == datetime_obj
 
@@ -87,7 +87,7 @@ def _SeviriIDParser_parse(seviri_id, expected_datetime_tuple):
     "MSG3-SEVI-MSG15-0100-NA-20150731221240-036000000Z-NA",
     "201507312212",
 ])
-def _SeviriIDParser_parse_raise(seviri_id):
+def test_SeviriIDParser_parse_raise(seviri_id):
     with pytest.raises(ValueError, match=f"{seviri_id} into a valid datetime object"):
         SeviriIDParser.parse(seviri_id)
 
@@ -102,7 +102,7 @@ def _SeviriIDParser_parse_raise(seviri_id):
     "prefix_20150731_22_1272",
     "some_prefix_20150731_22_12"
 ])
-def _FilePathParser_parse(filename):
+def test_FilePathParser_parse(filename):
     for func in [Path, lambda x: x]:
         datetime_obj = FilePathParser.parse(func(filename))
         assert datetime_obj == datetime(2015, 7, 31, 22, 12)
@@ -119,7 +119,7 @@ def _FilePathParser_parse(filename):
     "20150731_22_",
     "20150731_22_1",
 ])
-def _FilePathParser_parse_raise(filename):
+def test_FilePathParser_parse_raise(filename):
     for func in [Path, lambda x: x]:
         with pytest.raises(ValueError, match="into a valid datetime object"):
             FilePathParser.parse(func(filename))

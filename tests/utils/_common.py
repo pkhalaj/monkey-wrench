@@ -14,6 +14,8 @@ import numpy as np
 import yaml
 from pydantic import NonNegativeInt, validate_call
 
+from monkey_wrench.input_output import create_datetime_directory, seviri
+
 DateTimeLike = Iterable[int]
 """Type definition for a datetime like object such as ``[2022, 10, 27]``."""
 
@@ -301,3 +303,10 @@ def optional_modules_mocked():
 
         chimp.processing.cli = MagicMock(name="chimp.processing.cli")
         yield chimp
+
+
+def make_dummy_datetime_files(datetime_objs: list[datetime], parent: Path):
+    for datetime_obj in datetime_objs:
+        dir_path = create_datetime_directory(datetime_obj, parent=parent)
+        filename = seviri.input_filename_from_datetime(datetime_obj)
+        make_dummy_file(dir_path / filename)

@@ -247,10 +247,6 @@ def create_datetime_directory(
         The full path of the (created) directory.
 
     Example:
-        >>> from datetime import datetime
-        >>> from pathlib import Path
-        >>> from monkey_wrench.input_output import create_datetime_directory
-        >>>
         >>> path = create_datetime_directory(datetime(2022, 3, 12), format_string="%Y/%m/%d", parent=Path.home())
         >>> expected_path = Path.home() / Path("2022/03/12")
         >>> expected_path.exists()

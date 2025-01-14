@@ -20,7 +20,7 @@ from tests.task.const import (
 from tests.utils import make_yaml_file
 
 
-def _model_product_ids_success(temp_dir):
+def test_model_product_ids_success(temp_dir):
     filename = Path(temp_dir, "task.yaml")
     make_yaml_file(filename, task)
     validated_task = list(read_tasks_from_file(InputFile(input_filename=filename)))[0]
@@ -47,14 +47,14 @@ def _model_product_ids_success(temp_dir):
     (task_with(context="non_existent_context"), "Input should be"),
     (task_with(action="non_existent_action"), "Input should be"),
 ])
-def _model_product_ids_raise(temp_dir, task, error_message):
+def test_model_product_ids_raise(temp_dir, task, error_message):
     filename = Path(temp_dir, "task.yaml")
     make_yaml_file(filename, task)
     with pytest.raises(ValidationError, match=error_message):
         list(read_tasks_from_file(InputFile(input_filename=filename)))
 
 
-def _fetch_product_ids_success(get_token_or_skip, temp_dir):
+def test_fetch_product_ids_success(get_token_or_skip, temp_dir):
     filename = Path(temp_dir, "task.yaml")
     output_filename = Path(temp_dir, "products_ids.txt")
     make_yaml_file(filename, specification_with(output_filename=str(output_filename)))

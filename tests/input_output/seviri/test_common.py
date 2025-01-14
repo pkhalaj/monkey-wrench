@@ -4,41 +4,63 @@ from pathlib import Path
 import pytest
 
 from monkey_wrench.input_output.seviri import (
-    ChimpFilesPrefix,
     input_filename_from_datetime,
     input_filename_from_product_id,
     output_filename_from_datetime,
     output_filename_from_product_id,
 )
 
-SAMPLE_PRODUCTS = [
+# ======================================================
+### Tests for
+#             input_filename_from_product_id()
+#             output_filename_from_product_id()
+#             input_filename_from_datetime()
+#             output_filename_from_datetime()
+
+sample_products = [
     dict(
-        product_id="MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
-        datetime_object=datetime(2015, 7, 31, 22, 12),
+        _product_id="MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
+        _datetime=datetime(2015, 7, 31, 22, 12),
         stamp="20150731_22_12.nc"
     ),
     dict(
-        product_id="MSG3-SEVI-MSG15-0100-NA-20150617002739.928000000Z-NA",
-        datetime_object=datetime(2015, 6, 17, 0, 27),
+        _product_id="MSG3-SEVI-MSG15-0100-NA-20150617002739.928000000Z-NA",
+        _datetime=datetime(2015, 6, 17, 0, 27),
         stamp="20150617_00_27.nc"
     )
 ]
 
 
-@pytest.mark.parametrize(("prefix", "func", "key"), [
-    (ChimpFilesPrefix.seviri, input_filename_from_product_id, "product_id"),
-    (ChimpFilesPrefix.chimp, output_filename_from_product_id, "product_id"),
+@pytest.mark.parametrize(("prefix", "func"), [
+    ("seviri", input_filename_from_product_id),
+    ("chimp", output_filename_from_product_id),
 
-    (ChimpFilesPrefix.seviri, input_filename_from_datetime, "datetime_object"),
-    (ChimpFilesPrefix.chimp, output_filename_from_datetime, "datetime_object")
+    ("seviri", input_filename_from_datetime),
+    ("chimp", output_filename_from_datetime)
 ])
-def _generate_chimp_input_filename_from_product_id(prefix, func, key):
-    # single item
-    filename = func(SAMPLE_PRODUCTS[0][key])
-    assert Path(f"{prefix.value}_{SAMPLE_PRODUCTS[0]["stamp"]}") == filename
-
+def test_generate_chimp_input_output_filename_from_product_id_and_datetime(prefix, func):
     # list of items
-    products = [item[key] for item in SAMPLE_PRODUCTS]
-    expected_filenames = [Path(f"{prefix.value}_{item['stamp']}") for item in SAMPLE_PRODUCTS]
-    filenames = func(products)
-    assert expected_filenames == filenames
+    products_attr = products_attribute(func)
+    expected_filenames = filename(prefix, sample_products)
+    assert expected_filenames == func(products_attr)
+
+    # single items
+    for i, attr in enumerate(products_attr):
+        assert expected_filenames[i] == func(attr)
+
+
+def products_attribute(func):
+    """Retrieve the desired the attribute based on the function name.
+
+    For example, ``input_filename_from_product_id`` gives ``_product_id`` as the attribute key. It then returns a
+    list of all values corresponding to the desired attribute key.
+    """
+    key = func.__name__.split("from")[-1]
+    return [prod[key] for prod in sample_products]
+
+
+def filename(prefix, product):
+    if isinstance(product, list):
+        return [filename(prefix, p) for p in product]
+    else:
+        return Path(f"{prefix}_{product["stamp"]}")

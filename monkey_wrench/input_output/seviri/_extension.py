@@ -111,8 +111,6 @@ def seviri_extension_context() -> Callable:
         A SEVIRI-aware CHIMP cli function which can perform a retrieval.
 
     Example:
-        >>> from monkey_wrench.input_output.seviri import seviri_extension_context
-        >>>
         >>> with seviri_extension_context() as chimp_cli:
         ...     print("The `SEVIRI` extension is now available to CHIMP.")
         The `SEVIRI` extension is now available to CHIMP.

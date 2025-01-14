@@ -32,7 +32,7 @@ from monkey_wrench.generic import apply_to_single_or_collection, element_type, p
     (["This", "is", "a", "not", "sample"], dict(match_all=True, case_sensitive=True), False),
     (["This", "is", "a", "not", "sample"], dict(match_all=False, case_sensitive=True), True),
 ])
-def _pattern_exist(pattern, kwargs, res):
+def test_pattern_exist(pattern, kwargs, res):
     assert res == pattern_exists("This is a sample!", pattern, **kwargs)
 
 
@@ -51,7 +51,7 @@ def _pattern_exist(pattern, kwargs, res):
     ({"a": 1, "b": 2}, {"a": 2, "b": 4}),
     ("book", "bookbook")
 ])
-def _apply_to_single_or_collection(inp, out):
+def test_apply_to_single_or_collection(inp, out):
     assert out == apply_to_single_or_collection(lambda x: x * 2, inp)
 
 
@@ -67,7 +67,7 @@ def _apply_to_single_or_collection(inp, out):
     (None, NoneType),
     (True, bool)
 ])
-def _element_type(inp, out):
+def test_element_type(inp, out):
     assert out is element_type(inp)
 
 
@@ -77,5 +77,5 @@ def _element_type(inp, out):
     list(),
     tuple()
 ])
-def _element_type_empty(inp):
+def test_element_type_empty(inp):
     assert element_type(inp) is None

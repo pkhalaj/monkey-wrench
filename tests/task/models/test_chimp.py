@@ -7,7 +7,7 @@ from tests.task.const import END_DATETIME, START_DATETIME, ids
 from tests.utils import make_dummy_file, make_dummy_files, make_yaml_file, optional_modules_mocked
 
 
-def _retrieve_success(temp_dir):
+def test_retrieve_success(temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
 
     model_dir = Path(temp_dir, "model_dir")

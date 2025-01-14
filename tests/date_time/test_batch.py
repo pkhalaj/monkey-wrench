@@ -26,7 +26,7 @@ from .const import end_datetime, interval, quotient, remainder, start_datetime
     )
 
 ])
-def _generate_datetime_batches(batches, first_batch, last_batch):
+def test_generate_datetime_batches(batches, first_batch, last_batch):
     batches = list(batches)
     assert quotient + 1 == len(batches)
     assert intervals_equal(interval, batches[:-1])
@@ -41,7 +41,7 @@ def _generate_datetime_batches(batches, first_batch, last_batch):
     (end_datetime, end_datetime, -1, [(end_datetime, end_datetime)]),
     (start_datetime, start_datetime, +1, [(start_datetime, start_datetime)]),
 ])
-def _generate_datetime_batches_empty_or_single(start_datetime, end_datetime, temporal_sign, result):
+def test_generate_datetime_batches_empty_or_single(start_datetime, end_datetime, temporal_sign, result):
     assert result == list(generate_datetime_batches(start_datetime, end_datetime, temporal_sign * interval))
 
 
@@ -52,7 +52,7 @@ def _generate_datetime_batches_empty_or_single(start_datetime, end_datetime, tem
     (start_datetime, end_datetime, 1),
     (end_datetime, start_datetime, -1)
 ])
-def _datetime_range(start_datetime, end_datetime, temporal_sign):
+def test_datetime_range(start_datetime, end_datetime, temporal_sign):
     datetime_objects = list(datetime_range(start_datetime, end_datetime, temporal_sign * interval))
     assert quotient + 1 == len(datetime_objects)
     assert start_datetime == datetime_objects[0]
@@ -65,5 +65,5 @@ def _datetime_range(start_datetime, end_datetime, temporal_sign):
     (end_datetime, start_datetime, +1),
 
 ])
-def _datetime_range_empty(start_datetime, end_datetime, temporal_sign):
+def test_datetime_range_empty(start_datetime, end_datetime, temporal_sign):
     assert [] == list(datetime_range(start_datetime, end_datetime, temporal_sign * interval))

@@ -13,11 +13,11 @@ from .const import end_datetime, start_datetime
 # ======================================================
 ### Tests for assert_start_precedes_end()
 
-def _assert_start_precedes_end():
+def test_assert_start_precedes_end():
     assert_start_precedes_end(start_datetime, end_datetime)
 
 
-def _assert_start_precedes_end_raise():
+def test_assert_start_precedes_end_raise():
     with pytest.raises(ValueError, match="is later than"):
         assert_start_precedes_end(end_datetime, start_datetime)
 
@@ -32,7 +32,7 @@ def _assert_start_precedes_end_raise():
     (2020, 4, 30),
     (2019, 9, 30)
 ])
-def _days_in_a_month(year, month, number_of_days):
+def test_days_in_a_month(year, month, number_of_days):
     assert number_of_days == number_of_days_in_month(year, month)
 
 
@@ -48,7 +48,7 @@ def _days_in_a_month(year, month, number_of_days):
     ([2022, 1, 1, 1, 59], [], [2022, 1, 1, 1, 59]),
     ([2022, 1, 1, 1, 59], None, [2022, 1, 1, 1, 59])
 ])
-def _floor_datetime_minutes(instance, snapshots, res):
+def test_floor_datetime_minutes(instance, snapshots, res):
     assert datetime(*res) == floor_datetime_minutes_to_specific_snapshots(datetime(*instance), snapshots)
 
 
@@ -58,6 +58,6 @@ def _floor_datetime_minutes(instance, snapshots, res):
     ([-1, 12], "greater than"),
     ([1.5, 30], "fractional")
 ])
-def _floor_datetime_minutes_raise(snapshots, error_message):
+def test_floor_datetime_minutes_raise(snapshots, error_message):
     with pytest.raises(ValueError, match=error_message):
         floor_datetime_minutes_to_specific_snapshots(datetime(2022, 1, 1), snapshots)

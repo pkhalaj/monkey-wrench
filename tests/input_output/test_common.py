@@ -9,12 +9,16 @@ import pytest
 from monkey_wrench import input_output
 from monkey_wrench.date_time import datetime_range
 from monkey_wrench.query import EumetsatAPI
-from tests.utils import make_dummy_file, make_dummy_files
+from tests.utils import make_dummy_datetime_files, make_dummy_file, make_dummy_files
 
-START_DATETIME = datetime(2015, 6, 1)
-END_DATETIME = datetime(2015, 6, 1, 5)
-BATCH_INTERVAL = timedelta(hours=1)
+start_datetime = datetime(2022, 1, 1, 0, 12)
+end_datetime = datetime(2022, 1, 4)
+batch_interval = timedelta(hours=1)
+number_of_days = (end_datetime - start_datetime).days
 
+
+# ======================================================
+### Tests for visit_files_in_directory()
 
 @pytest.mark.parametrize("reverse", [
     True,
@@ -23,42 +27,58 @@ BATCH_INTERVAL = timedelta(hours=1)
 @pytest.mark.parametrize("pattern", [
     ".nc", ".", "nc", [".", "nc"], None, "", "2022", "non_existent_pattern"
 ])
-def _collect_files_in_dir(temp_dir, reverse, pattern):
-    start_datetime = datetime(2022, 1, 1, 0, 12)
-    end_datetime = datetime(2022, 1, 4)
-    datetime_objs = list(datetime_range(start_datetime, end_datetime, timedelta(minutes=15)))
-    if reverse:
-        datetime_objs = datetime_objs[::-1]
-
-    make_dummy_datetime_files(datetime_objs, temp_dir)
+def test_visit_files_in_directory(temp_dir, reverse, pattern):
+    datetime_objects = _make_dummy_files(temp_dir, reverse)
     files = input_output.visit_files_in_directory(temp_dir, reverse=reverse, pattern=pattern)
 
     if pattern == "non_existent_pattern":
         assert len(files) == 0
     else:
-        assert len(datetime_objs) == len(files)
-        for file, dt in zip(files, datetime_objs, strict=True):
-            assert f"{file.stem}.nc" == str(input_output.seviri.input_filename_from_datetime(dt))
+        assert len(datetime_objects) == len(files)
+        _assert_filenames_match_filenames_from_datetime(datetime_objects, files)
+        _assert_datetime_directories_exist(temp_dir)
 
-        for i in range(1, 4):
-            assert os.path.exists(temp_dir / Path(f"2022/01/0{i}"))
 
+def _assert_datetime_directories_exist(temp_dir):
+    for i in range(1, number_of_days + 1):
+        assert os.path.exists(temp_dir / Path(f"2022/01/0{i}"))
+
+
+def _assert_filenames_match_filenames_from_datetime(datetime_objects, files):
+    for file, datetime_ in zip(files, datetime_objects, strict=True):
+        assert f"{file.stem}.nc" == str(input_output.seviri.input_filename_from_datetime(datetime_))
+
+
+def _make_dummy_files(temp_dir, reverse):
+    datetime_objs = list(datetime_range(start_datetime, end_datetime, batch_interval))
+    if reverse:
+        datetime_objs = datetime_objs[::-1]
+    make_dummy_datetime_files(datetime_objs, temp_dir)
+    return datetime_objs
+
+
+# ======================================================
+### Tests for copy_files_between_directories()
 
 @pytest.mark.parametrize("pattern", [
     ""
-    "test_"
+    "file_for_test_"
 ])
-def _copy_files_between_directories(temp_dir, pattern):
+def test_copy_files_between_directories(temp_dir, pattern):
     make_dummy_files(temp_dir, prefix=pattern)
     dest_directory = Path(temp_dir, "dest_directory")
     os.makedirs(dest_directory, exist_ok=True)
     input_output.copy_files_between_directories(temp_dir, dest_directory, pattern=pattern)
     make_dummy_file(dest_directory / "excluded.ex")
+
     assert 4 == len(input_output.visit_files_in_directory(dest_directory))
     assert 3 == len(input_output.visit_files_in_directory(dest_directory, pattern=pattern))
 
 
-def _compare_files_against_reference(temp_dir):
+# ======================================================
+### Tests for compare_files_against_reference()
+
+def test_compare_files_against_reference(temp_dir):
     nominal_size = 10000
     tolerance = 0.05
     files, expected_missing, expected_corrupted = make_dummy_files(temp_dir, number_of_files_to_remove=3)
@@ -85,20 +105,23 @@ def _compare_files_against_reference(temp_dir):
     assert (None, expected_corrupted) == (missing_files, corrupted_files)
 
 
+# ======================================================
+### Tests for compare_files_against_reference()
+
 @pytest.mark.parametrize(("func", "kwargs", "writer", "transform"), [
     (
             "query_in_batches",
-            OrderedDict(start_datetime=START_DATETIME, end_datetime=END_DATETIME, batch_interval=BATCH_INTERVAL),
+            OrderedDict(start_datetime=start_datetime, end_datetime=end_datetime, batch_interval=batch_interval),
             input_output.write_items_to_txt_file_in_batches,
             lambda x: x
     ),
     (
             "query",
-            OrderedDict(start_datetime=START_DATETIME, end_datetime=END_DATETIME),
+            OrderedDict(start_datetime=start_datetime, end_datetime=end_datetime),
             input_output.write_items_to_txt_file,
             lambda x: list(x)),
 ])
-def _write_to_file_and_read_from_file(temp_dir, get_token_or_skip, func, kwargs, writer, transform):
+def test_write_to_file_and_read_from_file(temp_dir, get_token_or_skip, func, kwargs, writer, transform):
     product_ids = [
         "20150601045740.599", "20150601044240.763", "20150601042740.925", "20150601041241.084",
         "20150601035741.242", "20150601034241.398", "20150601032741.551", "20150601031239.899",
@@ -115,19 +138,12 @@ def _write_to_file_and_read_from_file(temp_dir, get_token_or_skip, func, kwargs,
     assert expected_product_ids == product_ids
 
 
-def _create_datetime_dir(temp_dir):
+def test_create_datetime_dir(temp_dir):
     dir_path = input_output.create_datetime_directory(datetime(2022, 3, 12), parent=temp_dir)
     assert temp_dir / Path("2022/03/12") == dir_path
 
 
-def make_dummy_datetime_files(datetime_objs: list[datetime], parent: Path):
-    for datetime_obj in datetime_objs:
-        dir_path = input_output.create_datetime_directory(datetime_obj, parent=parent)
-        filename = input_output.seviri.input_filename_from_datetime(datetime_obj)
-        make_dummy_file(dir_path / filename)
-
-
-def _temp_directory():
+def test_temp_directory():
     default_temp_path = tempfile.gettempdir()
     here_path = os.path.abspath(".")
     with input_output.temp_directory(".") as tmp:
