@@ -6,14 +6,14 @@ import tempfile
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Generator
+from typing import Any, Callable, Generator, Literal
 
 import requests
 from loguru import logger
 from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveInt, validate_call
 
 from monkey_wrench.generic import ListSetTuple, StringOrStrings, pattern_exists
-from monkey_wrench.input_output._types import AbsolutePath, WriteMode
+from monkey_wrench.input_output._types import AbsolutePath
 from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import Batches
 
@@ -129,7 +129,7 @@ def copy_single_file_to_directory(
 def write_items_to_txt_file(
         items: ListSetTuple | Generator,
         items_list_filepath: AbsolutePath[FilePath] | AbsolutePath[NewPath],
-        write_mode: WriteMode = WriteMode.overwrite
+        write_mode: Literal["w", "a"] = "w",
 ) -> NonNegativeInt:
     """Write items from an iterable (list, set, tuple, generator) to a text file, with one item per line.
 
@@ -144,15 +144,13 @@ def write_items_to_txt_file(
         items_list_filepath:
             The path to the (text) file where the items will be written.
         write_mode:
-            Either :obj:`~monkey_wrench.input_output.WriteMode.append` or
-            :obj:`~monkey_wrench.input_output.WriteMode.overwrite`.
-            Defaults to :obj:`~monkey_wrench.input_output.WriteMode.overwrite`.
+            Either ``"a"`` or append or ``"w"`` for overwriting an existing file. Defaults to ``"w"``.
 
     Returns:
         The number of items that are written to the file successfully.
     """
     number_of_items = 0
-    with open(items_list_filepath, write_mode.value) as f:
+    with open(items_list_filepath, write_mode) as f:
         for item in items:
             try:
                 f.write(f"{item}\n")
@@ -176,7 +174,7 @@ def write_items_to_txt_file_in_batches(
 
     number_of_items = 0
     for batch, _ in batches:
-        number_of_items += write_items_to_txt_file(batch, items_list_filepath, write_mode=WriteMode.append)
+        number_of_items += write_items_to_txt_file(batch, items_list_filepath, write_mode="a")
     return number_of_items
 
 
