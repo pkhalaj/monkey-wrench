@@ -305,8 +305,10 @@ def optional_modules_mocked():
         yield chimp
 
 
-def make_dummy_datetime_files(datetime_objs: list[datetime], parent: Path):
+def make_dummy_datetime_files(datetime_objs: list[datetime], parent: Path) -> list[Path]:
+    files = []
     for datetime_obj in datetime_objs:
         dir_path = create_datetime_directory(datetime_obj, parent=parent)
         filename = seviri.input_filename_from_datetime(datetime_obj)
-        make_dummy_file(dir_path / filename)
+        files.append(make_dummy_file(dir_path / filename))
+    return files

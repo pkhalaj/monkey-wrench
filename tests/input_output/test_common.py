@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from monkey_wrench import input_output
-from monkey_wrench.date_time import datetime_range
+from monkey_wrench.date_time import FilePathParser, datetime_range
 from tests.utils import make_dummy_datetime_files, make_dummy_file, make_dummy_files
 
 start_datetime = datetime(2022, 1, 1, 0, 12)
@@ -28,7 +28,7 @@ number_of_days = (end_datetime - start_datetime).days
     ".nc", ".", "nc", [".", "nc"], None, "", "2022", "non_existent_pattern"
 ])
 def test_visit_files_in_directory(temp_dir, reverse, pattern, recursive):
-    datetime_objects = _make_dummy_datetime_files(temp_dir, reverse)
+    datetime_objects, _ = _make_dummy_datetime_files(temp_dir, reverse)
     top_level_files, _, _ = make_dummy_files(temp_dir, prefix="top_level_files_2022.nc")
     files = input_output.visit_files_in_directory(temp_dir, reverse=reverse, pattern=pattern, recursive=recursive)
 
@@ -43,6 +43,15 @@ def test_visit_files_in_directory(temp_dir, reverse, pattern, recursive):
             assert top_level_files == set(files)
 
 
+def test_visit_files_in_directory_callback(temp_dir):
+    buff = []
+    _, dummy_files = _make_dummy_datetime_files(temp_dir)
+    files = input_output.visit_files_in_directory(temp_dir, callback=lambda x: buff.append(x))
+
+    assert set(files) == set(buff)
+    assert set(dummy_files) == set(buff)
+
+
 def _assert_datetime_directories_exist(temp_dir):
     for i in range(1, number_of_days + 1):
         assert os.path.exists(temp_dir / Path(f"2022/01/0{i}"))
@@ -53,13 +62,13 @@ def _assert_filenames_match_filenames_from_datetime(files, datetime_objects):
         assert f"{file.stem}.nc" == str(input_output.seviri.input_filename_from_datetime(datetime_))
 
 
-def _make_dummy_datetime_files(temp_dir, reverse):
+def _make_dummy_datetime_files(temp_dir, reverse=False):
     datetime_objs = list(datetime_range(start_datetime, end_datetime, batch_interval))
     if reverse:
         datetime_objs = datetime_objs[::-1]
-    make_dummy_datetime_files(datetime_objs, temp_dir)
+    files = make_dummy_datetime_files(datetime_objs, temp_dir)
     _assert_datetime_directories_exist(temp_dir)
-    return datetime_objs
+    return datetime_objs, files
 
 
 # ======================================================
@@ -101,6 +110,15 @@ def test_compare_files_against_reference(dummy_and_reference_files_for_compariso
     kwargs = {k: files_information[k] for k in keys}
     expected_ = tuple(files_information.get(i) for i in expected)
     assert expected_ == input_output.compare_files_against_reference(collected_files, **kwargs)
+
+
+def test_compare_files_against_reference_transform(temp_dir):
+    datetime_objs, collected_files = _make_dummy_datetime_files(temp_dir)
+
+    missing, _ = input_output.compare_files_against_reference(
+        collected_files, reference_items=datetime_objs, transform_function=FilePathParser.parse)
+
+    assert missing == set()
 
 
 @pytest.fixture
