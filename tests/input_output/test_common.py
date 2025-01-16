@@ -2,11 +2,12 @@ import os
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
 from monkey_wrench import input_output
-from monkey_wrench.date_time import FilePathParser, datetime_range
+from monkey_wrench.date_time import FilePathParser, SeviriIDParser, datetime_range
 from tests.utils import make_dummy_datetime_files, make_dummy_file, make_dummy_files
 
 start_datetime = datetime(2022, 1, 1, 0, 12)
@@ -166,6 +167,11 @@ def test_write_to_file_and_read_from_file(seviri_product_ids_file, writer, trans
 
     writer(product_ids, seviri_product_ids_file)
     read_product_ids = input_output.read_items_from_txt_file(seviri_product_ids_file)
+    product_ids_transformed = input_output.read_items_from_txt_file(
+        seviri_product_ids_file, transform_function=SeviriIDParser.parse
+    )
+
+    assert {SeviriIDParser.parse(i) for i in expected_product_ids} == set(product_ids_transformed)
     assert expected_product_ids == read_product_ids
 
 
@@ -193,6 +199,18 @@ def test_create_datetime_dir(temp_dir, kwargs):
     if not kwargs["dry_run"]:
         assert dir_path.exists()
     assert temp_dir / Path(datetime_obj.strftime(kwargs["format_string"])) == dir_path
+
+
+def test_create_datetime_dir_remove(temp_dir):
+    with mock.patch("monkey_wrench.input_output._common.Path.unlink") as unlink, \
+            mock.patch("monkey_wrench.input_output._common.Path.exists", return_value=True) as exists:
+        input_output.create_datetime_directory(
+            datetime(2022, 3, 12),
+            parent=temp_dir,
+            remove_if_exists=True
+        )
+        exists.assert_called()
+        unlink.assert_called()
 
 
 # ======================================================
