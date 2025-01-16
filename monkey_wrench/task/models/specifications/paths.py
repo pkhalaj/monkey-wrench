@@ -1,4 +1,4 @@
-"""Module to define Pydantic models for paths specifications."""
+"""The module providing Pydantic models for paths specifications."""
 
 from typing import Any
 

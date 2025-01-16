@@ -1,4 +1,4 @@
-"""Module to define Pydantic models for datetime specifications."""
+"""The module providing Pydantic models for datetime specifications."""
 
 from datetime import datetime, timedelta
 from typing import Any
@@ -6,8 +6,7 @@ from typing import Any
 from pydantic import PastDatetime, field_validator, model_validator
 
 from monkey_wrench.date_time import assert_start_precedes_end
-
-from .base import Specifications
+from monkey_wrench.task.models.specifications.base import Specifications
 
 
 def validate_datetime(value: list) -> datetime:

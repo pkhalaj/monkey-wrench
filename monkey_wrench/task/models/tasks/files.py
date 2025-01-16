@@ -1,4 +1,4 @@
-"""Module to define Pydantic models for product files tasks."""
+"""Module to define Pydantic models for tasks related to product files."""
 
 from typing import ClassVar, Literal
 
@@ -16,8 +16,7 @@ from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import EumetsatAPI, List
 from monkey_wrench.task.models.specifications.datetime import DateTimeRange
 from monkey_wrench.task.models.specifications.paths import InputDirectory, InputFile, OutputDirectory
-
-from .base import Action, Context, TaskBase
+from monkey_wrench.task.models.tasks.base import Action, Context, TaskBase
 
 
 class Task(TaskBase):

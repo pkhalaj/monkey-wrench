@@ -1,4 +1,4 @@
-"""Module to define Pydantic models for product IDs tasks."""
+"""The module providing Pydantic models for tasks related to product IDs."""
 
 from typing import Literal
 
@@ -8,8 +8,7 @@ from monkey_wrench import input_output
 from monkey_wrench.query import EumetsatAPI
 from monkey_wrench.task.models.specifications.datetime import DateTimeRangeInBatches
 from monkey_wrench.task.models.specifications.paths import OutputFile
-
-from .base import Action, Context, TaskBase
+from monkey_wrench.task.models.tasks.base import Action, Context, TaskBase
 
 
 class Task(TaskBase):
@@ -28,14 +27,19 @@ class Fetch(Task):
     def perform(self) -> dict[str, NonNegativeInt]:
         """Fetch the product IDs."""
         api = EumetsatAPI()
+
         product_batches = api.query_in_batches(
             start_datetime=self.specifications.start_datetime,
             end_datetime=self.specifications.end_datetime,
             batch_interval=self.specifications.batch_interval
         )
-        n = input_output.write_items_to_txt_file_in_batches(product_batches, self.specifications.output_filename)
+        number_of_items = input_output.write_items_to_txt_file_in_batches(
+            product_batches,
+            self.specifications.output_filename
+        )
+
         return {
-            "number of items successfully fetched and written to the file": n,
+            "number of items successfully fetched and written to the file": number_of_items,
         }
 
 
