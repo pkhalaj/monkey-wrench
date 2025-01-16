@@ -197,4 +197,5 @@ def generate_datetime_batches(
     # days in total, and batches of `30` days, we have `365 % 30 = 5`.
     # Moreover, the `end_datetime` is inclusive.
     # Therefore, we still need the following to fetch the remainder of the datetime range as the final batch.
-    yield min(start_datetime, end_datetime), max(start_datetime, end_datetime)
+    if start_datetime != end_datetime:
+        yield min(start_datetime, end_datetime), max(start_datetime, end_datetime)
