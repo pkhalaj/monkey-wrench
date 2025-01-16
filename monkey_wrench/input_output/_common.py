@@ -1,4 +1,4 @@
-"""The module providing functions to handle IO operations and manipulations of files and filenames."""
+"""The module providing functions to handle IO operations and manipulations of files and filepaths."""
 
 import os
 import shutil
@@ -81,7 +81,7 @@ def copy_files_between_directories(
         pattern: StringOrStrings = None,
         **kwargs
 ) -> None:
-    """Copy (top-level) files whose filename match the pattern from one directory to another.
+    """Copy (top-level) files whose names include the pattern from one directory to another.
 
     Warning:
         The copying is not performed recursively. Only the top-level files are copied.
