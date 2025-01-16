@@ -2,7 +2,7 @@
 
 from typing import ClassVar, Literal
 
-from pydantic import NonNegativeInt, PositiveFloat, PositiveInt
+from pydantic import NonNegativeInt
 
 from monkey_wrench.date_time import FilePathParser, SeviriIDParser
 from monkey_wrench.input_output import (
@@ -15,7 +15,9 @@ from monkey_wrench.input_output import (
 from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import EumetsatAPI, List
 from monkey_wrench.task.models.specifications.datetime import DateTimeRange
+from monkey_wrench.task.models.specifications.filesize import FileSize
 from monkey_wrench.task.models.specifications.paths import InputDirectory, InputFile, OutputDirectory
+from monkey_wrench.task.models.specifications.pattern import Pattern
 from monkey_wrench.task.models.tasks.base import Action, Context, TaskBase
 
 
@@ -23,10 +25,8 @@ class Task(TaskBase):
     context: Literal[Context.product_files]
 
 
-class VerifySpecifications(DateTimeRange, InputFile, InputDirectory):
-    pattern: list[str] | None = None
-    nominal_size: PositiveInt
-    tolerance: PositiveFloat
+class VerifySpecifications(DateTimeRange, FileSize, InputFile, InputDirectory, Pattern):
+    recursive: bool = True
 
 
 class FetchSpecifications(DateTimeRange, InputFile, OutputDirectory):
@@ -41,7 +41,13 @@ class Verify(Task):
     def perform(self) -> dict[str, NonNegativeInt]:
         """Verify the product files using the reference."""
         files = List(
-            visit_files_in_directory(self.specifications.input_directory, pattern=self.specifications.pattern),
+            visit_files_in_directory(
+                self.specifications.input_directory,
+                pattern=self.specifications.pattern,
+                recursive=self.specifications.recursive,
+                case_insensitive=self.specifications.case_sensitive,
+                match_all=self.specifications.match_all,
+            ),
             FilePathParser
         ).query(
             self.specifications.start_datetime,
@@ -56,7 +62,7 @@ class Verify(Task):
             self.specifications.end_datetime
         )
 
-        datetime_objs = [SeviriIDParser.parse(i) for i in product_ids]
+        datetime_objs = SeviriIDParser.parse_collection(product_ids)
         missing, corrupted = compare_files_against_reference(
             files,
             reference_items=datetime_objs,
@@ -67,7 +73,7 @@ class Verify(Task):
 
         return {
             "number of files found": List.len(files),
-            "number of reference items ": len(datetime_objs),
+            "number of reference items": len(datetime_objs),
             "number of missing files": len(missing),
             "number of corrupted files": len(corrupted),
         }
