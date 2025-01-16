@@ -30,8 +30,8 @@ class EumetsatAPI(Query):
     """A class with utilities to simplify querying all the product IDs from the EUMETSAT API.
 
     Note:
-        This is basically a wrapper around `eumdac`_. However, it does not expose all the functionalities of the
-        `eumdac`, only the few ones that we need!
+        This class uses `eumdac`_ under the hood. However, it does not expose all the functionalities of the `eumdac`,
+        only the few ones that we need!
 
     .. _eumdac: https://user.eumetsat.int/resources/user-guides/eumetsat-data-access-client-eumdac-guide
     """
@@ -148,7 +148,9 @@ class EumetsatAPI(Query):
             end_datetime, self.__collection.value.snapshot_minutes
         )
         return self.__selected_collection.search(
-            dtstart=start_datetime, dtend=end_datetime, geo=str(polygon) if polygon else None
+            dtstart=start_datetime,
+            dtend=end_datetime,
+            geo=polygon.serialize(as_string=True) if polygon else None
         )
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -172,7 +174,7 @@ class EumetsatAPI(Query):
                 get an error regarding sending `too many requests` to the server.
 
         Note:
-            An example, for SEVIRI, we expect to have one file (product ID) per ``15`` minutes, i.e. ``4`` files per
+            As an example, for SEVIRI, we expect to have one file (product ID) per ``15`` minutes, i.e. ``4`` files per
             hour or ``96`` files per day. If our re-analysis period is ``2022/01/01`` (inclusive) to ``2023/01/01``
             (exclusive), i.e. ``365`` days. This results in a maximum of ``35040`` files.
 
@@ -186,13 +188,11 @@ class EumetsatAPI(Query):
             in turn iterated over to retrieve individual products.
 
         Example:
-            >>> from datetime import datetime, timedelta
-            >>> from monkey_wrench.query import EumetsatAPI
-            >>>
             >>> start_datetime = datetime(2022, 1, 1)
             >>> end_datetime = datetime(2022, 1, 3)
             >>> batch_interval = timedelta(days=1)
             >>> api = EumetsatAPI()
+            >>>
             >>> for batch, retrieved_count in api.query_in_batches(start_datetime, end_datetime, batch_interval):
             ...     assert retrieved_count == batch.total_results
             ...     print(batch)
@@ -212,7 +212,7 @@ class EumetsatAPI(Query):
             self,
             search_results,  # TODO: When adding `SearchResults` as the type, making the documentation fails!
             output_directory: Path,
-            bounding_box: BoundingBox = (90., -90, -180., 180.),
+            bounding_box: BoundingBox | None = None,
             output_file_format: str = "netcdf4",
             sleep_time: PositiveInt = 10
     ) -> list[Path | None]:
@@ -224,7 +224,8 @@ class EumetsatAPI(Query):
             output_directory:
                 The directory to save the files in.
             bounding_box:
-                Bounding box, i.e. (north, south, west, east) limits.
+                Bounding box, i.e. (north, south, west, east) limits. Defaults to ``None`` which means
+                ``BoundingBox(90., -90, -180., 180)`` will be used.
             output_file_format:
                 Desired format of the output file(s). Defaults to ``netcdf4``.
             sleep_time:
@@ -236,10 +237,13 @@ class EumetsatAPI(Query):
         if not output_directory.exists():
             output_directory.mkdir(parents=True, exist_ok=True)
 
+        if bounding_box is None:
+            bounding_box = BoundingBox(90., -90, -180., 180.)
+
         chain = Chain(
             product=search_results.collection.product_type,
             format=output_file_format,
-            roi=RegionOfInterest(NSWE=bounding_box)
+            roi=RegionOfInterest(NSWE=bounding_box.serialize())
         )
         return [self.fetch_product(product, chain, output_directory, sleep_time) for product in search_results]
 
