@@ -1,4 +1,4 @@
-"""The module providing functions to handle IO operations and manipulations of files and filenames."""
+"""The module providing functions to handle IO operations and manipulations of files and filepaths."""
 
 import os
 import shutil
@@ -6,14 +6,14 @@ import tempfile
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Generator
+from typing import Any, Callable, Generator, Literal
 
 import requests
 from loguru import logger
 from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeInt, PositiveInt, validate_call
 
-from monkey_wrench.generic import ListSetTuple, Order, StringOrStrings, pattern_exists
-from monkey_wrench.input_output._types import AbsolutePath, WriteMode
+from monkey_wrench.generic import ListSetTuple, StringOrStrings, pattern_exists
+from monkey_wrench.input_output._types import AbsolutePath
 from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import Batches
 
@@ -23,7 +23,7 @@ def visit_files_in_directory(
         directory: AbsolutePath[DirectoryPath],
         callback: Callable | None = None,
         pattern: StringOrStrings | None = None,
-        order: Order = Order.ascending,
+        reverse: bool = False,
         recursive: bool = True,
         **kwargs
 ) -> list[Path]:
@@ -41,9 +41,9 @@ def visit_files_in_directory(
             If given, it will be used to filter files, i.e. a file must have the pattern item(s) as (a) substring(s) in
             its name. Defaults to ``None`` which means no filtering. See :func:`~monkey_wrench.generic.pattern_exists`
             for more information.
-        order:
-            Either :obj:`~monkey_wrench.date_time.Order.descending` or :obj:`~monkey_wrench.date_time.Order.ascending`.
-            Defaults to :obj:`~monkey_wrench.date_time.Order.ascending`.
+        reverse:
+            A boolean flag to determine whether to sort files in reverse order. Defaults to ``True``, which means
+            sorting is in alphabetical order.
         recursive:
             A boolean flag determining whether to recursively visit all files in the directory tree, or just visit files
             in the top-level directory. Defaults to ``True``.
@@ -71,7 +71,7 @@ def visit_files_in_directory(
         for f in file_list:
             callback(f)
 
-    return sorted(file_list, reverse=(order == Order.descending))
+    return sorted(file_list, reverse=reverse)
 
 
 @validate_call
@@ -81,7 +81,7 @@ def copy_files_between_directories(
         pattern: StringOrStrings = None,
         **kwargs
 ) -> None:
-    """Copy (top-level) files whose filename match the pattern from one directory to another.
+    """Copy (top-level) files whose names include the pattern from one directory to another.
 
     Warning:
         The copying is not performed recursively. Only the top-level files are copied.
@@ -129,7 +129,7 @@ def copy_single_file_to_directory(
 def write_items_to_txt_file(
         items: ListSetTuple | Generator,
         items_list_filepath: AbsolutePath[FilePath] | AbsolutePath[NewPath],
-        write_mode: WriteMode = WriteMode.overwrite
+        write_mode: Literal["w", "a"] = "w",
 ) -> NonNegativeInt:
     """Write items from an iterable (list, set, tuple, generator) to a text file, with one item per line.
 
@@ -144,15 +144,13 @@ def write_items_to_txt_file(
         items_list_filepath:
             The path to the (text) file where the items will be written.
         write_mode:
-            Either :obj:`~monkey_wrench.input_output.WriteMode.append` or
-            :obj:`~monkey_wrench.input_output.WriteMode.overwrite`.
-            Defaults to :obj:`~monkey_wrench.input_output.WriteMode.overwrite`.
+            Either ``"a"`` or append or ``"w"`` for overwriting an existing file. Defaults to ``"w"``.
 
     Returns:
         The number of items that are written to the file successfully.
     """
     number_of_items = 0
-    with open(items_list_filepath, write_mode.value) as f:
+    with open(items_list_filepath, write_mode) as f:
         for item in items:
             try:
                 f.write(f"{item}\n")
@@ -176,7 +174,7 @@ def write_items_to_txt_file_in_batches(
 
     number_of_items = 0
     for batch, _ in batches:
-        number_of_items += write_items_to_txt_file(batch, items_list_filepath, write_mode=WriteMode.append)
+        number_of_items += write_items_to_txt_file(batch, items_list_filepath, write_mode="a")
     return number_of_items
 
 
@@ -247,10 +245,6 @@ def create_datetime_directory(
         The full path of the (created) directory.
 
     Example:
-        >>> from datetime import datetime
-        >>> from pathlib import Path
-        >>> from monkey_wrench.input_output import create_datetime_directory
-        >>>
         >>> path = create_datetime_directory(datetime(2022, 3, 12), format_string="%Y/%m/%d", parent=Path.home())
         >>> expected_path = Path.home() / Path("2022/03/12")
         >>> expected_path.exists()

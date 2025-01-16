@@ -1,9 +1,8 @@
 """The module providing common types used in the ``query`` package."""
-
 from enum import Enum
 from typing import Generator, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validate_call
 
 from monkey_wrench.date_time import Minutes
 
@@ -11,7 +10,7 @@ from monkey_wrench.date_time import Minutes
 class CollectionMeta(BaseModel):
     """Named tuple to gather the collection metadata."""
     query_string: str
-    """A colon (:) delimited string which represents the query string for the collection on the EUMETSAT API.
+    """A colon (``:``) delimited string which represents the query string for the collection on the EUMETSAT API.
 
     Example:
         For SEVIRI we have: ``"EO:EUM:DAT:MSG:HRSEVIRI"``.
@@ -19,6 +18,9 @@ class CollectionMeta(BaseModel):
 
     snapshot_minutes: Minutes | None = None
     """The minutes for which we have data in an hour.
+
+    Warning:
+        For collections that this does not apply, set the default value, i.e. ``None``.
 
     Example:
         For SEVIRI we have one snapshot per ``15`` minutes, starting from the 12th minute. As a result, we have
@@ -34,36 +36,124 @@ class EumetsatCollection(Enum):
     seviri = CollectionMeta(query_string="EO:EUM:DAT:MSG:HRSEVIRI", snapshot_minutes=[12, 27, 42, 57])
 
 
-BoundingBox = tuple[float, float, float, float]
-"""Type alias for a 4-tuple of floats determining the bounds for (North, South, West, East).
+class BoundingBox(BaseModel):
+    """Pydantic model for a bounding box.
 
-Example:
-    >>> from monkey_wrench.query import BoundingBox
-    >>>
-    >>> bounding_box: BoundingBox  = [74.0, 54.0, 6.0, 26.0]
-"""
+    Example:
+        >>> BoundingBox(north=10, south=20, west=30, east=40)
+        north=10 south=20 west=30 east=40
+
+        >>> BoundingBox(10, 20, 30, 40)
+        north=10 south=20 west=30 east=40
+    """
+
+    north: float
+    south: float
+    west: float
+    east: float
+
+    @validate_call
+    def __init__(self, north: float = None, south: float = None, west: float = None, east: float = None):
+        kwargs = dict(north=north, south=south, west=west, east=east)
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        super().__init__(**kwargs)
+
+    def serialize(self, as_string: bool = False, delimiter: str = " ") -> list[float] | str:
+        """Get the serialized version of the bounding box.
+
+        Args:
+            as_string:
+                If ``True``, return a string representation of the bounding box.
+            delimiter:
+                The delimiter to use in the serialized version of the bounding box, if ``as_string`` is ``True``.
+                Defaults to a blank space.
+
+        Returns:
+            Either a string, or a list of floats as ``[<North>, <South>, <West>, <East>]``.
+        """
+        lst = [self.north, self.south, self.west, self.east]
+
+        if as_string:
+            return delimiter.join([str(i) for i in lst])
+        return lst
+
+
+class Vertex(BaseModel):
+    """Pydantic model for a vertex.
+
+    Example:
+        >>> Vertex(longitude=10, latitude=20)
+        longitude=10 latitude=20
+
+        >>> Vertex(10, 20)
+        longitude=10 latitude=20
+    """
+
+    longitude: float
+    latitude: float
+
+    @validate_call
+    def __init__(self, longitude: float = None, latitude: float = None):
+        kwargs = dict(longitude=longitude, latitude=latitude)
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        super().__init__(**kwargs)
+
+    def serialize(self, as_string: bool = False, delimiter: str = " ") -> list[float] | str:
+        """Get the serialized version of the vertex.
+
+        Args:
+            as_string:
+                If ``True``, return a string representation of the vertex.
+            delimiter:
+                The delimiter to use in the serialized version of the vertex, if ``as_string`` is ``True``.
+                Defaults to a blank space.
+
+        Returns:
+            Either a string, or a list of floats as ``[<longitude>, <latitude>]``.
+        """
+        lst = [self.longitude, self.latitude]
+
+        if as_string:
+            return delimiter.join([str(i) for i in lst])
+        return lst
 
 
 class Polygon(BaseModel):
     """The Pydantic model for a polygon.
 
     Example:
-        >>> from monkey_wrench.query import Polygon
-        >>>
-        >>> polygon = Polygon(vertices=[
-        ...  (14.0, 64.0),
-        ...  (16.0, 64.0),
-        ...  (16.0, 62.0),
-        ...  (14.0, 62.0),
-        ...  (14.0, 64.0)
+        >>> polygon: Polygon = Polygon(vertices=[
+        ...  Vertex(14.0, 64.0),
+        ...  Vertex(16.0, 64.0),
+        ...  Vertex(16.0, 62.0),
+        ...  Vertex(14.0, 62.0),
+        ...  Vertex(14.0, 64.0),
         ... ])
     """
-    vertices: list[tuple[float, float]]
+    vertices: list[Vertex]
 
-    def __str__(self) -> str:
-        """Convert the given polygon to a string representation which is expected by the API."""
-        coordinates_str = ",".join([f"{lon} {lat}" for lon, lat in self.vertices])
-        return f"POLYGON(({coordinates_str}))"
+    @validate_call
+    def __init__(self, vertices: list[Vertex] = None):
+        kwargs = dict(vertices=vertices) if vertices else {}
+        super().__init__(**kwargs)
+
+    def serialize(self, as_string: bool = False) -> list[list[float]] | str:
+        """Get the serialized version of the polygon.
+
+        Args:
+            as_string:
+                If ``True``, return a string representation of the polygon.
+
+        Returns:
+            Either a string, or a list of vertices, where each vertex is itself a list of floats.
+        """
+        lst = [v.serialize(as_string=as_string) for v in self.vertices]
+
+        if as_string:
+            return f"POLYGON(({','.join(lst)}))"
+
+        return lst
 
 
 T = TypeVar("T")

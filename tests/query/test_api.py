@@ -2,13 +2,13 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from monkey_wrench.query import Polygon
+from monkey_wrench.query import BoundingBox, Polygon, Vertex
 from tests.utils import EnvironmentVariables
 
 
 @pytest.fixture
 def api(get_token_or_skip):
-    """Get eumetsat api."""
+    """Return an instance of the API, if we can successfully get a token."""
     from monkey_wrench.query import EumetsatAPI, EumetsatCollection
     return EumetsatAPI(EumetsatCollection.amsu)
 
@@ -18,19 +18,22 @@ def search_results(api):
     """Get search results."""
     start = datetime(2021, 1, 1, 0)
     end = datetime(2021, 1, 1, 6)
+
     # polygon vertices (lon, lat) of small bounding box in central Sweden
-    geometry = Polygon(
-        vertices=[
-            (14.0, 64.0),
-            (16.0, 64.0),
-            (16.0, 62.0),
-            (14.0, 62.0),
-            (14.0, 64.0),
-        ])
+    geometry = Polygon([
+        Vertex(14.0, 64.0),
+        Vertex(16.0, 64.0),
+        Vertex(16.0, 62.0),
+        Vertex(14.0, 62.0),
+        Vertex(14.0, 64.0),
+    ])
     return api.query(start, end, polygon=geometry)
 
 
-def _api_init_raise():
+# ======================================================
+### Tests for EumetsatAPI()
+
+def test_EumetsatAPI_raise():
     """Check that the API query raises an exception if the credentials are not set."""
     from monkey_wrench.query import EumetsatAPI
     k1, k2 = EumetsatAPI.credentials_env_vars.values()
@@ -40,21 +43,27 @@ def _api_init_raise():
                 EumetsatAPI()
 
 
-def _api_get_token_success(get_token_or_skip):
+def test_EumetsatAPI_get_token(get_token_or_skip):
     assert get_token_or_skip.expiration > datetime.now()
 
 
-def _api_query(get_token_or_skip):
+# ======================================================
+### Tests for EumetsatAPI.query()
+
+def test_api_query(get_token_or_skip):
     from monkey_wrench.query import EumetsatAPI
     start_datetime = datetime(2022, 1, 1, )
     end_datetime = datetime(2022, 1, 2)
     assert 96 == EumetsatAPI().query(start_datetime, end_datetime).total_results
 
 
-def _api_query_in_batches(get_token_or_skip):
+# ======================================================
+### Tests for EumetsatAPI.query_in_batches()
+
+def test_api_query_in_batches(get_token_or_skip):
     from monkey_wrench.query import EumetsatAPI, EumetsatCollection
 
-    start_datetime = datetime(2022, 1, 1, )
+    start_datetime = datetime(2022, 1, 1)
     end_datetime = datetime(2022, 1, 3)
     batch_interval = timedelta(days=1)
 
@@ -72,19 +81,32 @@ def _api_query_in_batches(get_token_or_skip):
     assert 0 == day
 
 
-def _fetch_fails(api, search_results, tmp_path):
-    nswe_bbox = [64, 62, 114, 116]  # bbox outside the one used for the search query
+# ======================================================
+### Tests for EumetsatAPI.fetch_products()
+
+def test_fetch_product_fail(api, search_results, tmp_path):
+    nswe_bbox = BoundingBox(64, 62, 114, 116)  # bbox outside the one used for the search query
     outfiles = api.fetch_products(search_results, tmp_path, bounding_box=nswe_bbox, sleep_time=1)
     assert len(outfiles) == 1
     assert outfiles[0] is None
 
 
-def _fetch(api, search_results, tmp_path):
-    nswe_bbox = [70, 60, 10, 20]
+def test_fetch_product(api, search_results, tmp_path):
+    nswe_bbox = BoundingBox(70, 60, 10, 20)
     outfiles = api.fetch_products(search_results, tmp_path, bounding_box=nswe_bbox, sleep_time=1)
     assert len(outfiles) == 1
     assert outfiles[0].is_file()
     assert outfiles[0].suffix == ".nc"
+
+
+# ======================================================
+### Tests for EumetsatAPI.open_seviri_native_file_remotely()
+
+def test_open_seviri_native_remotely(get_token_or_skip):
+    from monkey_wrench.query import EumetsatAPI
+    product_id = "MSG3-SEVI-MSG15-0100-NA-20230413164241.669000000Z-NA"
+    fs_file = EumetsatAPI.open_seviri_native_file_remotely(product_id)
+    assert f"{product_id}.nat" == fs_file.open().name
 
 
 def seviri_product_datetime_is_correct(day: int, product, end_datetime: datetime, start_datetime: datetime):
@@ -92,10 +114,3 @@ def seviri_product_datetime_is_correct(day: int, product, end_datetime: datetime
     from monkey_wrench.date_time import SeviriIDParser
     datetime_obj = SeviriIDParser.parse(str(product))
     return (start_datetime <= datetime_obj < end_datetime) and (day == datetime_obj.day)
-
-
-def _open_seviri_native_remotely(get_token_or_skip):
-    from monkey_wrench.query import EumetsatAPI
-    product_id = "MSG3-SEVI-MSG15-0100-NA-20230413164241.669000000Z-NA"
-    fs_file = EumetsatAPI.open_seviri_native_file_remotely(product_id)
-    assert f"{product_id}.nat" == fs_file.open().name

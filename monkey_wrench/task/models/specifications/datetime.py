@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import PastDatetime, field_validator, model_validator
 
-from monkey_wrench.date_time import assert_start_time_is_before_end_time
+from monkey_wrench.date_time import assert_start_precedes_end
 
 from .base import Specifications
 
@@ -48,7 +48,7 @@ class DateTimeRange(StartDateTime, EndDateTime):
     @model_validator(mode="after")
     @classmethod
     def validate_start_datetime_before_end_datetime(cls, value: Any) -> Any:
-        assert_start_time_is_before_end_time(value.start_datetime, value.end_datetime)
+        assert_start_precedes_end(value.start_datetime, value.end_datetime)
         return value
 
 

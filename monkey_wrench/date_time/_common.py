@@ -10,7 +10,7 @@ from monkey_wrench.date_time._types import Minutes
 
 
 @validate_call
-def assert_start_time_is_before_end_time(start_datetime: datetime, end_datetime: datetime) -> None | Never:
+def assert_start_precedes_end(start_datetime: datetime, end_datetime: datetime) -> None | Never:
     """Raise a ``ValueError`` if ``start_datetime`` is later than the ``end_datetime``, otherwise return ``None``.
 
     Warning:
@@ -23,10 +23,10 @@ def assert_start_time_is_before_end_time(start_datetime: datetime, end_datetime:
 
     Examples:
         >>> # The following will not raise an exception.
-        >>> assert_start_time_is_before_end_time(datetime(2020, 1, 1), datetime(2020, 12, 31))
+        >>> assert_start_precedes_end(datetime(2020, 1, 1), datetime(2020, 12, 31))
 
         >>> # The following will raise an exception!
-        >>> # assert_start_time_is_before_end_time(datetime(2020, 1, 2), datetime(2020, 1, 1))
+        >>> # assert_start_precedes_end(datetime(2020, 1, 2), datetime(2020, 1, 1))
     """
     if start_datetime > end_datetime:
         raise ValueError(f"start_datetime='{start_datetime}' is later than end_datetime='{end_datetime}'.")

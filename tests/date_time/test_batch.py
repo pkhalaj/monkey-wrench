@@ -6,43 +6,64 @@ from monkey_wrench.date_time import (
     datetime_range,
     generate_datetime_batches,
 )
-from monkey_wrench.generic import Order
 from tests.utils import intervals_equal
 
-from .const import END_DATETIME, INTERVAL, QUOTIENT, REMAINDER, START_DATETIME
+from .const import end_datetime, interval, quotient, remainder, start_datetime
 
+# ======================================================
+### Tests for generate_datetime_batches()
 
-@pytest.mark.parametrize(("order", "first_batch", "last_batch"), [
-    (Order.descending, (END_DATETIME - INTERVAL, END_DATETIME), (START_DATETIME, START_DATETIME + REMAINDER)),
-    (Order.ascending, (START_DATETIME, START_DATETIME + INTERVAL), (END_DATETIME - REMAINDER, END_DATETIME))
+@pytest.mark.parametrize(("batches", "first_batch", "last_batch"), [
+    (
+            generate_datetime_batches(start_datetime, end_datetime, interval),
+            (start_datetime, start_datetime + interval),
+            (end_datetime - remainder, end_datetime)
+    ),
+    (
+            generate_datetime_batches(end_datetime, start_datetime, -interval),
+            (end_datetime - interval, end_datetime),
+            (start_datetime, start_datetime + remainder)
+    )
+
 ])
-def _generate_datetime_batches(order, first_batch, last_batch):
-    batches = list(generate_datetime_batches(START_DATETIME, END_DATETIME, INTERVAL, order=order))
-    assert QUOTIENT + 1 == len(batches)
-    assert intervals_equal(INTERVAL, batches[:-1])
+def test_generate_datetime_batches(batches, first_batch, last_batch):
+    batches = list(batches)
+    assert quotient + 1 == len(batches)
+    assert intervals_equal(interval, batches[:-1])
     assert Counter(first_batch) == Counter(batches[0])
     assert Counter(last_batch) == Counter(batches[-1])
 
 
-@pytest.mark.parametrize("order", [
-    Order.descending,
-    Order.ascending,
+@pytest.mark.parametrize(("start_datetime", "end_datetime", "temporal_sign", "result"), [
+    (start_datetime, end_datetime, -1, []),
+    (end_datetime, start_datetime, +1, []),
+
+    (end_datetime, end_datetime, -1, [(end_datetime, end_datetime)]),
+    (start_datetime, start_datetime, +1, [(start_datetime, start_datetime)]),
 ])
-def _generate_datetime_batches_raise(order):
-    with pytest.raises(ValueError, match="is later than"):
-        list(generate_datetime_batches(END_DATETIME, START_DATETIME, INTERVAL, order=order))
+def test_generate_datetime_batches_empty_or_single(start_datetime, end_datetime, temporal_sign, result):
+    assert result == list(generate_datetime_batches(start_datetime, end_datetime, temporal_sign * interval))
 
 
-def _datetime_range():
-    datetime_objects = list(datetime_range(START_DATETIME, END_DATETIME, INTERVAL))
+# ======================================================
+### Tests for datetime_range()
 
-    n = len(datetime_objects)
+@pytest.mark.parametrize(("start_datetime", "end_datetime", "temporal_sign"), [
+    (start_datetime, end_datetime, 1),
+    (end_datetime, start_datetime, -1)
+])
+def test_datetime_range(start_datetime, end_datetime, temporal_sign):
+    datetime_objects = list(datetime_range(start_datetime, end_datetime, temporal_sign * interval))
+    assert quotient + 1 == len(datetime_objects)
+    assert start_datetime == datetime_objects[0]
+    assert temporal_sign ^ (end_datetime < datetime_objects[-1])
+    assert intervals_equal(temporal_sign * interval, datetime_objects)
 
-    assert QUOTIENT + 1 == n
-    assert START_DATETIME == datetime_objects[0]
-    assert END_DATETIME > datetime_objects[-1]
-    assert intervals_equal(INTERVAL, datetime_objects)
 
+@pytest.mark.parametrize(("start_datetime", "end_datetime", "temporal_sign"), [
+    (start_datetime, end_datetime, -1),
+    (end_datetime, start_datetime, +1),
 
-def _datetime_range_empty():
-    assert [] == list(datetime_range(END_DATETIME, END_DATETIME, INTERVAL))
+])
+def test_datetime_range_empty(start_datetime, end_datetime, temporal_sign):
+    assert [] == list(datetime_range(start_datetime, end_datetime, temporal_sign * interval))

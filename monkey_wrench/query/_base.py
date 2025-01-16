@@ -8,7 +8,6 @@ from loguru import logger
 from pydantic import validate_call
 
 from monkey_wrench.date_time import generate_datetime_batches
-from monkey_wrench.generic import Order
 from monkey_wrench.query._types import Batches
 
 
@@ -52,7 +51,6 @@ class Query(ABC):
             start_datetime: datetime,
             end_datetime: datetime,
             batch_interval: timedelta,
-            order: Order = Order.descending,
             expected_total_count: int | None = None
     ) -> Batches:
         """Divide the specified time range into smaller intervals (batches) and perform queries on them.
@@ -67,7 +65,7 @@ class Query(ABC):
         """
         self.log_message(start_datetime, end_datetime, f"and batch_interval='{batch_interval}'.")
         total_retrieved_count = 0
-        for start, end in generate_datetime_batches(start_datetime, end_datetime, batch_interval, order=order):
+        for start, end in generate_datetime_batches(start_datetime, end_datetime, batch_interval):
             self.log_message(start, end)
             items = self.query(start, end)
             retrieved_count = self.len(items)

@@ -6,7 +6,7 @@ from typing import Any, Generator
 import numpy as np
 from pydantic import PositiveInt, validate_call
 
-from monkey_wrench.date_time import DateTimeParser, assert_start_time_is_before_end_time
+from monkey_wrench.date_time import DateTimeParser, assert_start_precedes_end
 from monkey_wrench.query._base import Query
 
 
@@ -118,7 +118,7 @@ class List(Query):
     @validate_call
     def __get_indices(self, start_datetime: datetime, end_datetime: datetime) -> np.array:
         """Similar to :func:`~List.query_indices`, but returns the numpy indices instead."""
-        assert_start_time_is_before_end_time(start_datetime, end_datetime)
+        assert_start_precedes_end(start_datetime, end_datetime)
         idx = np.where((self.__items_parsed >= start_datetime) & (self.__items_parsed < end_datetime))
         return idx[0]
 

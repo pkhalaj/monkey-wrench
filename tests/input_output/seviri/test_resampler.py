@@ -7,7 +7,10 @@ from satpy.readers import FSFile
 from monkey_wrench.input_output.seviri import resample_seviri_native_file
 from tests.utils import make_dummy_file, make_yaml_file
 
-AREA_DEFINITION = dict(
+# ======================================================
+### Tests for resample_seviri_native_file()
+
+area_definition = dict(
     CHIMP_NORDIC=dict(
         description="CHIMP region of interest over the nordic countries",
         projection=dict(
@@ -33,30 +36,42 @@ AREA_DEFINITION = dict(
 )
 
 
-def get_area_from_chimp(temp_dir):
-    return load_area(make_yaml_file(temp_dir / Path("chimp_nordic_4.yml"), AREA_DEFINITION))
+def make_fs_file(directory: Path, filename: str) -> FSFile:
+    return FSFile(make_dummy_file(directory / Path(filename)))
 
 
-@pytest.mark.parametrize(("filename", "error_message", "area_func"), [
-    ("test", "does not end with `.nc`", get_area_from_chimp),
-    ("test.nc", "Invalid area", lambda _: AREA_DEFINITION)
-])
-def _resample_seviri_native_file_raise(temp_dir, filename, error_message, area_func):
-    area = area_func(temp_dir)
-    with pytest.raises(ValueError, match=error_message):
-        resample_seviri_native_file(make_fs_file(temp_dir, filename), temp_dir, lambda x: x, area)
+def make_area_file(temp_dir):
+    return make_yaml_file(temp_dir / Path("chimp_nordic_4.yml"), area_definition)
 
 
 @pytest.mark.parametrize("area_func", [
-    lambda x: make_yaml_file(x / Path("sample_area.yaml"), AREA_DEFINITION),
-    get_area_from_chimp,
+    make_area_file,
+    lambda path: load_area(make_area_file(path))
 ])
-def _resample_seviri_native_file_with_area(temp_dir, area_func):
-    fs_file = make_fs_file(temp_dir, "test.nc")
-    area = area_func(temp_dir)
-    with pytest.raises(ValueError, match="No supported files"):
-        resample_seviri_native_file(fs_file, temp_dir, lambda x: x, area=area)
+@pytest.mark.parametrize(("filename", "error_message"), [
+    ("test", "does not end with `.nc`"),
+    ("test.nc", "No supported files"),
+])
+def test_resample_seviri_native_input_file_raise(temp_dir, filename, error_message, area_func):
+    with pytest.raises(ValueError, match=error_message):
+        resample_seviri_native_file(
+            make_fs_file(temp_dir, filename),
+            temp_dir,
+            lambda x: x,
+            area_func(temp_dir)
+        )
 
 
-def make_fs_file(directory: Path, filename: str) -> FSFile:
-    return FSFile(make_dummy_file(directory / Path(filename)))
+@pytest.mark.parametrize("area", [
+    dict(),
+    area_definition,
+    None
+])
+def test_resample_seviri_native_file_with_area(temp_dir, area):
+    with pytest.raises(ValueError, match="Invalid area"):
+        resample_seviri_native_file(
+            make_fs_file(temp_dir, "test.nc"),
+            temp_dir,
+            lambda x: x,
+            area=area
+        )

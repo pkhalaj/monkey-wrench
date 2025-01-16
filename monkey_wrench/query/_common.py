@@ -21,8 +21,6 @@ def make_collection_url(collection: EumetsatCollection) -> HttpUrl:
         The full collection URL using which the files can be fetched.
 
     Example:
-        >>> from monkey_wrench.query import make_collection_url
-        >>>
         >>> make_collection_url(EumetsatCollection.seviri)
         HttpUrl('https://api.eumetsat.int/data/download/1.0.0/collections/EO%3AEUM%3ADAT%3AMSG%3AHRSEVIRI/products')
     """
