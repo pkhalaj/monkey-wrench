@@ -4,9 +4,11 @@ import re
 from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Never
+from typing import Any, Generator, Never
 
 from pydantic import validate_call
+
+from monkey_wrench.generic import ListSetTuple, apply_to_single_or_collection
 
 
 class DateTimeParserBase:
@@ -73,6 +75,20 @@ class DateTimeParserBase:
             return datetime.strptime(datetime_string, datetime_format_string)
         except ValueError:
             DateTimeParserBase._raise_value_error(datetime_string)
+
+    @classmethod
+    def parse_collection(cls, items: ListSetTuple | Generator) -> ListSetTuple[datetime] | Generator:
+        """Parse the given collection of items into a collection of datetime objects.
+
+        Args:
+            items:
+                The collection (list/set/tuple or generator) of items to parse.
+
+        Returns:
+            A collection of datetime objects. The type of collection matches the type of the input collection, e.g.
+            a list as input results in a list of datetime objects.
+        """
+        return apply_to_single_or_collection(cls.parse, items)
 
     @staticmethod
     @abstractmethod

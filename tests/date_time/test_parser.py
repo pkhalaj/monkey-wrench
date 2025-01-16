@@ -79,6 +79,18 @@ def test_SeviriIDParser_parse(seviri_id, expected_datetime_tuple):
     assert datetime(*expected_datetime_tuple) == datetime_obj
 
 
+def test_SeviriIDParser_parse_collection():
+    seviri_ids = [
+        "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
+        "MSG3-SEVI-MSG15-0100-NA-20241120172743.016000000Z-NA"
+    ]
+    datetime_objects = [
+        datetime(2015, 7, 31, 22, 12),
+        datetime(2024, 11, 20, 17, 27)
+    ]
+    assert datetime_objects == SeviriIDParser.parse_collection(seviri_ids)
+
+
 @pytest.mark.parametrize("seviri_id", [
     "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z",
     "SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
