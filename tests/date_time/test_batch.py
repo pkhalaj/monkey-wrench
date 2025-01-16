@@ -63,7 +63,8 @@ def test_datetime_range(start_datetime, end_datetime, temporal_sign):
 @pytest.mark.parametrize(("start_datetime", "end_datetime", "temporal_sign"), [
     (start_datetime, end_datetime, -1),
     (end_datetime, start_datetime, +1),
-
+    (start_datetime, start_datetime, -1),
+    (start_datetime, start_datetime, +1),
 ])
 def test_datetime_range_empty(start_datetime, end_datetime, temporal_sign):
     assert [] == list(datetime_range(start_datetime, end_datetime, temporal_sign * interval))
