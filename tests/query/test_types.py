@@ -7,6 +7,7 @@ from monkey_wrench.query import BoundingBox, Polygon, Vertex
 ### Tests for Vertex()
 
 @pytest.mark.parametrize("vertex", [
+    Vertex(10.0, "12.3"),
     Vertex(10.0, 12.3),
     Vertex(longitude=10.0, latitude=12.3)
 ])
@@ -22,11 +23,13 @@ def test_Vertex(vertex, expected, kwargs):
 @pytest.mark.parametrize("args", [
     [],
     [10],
+    [10, "A"],
     [10, 20, 30]
 ])
 @pytest.mark.parametrize("kwargs", [
     {},
     {"longitude": 10.0},
+    {"longitude": 10.0, "latitude": "A"},
     {"longitude": 10.0, "latitude": 12.3, "z": 0.0}
 ])
 def test_Vertex_raise(args, kwargs):
@@ -38,6 +41,7 @@ def test_Vertex_raise(args, kwargs):
 ### Tests for BoundingBox()
 
 @pytest.mark.parametrize("bounding_box", [
+    BoundingBox(10.0, 12.3, 0.0, "15.0"),
     BoundingBox(10.0, 12.3, 0.0, 15.0),
     BoundingBox(north=10.0, south=12.3, west=0.0, east=15.0),
 ])
@@ -53,11 +57,13 @@ def test_BoundingBox(bounding_box, expected, kwargs):
 @pytest.mark.parametrize("args", [
     [],
     [10],
+    [10, 20, 30, "A"],
     [10, 20, 30, 40, 50]
 ])
 @pytest.mark.parametrize("kwargs", [
     {},
     {"north": 10.0},
+    {"north": 10.0, "south": 12.3, "west": 0.0, "east": "A"},
     {"north": 10.0, "south": 12.3, "west": 0.0, "east": 15.0, "z": 0.0},
 ])
 def test_BoundingBox_raise(args, kwargs):
@@ -82,10 +88,12 @@ def test_Polygon(polygon, expected, kwargs):
 
 @pytest.mark.parametrize("args", [
     [],
+    ["A"],
     [[10, 12.3]]
 ])
 @pytest.mark.parametrize("kwargs", [
     {},
+    {"vertices": None},
     {"vertices": [Vertex(10.0, 12.3)], "z": 0.0}
 ])
 def test_Polygon_raise(args, kwargs):

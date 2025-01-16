@@ -41,10 +41,10 @@ class BoundingBox(BaseModel):
 
     Example:
         >>> BoundingBox(north=10, south=20, west=30, east=40)
-        north=10 south=20 west=30 east=40
+        BoundingBox(north=10.0, south=20.0, west=30.0, east=40.0)
 
         >>> BoundingBox(10, 20, 30, 40)
-        north=10 south=20 west=30 east=40
+        BoundingBox(north=10.0, south=20.0, west=30.0, east=40.0)
     """
 
     north: float
@@ -84,10 +84,10 @@ class Vertex(BaseModel):
 
     Example:
         >>> Vertex(longitude=10, latitude=20)
-        longitude=10 latitude=20
+        Vertex(longitude=10.0, latitude=20.0)
 
         >>> Vertex(10, 20)
-        longitude=10 latitude=20
+        Vertex(longitude=10.0, latitude=20.0)
     """
 
     longitude: float
