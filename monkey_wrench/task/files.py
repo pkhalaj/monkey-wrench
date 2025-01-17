@@ -28,12 +28,12 @@ class Task(TaskBase):
     context: Literal[Context.product_files]
 
 
-class VerifySpecifications(DateTimeRange, InputFile, InputDirectory, Pattern):
+class VerifySpecifications(DateTimeRange, FileSize, InputFile, InputDirectory, Pattern):
     """Pydantic model for the specifications of a verification task."""
     recursive: bool = True
 
 
-class FetchSpecifications(DateTimeRange, FileSize, InputFile, OutputDirectory, Resampler):
+class FetchSpecifications(DateTimeRange, InputFile, OutputDirectory, Resampler):
     """Pydantic model for the specifications of a fetch task."""
     number_of_processes: int
     remove_file_if_exists: bool = True,
@@ -53,7 +53,7 @@ class Verify(Task):
                 self.specifications.input_directory,
                 pattern=self.specifications.pattern,
                 recursive=self.specifications.recursive,
-                case_insensitive=self.specifications.case_sensitive,
+                case_sensitive=self.specifications.case_sensitive,
                 match_all=self.specifications.match_all,
             ),
             FilePathParser
@@ -70,7 +70,7 @@ class Verify(Task):
             self.specifications.end_datetime
         )
 
-        datetime_objs = SeviriIDParser.parse_collection(product_ids)
+        datetime_objs = SeviriIDParser.parse_collection(product_ids.to_python_list())
         missing, corrupted = compare_files_against_reference(
             files,
             reference_items=datetime_objs,
