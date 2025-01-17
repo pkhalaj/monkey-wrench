@@ -3,13 +3,14 @@
 import sys
 from typing import ClassVar, Self
 
-from pydantic import BaseModel, model_validator
+from pydantic import model_validator
 from pydantic_core import PydanticCustomError
 
-from monkey_wrench.task.models.specifications.paths import InputFile
+from monkey_wrench.generic import Specifications
+from monkey_wrench.input_output import InputFile
 
 
-class CommandLineArguments(BaseModel):
+class CommandLineArguments(Specifications):
     """Pydantic model to validate CLI arguments.
 
     It reads the CLI arguments from `sys.argv`_, where ``sys.argv[0]`` is the path of the script which is being

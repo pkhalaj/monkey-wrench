@@ -4,39 +4,44 @@ from typing import Literal
 
 from pydantic import NonNegativeInt
 
-from monkey_wrench.date_time import FilePathParser, SeviriIDParser
+from monkey_wrench.date_time import DateTimeRange, FilePathParser, SeviriIDParser
+from monkey_wrench.generic import Pattern
 from monkey_wrench.input_output import (
+    FileSize,
+    InputDirectory,
+    InputFile,
+    OutputDirectory,
     compare_files_against_reference,
     create_datetime_directory,
     read_items_from_txt_file,
     seviri,
     visit_files_in_directory,
 )
+from monkey_wrench.input_output.seviri import Resampler
 from monkey_wrench.process import run_multiple_processes
 from monkey_wrench.query import EumetsatAPI, List
-from monkey_wrench.task.models.specifications.datetime import DateTimeRange
-from monkey_wrench.task.models.specifications.filesize import FileSize
-from monkey_wrench.task.models.specifications.paths import InputDirectory, InputFile, OutputDirectory
-from monkey_wrench.task.models.specifications.pattern import Pattern
-from monkey_wrench.task.models.specifications.resampler import Resampler
-from monkey_wrench.task.models.tasks.base import Action, Context, TaskBase
+from monkey_wrench.task.base import Action, Context, TaskBase
 
 
 class Task(TaskBase):
+    """Pydantic base model for tasks related to product files."""
     context: Literal[Context.product_files]
 
 
 class VerifySpecifications(DateTimeRange, InputFile, InputDirectory, Pattern):
+    """Pydantic model for the specifications of a verification task."""
     recursive: bool = True
 
 
 class FetchSpecifications(DateTimeRange, FileSize, InputFile, OutputDirectory, Resampler):
+    """Pydantic model for the specifications of a fetch task."""
     number_of_processes: int
     remove_file_if_exists: bool = True,
     save_datasets_options: dict | None = None
 
 
 class Verify(Task):
+    """Pydantic model for the verification task."""
     action: Literal[Action.verify]
     specifications: VerifySpecifications
 
@@ -83,6 +88,7 @@ class Verify(Task):
 
 
 class Fetch(Task):
+    """Pydantic model for the fetch task."""
     action: Literal[Action.fetch]
     specifications: FetchSpecifications
 

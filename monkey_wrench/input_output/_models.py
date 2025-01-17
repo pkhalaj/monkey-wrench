@@ -1,11 +1,9 @@
-"""The module providing Pydantic models for paths specifications."""
-
 from typing import Any
 
-from pydantic import DirectoryPath, FilePath, NewPath, field_validator
+from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeFloat, PositiveInt, field_validator
 
-from monkey_wrench.input_output import AbsolutePath
-from monkey_wrench.task.models.specifications.base import Specifications
+from monkey_wrench.generic import Specifications
+from monkey_wrench.input_output._types import AbsolutePath
 
 
 class OutputFile(Specifications):
@@ -38,3 +36,8 @@ class OutputDirectory(Specifications):
 
 class TempDirectory(Specifications):
     temp_directory: AbsolutePath[DirectoryPath]
+
+
+class FileSize(Specifications):
+    nominal_size: PositiveInt
+    tolerance: NonNegativeFloat = 0.01

@@ -11,10 +11,18 @@ from ._common import (
     write_items_to_txt_file,
     write_items_to_txt_file_in_batches,
 )
+from ._models import FileSize, InputDirectory, InputFile, ModelFile, OutputDirectory, OutputFile, TempDirectory
 from ._types import AbsolutePath
 
 __all__ = [
     "AbsolutePath",
+    "FileSize",
+    "InputDirectory",
+    "InputFile",
+    "ModelFile",
+    "OutputDirectory",
+    "OutputFile",
+    "TempDirectory",
     "compare_files_against_reference",
     "copy_files_between_directories",
     "create_datetime_directory",

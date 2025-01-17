@@ -2,34 +2,33 @@
 from pathlib import Path
 from typing import Callable, ClassVar, Literal
 
-from monkey_wrench.date_time import FilePathParser
+from monkey_wrench.date_time import DateTimeRange, FilePathParser
 from monkey_wrench.input_output import (
+    InputDirectory,
+    ModelFile,
+    OutputDirectory,
+    TempDirectory,
     copy_files_between_directories,
     create_datetime_directory,
     visit_files_in_directory,
 )
 from monkey_wrench.input_output.seviri import output_filename_from_datetime, seviri_extension_context
 from monkey_wrench.query import List
-from monkey_wrench.task.models.specifications.datetime import DateTimeRange
-from monkey_wrench.task.models.specifications.paths import (
-    InputDirectory,
-    ModelFile,
-    OutputDirectory,
-    TempDirectory,
-)
-from monkey_wrench.task.models.tasks.base import Action, Context, TaskBase
+from monkey_wrench.task.base import Action, Context, TaskBase
 
 
 class Task(TaskBase):
+    """Pydantic base model for all CHIMP related tasks."""
     context: Literal[Context.chimp]
 
 
 class RetrieveSpecifications(DateTimeRange, InputDirectory, ModelFile, OutputDirectory, TempDirectory):
+    """Pydantic model for the specifications of CHIMP retrievals."""
     device: Literal["cpu", "cuda"]
-    pass
 
 
 class Retrieve(Task):
+    """Pydantic model for the CHIMP retrieval task."""
     action: Literal[Action.retrieve]
     specifications: RetrieveSpecifications
     sequence_length: ClassVar[int] = 16
@@ -55,6 +54,7 @@ class Retrieve(Task):
                 self.run_chimp(chimp_cli, batch)
 
     def run_chimp(self, retrieve_function: Callable, batch: list[Path]):
+        """Run the CHIMP retrieval."""
         input_filenames = [str(i) for i in batch]
 
         if len(input_filenames) != Retrieve.sequence_length:

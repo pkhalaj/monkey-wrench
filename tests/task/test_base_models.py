@@ -1,15 +1,10 @@
 import pytest
 from pydantic import ValidationError
 
-from monkey_wrench.task.models.specifications.base import Specifications
-from monkey_wrench.task.models.specifications.datetime import (
-    DateTimeRange,
-    DateTimeRangeInBatches,
-    EndDateTime,
-    StartDateTime,
-)
-from monkey_wrench.task.models.specifications.paths import OutputFile
-from monkey_wrench.task.models.tasks.base import TaskBase
+from monkey_wrench.date_time import DateTimeRange, DateTimeRangeInBatches, EndDateTime, StartDateTime
+from monkey_wrench.generic import Specifications
+from monkey_wrench.input_output import OutputFile
+from monkey_wrench.task.base import TaskBase
 from tests.task.const import BATCH_INTERVAL, END_DATETIME, FUTURE_DATETIME, START_DATETIME
 
 

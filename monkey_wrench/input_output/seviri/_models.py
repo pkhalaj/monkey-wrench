@@ -1,13 +1,11 @@
-"""The module providing Pydantic models for resampler specifications."""
-
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import ConfigDict, FilePath, NonNegativeInt, field_validator
 from pyresample import area_config, load_area
 
-from monkey_wrench.input_output import AbsolutePath
-from monkey_wrench.task.models.specifications.base import Specifications
+from monkey_wrench.generic import Specifications
+from monkey_wrench.input_output._types import AbsolutePath
 
 
 class Resampler(Specifications):

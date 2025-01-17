@@ -8,7 +8,7 @@ from uuid import uuid4
 from loguru import logger
 from pydantic import BaseModel
 
-from monkey_wrench.task.models.specifications.base import Specifications
+from monkey_wrench.generic import Specifications
 
 
 class Context(str, Enum):

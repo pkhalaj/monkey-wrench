@@ -66,7 +66,7 @@ def test_fetch_files_success(get_token_or_skip, temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
     write_items_to_txt_file(ids, product_ids_filename)
-    directory = Path(".")
+    directory = Path("models")
     make_yaml_file(
         task_filename,
         dict(

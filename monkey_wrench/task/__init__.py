@@ -3,10 +3,11 @@ from typing import Generator
 import yaml
 from pydantic import BaseModel, validate_call
 
-from .models.specifications.paths import InputFile
-from .models.tasks.chimp import ChimpTask
-from .models.tasks.files import FilesTask
-from .models.tasks.ids import IdsTask
+from monkey_wrench.input_output import InputFile
+
+from .chimp import ChimpTask
+from .files import FilesTask
+from .ids import IdsTask
 
 Task = ChimpTask | FilesTask | IdsTask
 
