@@ -1,6 +1,6 @@
 """The module providing Pydantic models for pattern specifications."""
 
-from monkey_wrench.task.models.tasks.base import Specifications
+from monkey_wrench.task.models.specifications.base import Specifications
 
 
 class Pattern(Specifications):

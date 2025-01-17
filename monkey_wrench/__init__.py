@@ -9,5 +9,5 @@ __all__ = [
     "input_output",
     "process",
     "query",
-    "task",
+    "task"
 ]

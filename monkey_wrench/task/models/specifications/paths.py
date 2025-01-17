@@ -5,7 +5,7 @@ from typing import Any
 from pydantic import DirectoryPath, FilePath, NewPath, field_validator
 
 from monkey_wrench.input_output import AbsolutePath
-from monkey_wrench.task.models.tasks.base import Specifications
+from monkey_wrench.task.models.specifications.base import Specifications
 
 
 class OutputFile(Specifications):

@@ -77,7 +77,9 @@ class DateTimeParserBase:
             DateTimeParserBase._raise_value_error(datetime_string)
 
     @classmethod
-    def parse_collection(cls, items: ListSetTuple | Generator) -> ListSetTuple[datetime] | Generator:
+    def parse_collection(
+            cls, items: ListSetTuple[Any] | Generator
+    ) -> ListSetTuple[datetime] | Generator[datetime, None, None]:
         """Parse the given collection of items into a collection of datetime objects.
 
         Args:

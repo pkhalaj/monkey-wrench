@@ -1,8 +1,8 @@
-"""The module providing Pydantic models for filesize specifications."""
+"""The module providing Pydantic models for file size specifications."""
 
 from pydantic import PositiveFloat, PositiveInt
 
-from monkey_wrench.task.models.tasks.base import Specifications
+from monkey_wrench.task.models.specifications.base import Specifications
 
 
 class FileSize(Specifications):

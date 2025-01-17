@@ -17,8 +17,7 @@ from monkey_wrench.task.models.specifications.paths import (
     OutputDirectory,
     TempDirectory,
 )
-
-from .base import Action, Context, TaskBase
+from monkey_wrench.task.models.tasks.base import Action, Context, TaskBase
 
 
 class Task(TaskBase):

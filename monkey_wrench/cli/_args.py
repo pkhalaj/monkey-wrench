@@ -6,7 +6,7 @@ from typing import ClassVar, Self
 from pydantic import BaseModel, model_validator
 from pydantic_core import PydanticCustomError
 
-from monkey_wrench.task import InputFile
+from monkey_wrench.task.models.specifications.paths import InputFile
 
 
 class CommandLineArguments(BaseModel):

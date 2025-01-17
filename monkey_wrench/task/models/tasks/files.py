@@ -1,6 +1,6 @@
 """Module to define Pydantic models for tasks related to product files."""
 
-from typing import ClassVar, Literal
+from typing import Literal
 
 from pydantic import NonNegativeInt
 
@@ -18,6 +18,7 @@ from monkey_wrench.task.models.specifications.datetime import DateTimeRange
 from monkey_wrench.task.models.specifications.filesize import FileSize
 from monkey_wrench.task.models.specifications.paths import InputDirectory, InputFile, OutputDirectory
 from monkey_wrench.task.models.specifications.pattern import Pattern
+from monkey_wrench.task.models.specifications.resampler import Resampler
 from monkey_wrench.task.models.tasks.base import Action, Context, TaskBase
 
 
@@ -25,12 +26,14 @@ class Task(TaskBase):
     context: Literal[Context.product_files]
 
 
-class VerifySpecifications(DateTimeRange, FileSize, InputFile, InputDirectory, Pattern):
+class VerifySpecifications(DateTimeRange, InputFile, InputDirectory, Pattern):
     recursive: bool = True
 
 
-class FetchSpecifications(DateTimeRange, InputFile, OutputDirectory):
+class FetchSpecifications(DateTimeRange, FileSize, InputFile, OutputDirectory, Resampler):
     number_of_processes: int
+    remove_file_if_exists: bool = True,
+    save_datasets_options: dict | None = None
 
 
 class Verify(Task):
@@ -82,18 +85,12 @@ class Verify(Task):
 class Fetch(Task):
     action: Literal[Action.fetch]
     specifications: FetchSpecifications
-    __default_area_file: ClassVar = None
-
-    @classmethod
-    def set_default_area_file(cls) -> None:
-        """Set the default area once."""
-        from chimp.areas import NORDICS_4
-        cls.__default_area_file = NORDICS_4
 
     def fetch(self, product_id: str) -> None:
         """Fetch and resample the file with the given product ID."""
         api = EumetsatAPI()
-        fs_file = api.open_seviri_native_file_remotely(product_id, cache="filecache")
+        fs_file = api.open_seviri_native_file_remotely(product_id, cache=self.specifications.cache)
+
         datetime_directory = create_datetime_directory(
             SeviriIDParser.parse(product_id),
             parent=self.specifications.output_directory,
@@ -103,14 +100,15 @@ class Fetch(Task):
             fs_file,
             datetime_directory,
             seviri.input_filename_from_product_id,
-            self.__default_area_file,
+            self.specifications.area,
+            radius_of_influence=self.specifications.radius_of_influence,
+            remove_file_if_exists=self.specifications.remove_file_if_exists,
+            save_datasets_options=self.specifications.save_datasets_options
         )
 
     @TaskBase.log
     def perform(self) -> None:
-        """Verify the product files using the reference."""
-        self.set_default_area_file()
-
+        """Fetch the product files."""
         product_ids = List(
             read_items_from_txt_file(self.specifications.input_filename),
             SeviriIDParser
