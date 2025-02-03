@@ -1,4 +1,4 @@
-"""The module providing the Pydantic model to parse CLI arguments."""
+"""The Pydantic model to parse CLI arguments."""
 
 import sys
 from typing import ClassVar, Self
@@ -20,7 +20,7 @@ class CommandLineArguments(Specifications):
     """
 
     task_filepath: ClassVar[InputFile]
-    """The path of the task file, which must point to an existing and valid YAML (``".yaml"`` or ``".yml"``) file."""
+    """The path of the task file, which must point to an existing valid YAML file."""
 
     # noinspection PyNestedDecorators
     @model_validator(mode="after")
@@ -32,19 +32,6 @@ class CommandLineArguments(Specifications):
                 "cli_arguments",
                 "Expected a single command-line argument, but received {n_args} arguments.",
                 dict(n_args=len(sys.argv) - 1),
-            )
-        return instance
-
-    # noinspection PyNestedDecorators
-    @model_validator(mode="after")
-    @classmethod
-    def validate_task_filepath_extension(cls, instance: Self) -> Self:
-        """Ensure that the task filepath ends in ``".yaml"`` or ``".yml"``."""
-        task_filepath = sys.argv[1]
-        if not (task_filepath.endswith(".yaml") or task_filepath.endswith(".yml")):
-            raise PydanticCustomError(
-                "cli_arguments",
-                "The task filepath must end in `.yaml` or `.yml`.",
             )
         return instance
 

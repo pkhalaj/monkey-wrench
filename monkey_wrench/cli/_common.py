@@ -1,4 +1,4 @@
-"""The module providing the main executable function for the CLI."""
+"""The main executable function for the CLI."""
 
 from monkey_wrench.cli._models import CommandLineArguments
 from monkey_wrench.error import pretty_error_logs
@@ -16,7 +16,7 @@ def run() -> None:
 
         .. code-block:: bash
 
-            # Note that the filepath must end in `.yaml` or `.yml`.
+            # Note that the task file must be a valid YAML file.
             monkey-wrench <task_file_path>
     """
     for task in read_tasks_from_file(CommandLineArguments().task_filepath):
