@@ -1,13 +1,12 @@
-from pathlib import Path
-
 import pytest
 from pydantic import ValidationError
 
 from monkey_wrench.cli import CommandLineArguments
+from monkey_wrench.input_output import InputFile
 from tests.utils import cli_arguments
 
 # ======================================================
-### Tests for CommandLineArguments
+### Tests for CommandLineArguments()
 
 @pytest.mark.parametrize(("args", "msg"), [
     ([], "single"),
@@ -23,4 +22,4 @@ def test_CommandLineArguments_raise(args, msg):
 
 def test_CommandLineArguments(empty_task_filepath):
     with cli_arguments(empty_task_filepath):
-        assert Path(empty_task_filepath) == CommandLineArguments().task_filepath
+        assert InputFile(input_filename=empty_task_filepath) == CommandLineArguments().task_filepath
