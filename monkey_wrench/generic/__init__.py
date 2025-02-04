@@ -1,15 +1,16 @@
-"""The package providing some generic utilities and types which will be used in other sub-packages."""
+"""The package providing some generic utilities and types, used in other sub-packages of **Monkey Wrench**."""
 
-from ._common import apply_to_single_or_collection, element_type, pattern_exists
-from ._models import Pattern, Specifications
-from ._types import ListSetTuple, StringOrStrings
+from ._common import apply_to_single_or_collection, assert_, element_type, element_type_from_collection
+from ._types import ListSetTuple, Model
+from .models import Pattern, Strings
 
 __all__ = [
     "ListSetTuple",
+    "Model",
     "Pattern",
-    "Specifications",
-    "StringOrStrings",
+    "Strings",
     "apply_to_single_or_collection",
+    "assert_",
     "element_type",
-    "pattern_exists"
+    "element_type_from_collection"
 ]

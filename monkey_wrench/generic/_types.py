@@ -1,14 +1,35 @@
-"""The module providing the common types that will be used in other sub-packages."""
+"""Common types used in other sub-packages of **Monkey Wrench**."""
 
 from typing import TypeVar, Union
 
-T = TypeVar("T")
-ListSetTuple = Union[list[T], set[T], tuple[T, ...]]
-"""Parametric type alias for the union of lists, sets, tuple.
+from pydantic import BaseModel
 
-Note:
-    Strings and dictionaries have been intentionally left out!
+T = TypeVar("T")
+
+ListSetTuple = Union[list[T], set[T], tuple[T, ...]]
+"""Parametric type alias for the union of lists, sets, and tuples, i.e. iterables.
+
+Warning:
+    Strings and dictionaries have been intentionally left out, although they are also iterables!
 """
 
-StringOrStrings = str | list[str]
-"""Type alias for a string or a list of strings that will be used e.g. as a pattern to search in other strings."""
+
+class Model(BaseModel, extra="forbid"):
+    """A Pydantic model to be used as a base for all other models.
+
+    Note:
+        When initializing models which inherit from ``Model``, an exception will be raised if any extra keyword
+        arguments are passed to the constructor. Extra keyword arguments correspond to extra fields that have not been
+        explicitly defined in the model.
+
+    Example:
+
+        .. code-block:: python
+
+            class Dataset(Model):
+                name: str
+
+            # The following will raise an exception, since `number` has not been explicitly defined as a model field.
+            dataset = Dataset(name="Name", number=1)
+    """
+    pass
