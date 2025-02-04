@@ -10,8 +10,8 @@ T = TypeVar("T")
 U = TypeVar("U")
 
 
-def assert_(item: T, message: str, exception: type[Exception] = ValueError, silent: bool = True) -> bool:
-    """Assert the item, and return the assertion result as a boolean or raise ``exception``.
+def assert_(item: T, message: str, exception: type[Exception] = ValueError, silent: bool = True) -> T:
+    """Assert the truth value of the item, and return the item or raise ``exception``.
 
     Args:
         item:
@@ -23,16 +23,17 @@ def assert_(item: T, message: str, exception: type[Exception] = ValueError, sile
             The exception to raise if the assertion fails and ``silent`` is ``False``. Defaults to ``ValueError``.
         silent:
             A boolean indicating whether to return silently or raise an exception in the case of assertion failure.
-            Defaults to ``True``, which means the assertion result will be silently returned.
+            Defaults to ``True``, which means the item will be silently returned.
 
     Returns:
-        A boolean if ``silent`` is ``True``. Otherwise, ``exception`` will be raised in the case of assertion failure.
+        The item as it is, if ``silent`` is ``True``. Otherwise, ``exception`` will be raised in the case of assertion
+        failure.
 
     Raises:
         If the ``item`` evaluates to ``False`` and ``silent`` is ``False``.
     """
     if item or silent:
-        return bool(item)
+        return item
     raise exception(message)
 
 

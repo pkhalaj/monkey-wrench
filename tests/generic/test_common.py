@@ -12,7 +12,8 @@ from monkey_wrench.generic import apply_to_single_or_collection, assert_, elemen
     (True, True),
     (False, False),
     (5 > 3, True),
-    ({}, False)
+    ({}, {}),
+    ([], [])
 ])
 def test_assert_(inp, out):
     assert out == assert_(inp, "")
