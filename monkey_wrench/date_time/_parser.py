@@ -5,6 +5,7 @@ from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Generator, Never
+from zoneinfo import ZoneInfo
 
 from pydantic import validate_call
 
@@ -21,7 +22,7 @@ class DateTimeParserBase:
 
     @staticmethod
     @validate_call
-    def parse_by_regex(item: str, regex: str) -> datetime:
+    def parse_by_regex(item: str, regex: str, timezone: ZoneInfo | None = None) -> datetime:
         r"""Parse the given item into a datetime object using a regular expression.
 
         Args:
@@ -29,6 +30,8 @@ class DateTimeParserBase:
                 The item to parse.
             regex:
                 The regular expression to match against.
+            timezone:
+                The timezone to add to the datetime object. Defaults to ``None``, which means ``UTC`` will be used.
 
         Returns:
             The parsed datetime object, if successful.
@@ -40,18 +43,23 @@ class DateTimeParserBase:
         Example:
             >>> regex = r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$"
             >>> DateTimeParserBase.parse_by_regex("20230102_22_30", regex)
-            datetime.datetime(2023, 1, 2, 22, 30)
+            datetime.datetime(2023, 1, 2, 22, 30, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
         """
+        if timezone is None:
+            timezone = ZoneInfo("UTC")
+
         try:
             if match := re.search(regex, item):
-                return datetime(*[int(m) for m in match.groups()])
+                return datetime(*[int(m) for m in match.groups()], tzinfo=timezone)
             raise ValueError()
         except ValueError:
             DateTimeParserBase._raise_value_error(item)
 
     @staticmethod
     @validate_call
-    def parse_by_format_string(datetime_string: str, datetime_format_string: str) -> datetime:
+    def parse_by_format_string(
+            datetime_string: str, datetime_format_string: str, timezone: ZoneInfo | None = None
+    ) -> datetime:
         """Parse the given datetime string into a datetime object using the given format string.
 
         Args:
@@ -59,6 +67,8 @@ class DateTimeParserBase:
                 The datetime string to parse.
             datetime_format_string:
                 The format string using which the parsing is done, e.g. ``"%Y%m%d_%H_%M"``.
+            timezone:
+                The timezone to add to the datetime object. Defaults to ``None``, which means ``UTC`` will be used.
 
         Returns:
             The parsed datetime object, if successful.
@@ -69,10 +79,13 @@ class DateTimeParserBase:
 
         Example:
             >>> DateTimeParserBase.parse_by_format_string("20230101_22_30", "%Y%m%d_%H_%M")
-            datetime.datetime(2023, 1, 1, 22, 30)
+            datetime.datetime(2023, 1, 1, 22, 30, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
         """
+        if timezone is None:
+            timezone = ZoneInfo("UTC")
+
         try:
-            return datetime.strptime(datetime_string, datetime_format_string)
+            return datetime.strptime(datetime_string, datetime_format_string).replace(tzinfo=timezone)
         except ValueError:
             DateTimeParserBase._raise_value_error(datetime_string)
 
@@ -116,7 +129,7 @@ class SeviriIDParser(DateTimeParserBase):
 
         Example:
             >>> SeviriIDParser.parse("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA")
-            datetime.datetime(2015, 7, 31, 22, 12)
+            datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
         """
         return DateTimeParserBase.parse_by_regex(seviri_product_id, SeviriIDParser.regex)
 
@@ -141,23 +154,23 @@ class FilePathParser(DateTimeParserBase):
         Examples:
             >>> # Input is an absolute path of type `Path`.
             >>> FilePathParser.parse(Path("/home/user/dir/seviri_20150731_22_12.extension"))
-            datetime.datetime(2015, 7, 31, 22, 12)
+            datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `Path`.
             >>> FilePathParser.parse(Path("chimp_20150731_22_12.extension"))
-            datetime.datetime(2015, 7, 31, 22, 12)
+            datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is an absolute path of type `str`.
             >>> FilePathParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
-            datetime.datetime(2015, 7, 31, 22, 12)
+            datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `str` and does not have an extension.
             >>> FilePathParser.parse("seviri_20150731_22_12")
-            datetime.datetime(2015, 7, 31, 22, 12)
+            datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `str` and its extension is numeric, i.e. `72`.
             >>> FilePathParser.parse("p_20150731_22_1272")
-            datetime.datetime(2015, 7, 31, 22, 12)
+            datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is invalid (missing prefix). The following will raise an exception!
             >>> # FilePathParser.parse("20150731_22_12")
