@@ -1,4 +1,4 @@
-from typing import Callable, Iterable
+from typing import Any, Callable, Iterable
 
 from pydantic import AfterValidator, validate_call
 from typing_extensions import Annotated
@@ -32,17 +32,18 @@ class Pattern(Model):
     """
 
     @property
-    def match_function(self) -> Callable[[Iterable], bool]:
+    def match_function(self) -> Callable[[Iterable[object]], bool]:
         """Return either ``all()`` or ``any()`` depending on the value of :attr:`Pattern.match_all`."""
         return all if self.match_all else any
 
     @validate_call
-    def exists_in(self, item: str) -> bool:
+    def exists_in(self, item: Any) -> bool:
         """Check if the pattern exists in the given item.
 
         Args:
             item:
-                The string in which the sub-strings will be looked for.
+                The string in which the sub-strings will be looked for. If item is not a string, it will be first
+                converted to a string.
 
         Returns:
             A boolean indicating whether all or any (depending on :attr:`Pattern.match_all`) of the sub-strings exist(s)
@@ -67,6 +68,8 @@ class Pattern(Model):
             >>> Pattern(sub_strings=["A", "b"], match_all=True, case_sensitive=False).exists_in("abcde")
             True
         """
+        item = str(item)
+
         if self.sub_strings is None:
             return True
 

@@ -1,5 +1,8 @@
 """Common functions used in other modules of **Monkey Wrench**."""
 
+import importlib
+from functools import lru_cache
+from types import FunctionType
 from typing import Any, Callable, TypeVar
 
 from pydantic import validate_call
@@ -8,6 +11,50 @@ from monkey_wrench.generic._types import ListSetTuple
 
 T = TypeVar("T")
 U = TypeVar("U")
+
+
+@lru_cache(maxsize=1024)
+def import_monkey_wrench_function(function_path: str) -> Callable:
+    """Dynamically import a function from **Monkey Wrench** using its (string) identifier in the namespace.
+
+    Warning:
+        Functions must belong to the **Monkey Wrench** package.
+
+    Args:
+        function_path:
+            The dot-delimited path of the function in the namespace excluding the leading ``monkey_wrench``. As an
+            example to import :obj:`monkey_wrench.input_output.seviri.output_filename_from_product_id` the function
+            path must be set to ``input_output.seviri.output_filename_from_product_id``.
+
+    Returns:
+        The function that corresponds to the given function path.
+
+    Raises:
+        ValueError:
+            If the given function path includes any of the invalid items, e.g. ``$`` or ``:``, or if it is a relative
+            import path, or it does not point to a function.
+    """
+    if function_path.startswith(".") or function_path.endswith("."):
+        raise ValueError(
+            "The function path cannot include a leading/trailing `.`, i.e. relative imports are not allowed!"
+        )
+
+    for item in ("\\", "/", ":", ";", "..", "-", " ", ">", "<", "=", "%", "*", "$", "&", "|", "!", "@", "{", "}",
+                 "(", ")", "[", "]", "system", "subprocess"):
+        if item in function_path:
+            raise ValueError(f"The function path `{function_path}` includes `{item}`, which makes it invalid.")
+
+    try:
+        obj = importlib.import_module("monkey_wrench")
+        for part in function_path.split("."):
+            obj = getattr(obj, part)
+    except Exception as e:
+        raise ImportError(f"Failed to dynamically import `monkey_wrench.{function_path}`") from e
+
+    if not isinstance(obj, FunctionType):
+        raise TypeError(f"{function_path} is not a function!")
+
+    return obj
 
 
 def assert_(item: T, message: str, exception: type[Exception] = ValueError, silent: bool = True) -> T:
