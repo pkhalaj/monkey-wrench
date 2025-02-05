@@ -49,7 +49,7 @@ class Pattern(Model):
             in the given item.
 
         Examples:
-            >>> Pattern().exist_in("abcde")
+            >>> Pattern().exists_in("abcde")
             True
 
             >>> Pattern(sub_strings="ab").exists_in("abcde")
