@@ -5,12 +5,12 @@ from ._common import (
     assert_,
     element_type,
     element_type_from_collection,
-    import_monkey_wrench_function,
 )
 from ._types import ListSetTuple, Model
-from .models import Pattern, Strings
+from .models import Function, Pattern, Strings
 
 __all__ = [
+    "Function",
     "ListSetTuple",
     "Model",
     "Pattern",
@@ -18,6 +18,5 @@ __all__ = [
     "apply_to_single_or_collection",
     "assert_",
     "element_type",
-    "element_type_from_collection",
-    "import_monkey_wrench_function"
+    "element_type_from_collection"
 ]

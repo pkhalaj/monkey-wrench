@@ -1,4 +1,3 @@
-from pathlib import PosixPath
 from types import NoneType
 
 import pytest
@@ -8,72 +7,7 @@ from monkey_wrench.generic import (
     assert_,
     element_type,
     element_type_from_collection,
-    import_monkey_wrench_function,
 )
-
-# ======================================================
-### Tests for import_monkey_wrench_function()
-
-
-part1 = "input_output"
-part2 = "seviri.output_filename_from_product_id"
-base = f"{part1}.{part2}"
-
-
-def test_import_monkey_wrench_function():
-    func = import_monkey_wrench_function(base)
-    assert func("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA") == PosixPath("chimp_20150731_22_12.nc")
-
-
-@pytest.mark.parametrize("invalid_item", [
-    "\\", "/", ":", ";", "-", " ", ">", "<", "=", "%",
-    "*", "$", "&", "|", "!", "@", "{", "}",
-    "(", ")", "[", "]", "system", "subprocess", ":\b", r"\b"
-])
-def test_import_monkey_wrench_function_raise_invalid_items(invalid_item):
-    with pytest.raises(ValueError, match="invalid"):
-        import_monkey_wrench_function(base + invalid_item)
-
-    with pytest.raises(ValueError, match="invalid"):
-        import_monkey_wrench_function(invalid_item + base)
-
-    with pytest.raises(ValueError, match="invalid"):
-        import_monkey_wrench_function(f"{part1}." + invalid_item + part2)
-
-    with pytest.raises(ValueError, match="invalid"):
-        import_monkey_wrench_function(part1 + invalid_item + f".{part2}")
-
-
-@pytest.mark.parametrize("invalid_item", [
-    "..",
-    "."
-])
-def test_import_monkey_wrench_function_raise_leading_trailing(invalid_item):
-    with pytest.raises(ValueError, match="leading/trailing"):
-        import_monkey_wrench_function(base + invalid_item)
-
-    with pytest.raises(ValueError, match="leading/trailing"):
-        import_monkey_wrench_function(invalid_item + base)
-
-
-@pytest.mark.parametrize("path", [
-    f"monkey_wrench.{base}",
-    f"{part1}.invalid",
-    f"{base}\b"
-])
-def test_import_monkey_wrench_function_raise_import_fail(path):
-    with pytest.raises(ImportError, match="import"):
-        import_monkey_wrench_function(path)
-
-
-@pytest.mark.parametrize("path", [
-    f"{part1}",
-    f"{part1}.seviri.Resampler"
-])
-def test_import_monkey_wrench_function_raise_not_function(path):
-    with pytest.raises(TypeError, match="function"):
-        import_monkey_wrench_function(path)
-
 
 # ======================================================
 ### Tests for assert_()
