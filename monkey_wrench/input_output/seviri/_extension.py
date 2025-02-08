@@ -104,11 +104,11 @@ def _seviri_extension_factory():
 
 
 @contextmanager
-def seviri_extension_context() -> Callable:
+def seviri_extension_context() -> Generator[Callable, None, None]:
     """A context manager to load the SEVIRI extension.
 
     Yields:
-        A SEVIRI-aware CHIMP cli function which can perform a retrieval.
+        A SEVIRI-aware CHIMP CLI function which can perform a retrieval.
 
     Example:
         >>> with seviri_extension_context() as chimp_cli:

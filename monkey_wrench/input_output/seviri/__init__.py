@@ -9,7 +9,6 @@ from ._common import (
 )
 from ._extension import seviri_extension_context
 from ._models import Resampler
-from ._resampler import resample_seviri_native_file
 from ._types import ChimpFilesPrefix
 
 __all__ = [
@@ -20,6 +19,5 @@ __all__ = [
     "input_filename_from_product_id",
     "output_filename_from_datetime",
     "output_filename_from_product_id",
-    "resample_seviri_native_file",
     "seviri_extension_context"
 ]

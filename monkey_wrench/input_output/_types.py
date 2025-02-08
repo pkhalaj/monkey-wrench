@@ -1,5 +1,3 @@
-"""The module providing common types for the ``input_output`` package."""
-
 from typing import TypeVar
 
 from pydantic import AfterValidator, DirectoryPath, FilePath, NewPath
