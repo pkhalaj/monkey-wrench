@@ -51,6 +51,10 @@ allow-direct-references = true
 [tool.setuptools.packages.find]
 where = ["monkey_wrench"]
 
+# Mypy
+[tool.mypy]
+plugins = ['pydantic.mypy']
+
 # Ruff
 [tool.ruff]
 line-length = 120
@@ -78,6 +82,14 @@ select = ["A", "B", "D", "E", "W", "F", "I", "N", "PT", "S", "TID", "C90", "Q", 
 "tests/*" = ["D100", "D101", "D102", "D103", "D105", "N802", "S101", "TID252"]  # all tests
 "docs/source/conf.py" = ["D100", "A001"]                                        # sphinx [otherwise it misbehaves]
 "examples/*" = ["D100", "D103", "S101", "TID252", "T201"]                       # all examples
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = [
+    "classmethod",
+    "validator",
+    "field_validator",
+    "pydantic.validator"
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

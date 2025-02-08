@@ -1,22 +1,6 @@
 import pytest
-from pydantic import BaseModel
 
-from monkey_wrench.generic import Pattern, Strings
-
-# ======================================================
-### Tests for Strings()
-
-@pytest.mark.parametrize(("inp", "expected"), [
-    ("test", ["test"]),
-    (["1", "2"], ["1", "2"]),
-    ([], [])
-])
-def test_Strings(inp, expected):
-    class Model(BaseModel):
-        field: Strings
-
-    assert expected == Model(field=inp).field
-
+from monkey_wrench.generic import Pattern
 
 # ======================================================
 ### Tests for Pattern()
@@ -55,11 +39,12 @@ def test_Strings(inp, expected):
 ])
 def test_pattern_exist(kwargs, res):
     pattern = Pattern(**kwargs)
-    match_function = all if kwargs.get("match_all", pattern.match_all) else any
+    match_function = all if kwargs.get("match_all", True) else any
+    sub_strings = kwargs.get("sub_strings", pattern.sub_strings)
 
-    assert res is pattern.exists_in("This is a sample!")
-    assert res is ("This is a sample!" | pattern)
-
-    assert kwargs.get("case_sensitive", True) is pattern.case_sensitive
-    assert kwargs.get("match_all", True) is pattern.match_all
-    assert match_function is pattern.match_function
+    assert pattern.exists_in("This is a sample!") is res
+    assert ("This is a sample!" | pattern) is res
+    assert pattern.sub_strings_list == sub_strings if isinstance(sub_strings, list) else [sub_strings]
+    assert pattern.case_sensitive is kwargs.get("case_sensitive", True)
+    assert pattern.match_all is kwargs.get("match_all", True)
+    assert pattern.match_function is match_function

@@ -13,7 +13,7 @@ R = TypeVar("R")
 
 @lru_cache(maxsize=1024)
 def _import_monkey_wrench_function(function_path: str) -> Callable:
-    """Dynamically import a function from **Monkey Wrench** using its (string) identifier in the namespace.
+    """Import a function (dynamically) from **Monkey Wrench** using its (string) identifier in the namespace.
 
     Warning:
         Functions must belong to the **Monkey Wrench** package.
@@ -21,7 +21,7 @@ def _import_monkey_wrench_function(function_path: str) -> Callable:
     Args:
         function_path:
             The dot-delimited path of the function in the namespace excluding the leading ``monkey_wrench``. As an
-            example to import :obj:`monkey_wrench.input_output.seviri.output_filename_from_product_id` the function
+            example to import :func:`monkey_wrench.input_output.seviri.output_filename_from_product_id`, the function
             path must be set to ``input_output.seviri.output_filename_from_product_id``.
 
     Returns:
@@ -35,7 +35,7 @@ def _import_monkey_wrench_function(function_path: str) -> Callable:
         TypeError:
             If ``function_path`` is imported successfully, but it does not point to a function.
         ImportError:
-            If ``function_path`` cannot be imported successfully.
+            If ``function_path`` cannot be imported successfully, e.g. it does not exist.
     """
     if function_path.startswith(".") or function_path.endswith("."):
         raise ValueError(
@@ -61,7 +61,7 @@ def _import_monkey_wrench_function(function_path: str) -> Callable:
 
 
 class Function(Model, Generic[T, R]):
-    """Pydantic model for a dynamically imported monkey wrench function.
+    """Pydantic model for a dynamically imported function from **Monkey Wrench**.
 
     Note:
         The function must accept a single argument. However, it can accept as many keyword arguments as desired.
@@ -75,9 +75,7 @@ class Function(Model, Generic[T, R]):
 
     __imported_function: Callable[[T, ...], R] = PrivateAttr()
 
-    # noinspection PyNestedDecorators
     @field_validator("path", mode="after")
-    @classmethod
     def validate_function_path(cls, path: str) -> None:
         cls.__imported_function = _import_monkey_wrench_function(path)
 
