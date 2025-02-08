@@ -1,5 +1,3 @@
-"""The module providing utilities for parsing e.g. product IDs or file paths into datetime objects."""
-
 import re
 from abc import abstractmethod
 from datetime import datetime

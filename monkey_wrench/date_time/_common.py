@@ -1,5 +1,3 @@
-"""Common functionalities for the :obj:`monkey_wrench.date_time` package."""
-
 from calendar import monthrange
 from datetime import UTC, datetime, timedelta
 from typing import assert_never
