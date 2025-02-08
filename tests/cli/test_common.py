@@ -14,7 +14,7 @@ def test_run(empty_task_filepath):
 
     func = dict(
         path="monkey_wrench.cli._common.read_tasks_from_file",
-        arg=InputFile(input_filename=empty_task_filepath).input_filename,
+        arg=InputFile(input_filepath=empty_task_filepath).input_filepath,
         return_value=[task, task],
     )
 

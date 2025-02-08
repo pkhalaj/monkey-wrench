@@ -34,5 +34,5 @@ class CommandLineArguments(Model):
     @model_validator(mode="after")
     def validate_task_filepath_existence(self) -> Self:
         """Check that the task file exists and convert its path to an absolute path."""
-        CommandLineArguments.task_filepath = InputFile(input_filename=sys.argv[1]).input_filename
+        CommandLineArguments.task_filepath = InputFile(input_filepath=sys.argv[1]).input_filepath
         return self
