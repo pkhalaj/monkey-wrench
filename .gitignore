@@ -9,13 +9,13 @@
 .env
 .venv
 
+.*_cache/
 .idea/
 __pycache__/
 _build/
 build/
 env/
 venv/
-
 
 # always include
 !README.rst
