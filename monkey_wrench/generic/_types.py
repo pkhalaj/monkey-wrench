@@ -12,8 +12,8 @@ Warning:
 """
 
 
-class Model(BaseModel, extra="forbid"):
-    """A Pydantic model to be used as a base for all other models.
+class Specifications(BaseModel, extra="forbid"):
+    """A Pydantic model to be used as a base for all other models, e.g. specifications of a task.
 
     Note:
         When initializing models that inherit from ``Model``, an exception will be raised if any extra keyword arguments
@@ -21,7 +21,7 @@ class Model(BaseModel, extra="forbid"):
         defined in the model.
 
     Example:
-        >>> class Dataset(Model):
+        >>> class Dataset(Specifications):
         ...     name: str
         >>>
         >>> # The following will lead to an exception, since `number` has not been explicitly defined as a model field.

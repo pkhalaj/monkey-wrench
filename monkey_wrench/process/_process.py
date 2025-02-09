@@ -5,13 +5,13 @@ from typing import Callable, TypeVar
 
 from pydantic import NonNegativeInt
 
-from monkey_wrench.generic import ListSetTuple, Model
+from monkey_wrench.generic import ListSetTuple, Specifications
 
 T = TypeVar("T")
 R = TypeVar("R")
 
 
-class MultiProcess(Model):
+class MultiProcess(Specifications):
     """Pydantic model for multiprocessing.
 
     Example:

@@ -5,7 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from monkey_wrench.date_time import AwarePastDateTime, TimeDeltaDict, TimeInterval
-from monkey_wrench.generic import Model
+from monkey_wrench.generic import Specifications
 
 # ======================================================
 ### Tests for TimeDeltaDict()
@@ -15,7 +15,7 @@ from monkey_wrench.generic import Model
     dict(days=20, hours=2),
 ])
 def test_TimeDeltaDict(interval):
-    class Test(Model):
+    class Test(Specifications):
         interval: TimeDeltaDict
 
     assert Test(interval=interval).interval == datetime.timedelta(**interval)
@@ -26,7 +26,7 @@ def test_TimeDeltaDict(interval):
     dict(days=20, hours=2, weeks=10, minutes=2, seconds=2, milliseconds=2),
 ])
 def test_TimeDeltaDict_raise(interval):
-    class Test(Model):
+    class Test(Specifications):
         interval: TimeDeltaDict
 
     with pytest.raises(ValidationError, match="valid"):
@@ -41,7 +41,7 @@ def test_TimeDeltaDict_raise(interval):
     datetime.timedelta(weeks=10, seconds=2),
 ])
 def test_TimeInterval(interval):
-    class Test(Model):
+    class Test(Specifications):
         interval: TimeInterval
 
     assert Test(interval=interval).interval == datetime.timedelta(weeks=10, seconds=2)
@@ -55,7 +55,7 @@ def test_TimeInterval(interval):
     datetime.datetime(2000, 1, 1, tzinfo=ZoneInfo("Europe/Stockholm")),
 ])
 def test_AwarePastDateTime(dt):
-    class Test(Model):
+    class Test(Specifications):
         dt: AwarePastDateTime
 
     assert Test(dt=dt).dt == datetime.datetime(2000, 1, 1, tzinfo=ZoneInfo("Europe/Stockholm"))
@@ -66,7 +66,7 @@ def test_AwarePastDateTime(dt):
     datetime.datetime(2100, 1, 1, tzinfo=ZoneInfo("Europe/Stockholm")),
 ])
 def test_PastDateTime_raise(dt):
-    class Test(Model):
+    class Test(Specifications):
         dt: AwarePastDateTime
 
     with pytest.raises(ValidationError, match="valid"):

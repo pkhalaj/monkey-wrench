@@ -7,7 +7,7 @@ from typing import Any, Callable, Generator, Literal, TypeVar
 from loguru import logger
 from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeFloat, NonNegativeInt, field_validator, validate_call
 
-from monkey_wrench.generic import Function, ListSetTuple, Model, Pattern
+from monkey_wrench.generic import Function, ListSetTuple, Pattern, Specifications
 from monkey_wrench.input_output._types import AbsolutePath
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import Batches
@@ -16,35 +16,35 @@ T = TypeVar("T")
 R = TypeVar("R")
 
 
-class ExistingInputFile(Model):
+class ExistingInputFile(Specifications):
     input_filepath: AbsolutePath[FilePath]
 
 
-class InputFile(Model):
+class InputFile(Specifications):
     input_filepath: AbsolutePath[FilePath] | AbsolutePath[NewPath] | None = None
 
 
-class NewOutputFile(Model):
+class NewOutputFile(Specifications):
     output_filepath: AbsolutePath[NewPath]
 
 
-class OutputFile(Model):
+class OutputFile(Specifications):
     output_filepath: AbsolutePath[NewPath] | AbsolutePath[FilePath] | None = None
 
 
-class ModelFile(Model):
+class ModelFile(Specifications):
     model_filepath: AbsolutePath[FilePath]
 
 
-class InputDirectory(Model):
+class InputDirectory(Specifications):
     input_directory: AbsolutePath[DirectoryPath]
 
 
-class OutputDirectory(Model):
+class OutputDirectory(Specifications):
     output_directory: AbsolutePath[DirectoryPath]
 
 
-class TempDirectory(Model):
+class TempDirectory(Specifications):
     """Pydantic for a temporary directory."""
     temp_directory: AbsolutePath[DirectoryPath]
 
@@ -68,7 +68,7 @@ class TempDirectory(Model):
             tempfile.tempdir = _default_tempdir
 
 
-class FsSpecCache(Model):
+class FsSpecCache(Specifications):
     cache: Literal["filecache", "blockcache"] | None = None
     """How to buffer, e.g. ``"filecache"``, ``"blockcache"``, or ``None``. Defaults to ``None``.
 
@@ -82,7 +82,7 @@ class FsSpecCache(Model):
         return f"::{self.cache}" if self.cache else ""
 
 
-class DatasetSaveOptions(Model):
+class DatasetSaveOptions(Specifications):
     dataset_save_options: dict[str, bool | str | int] = dict(writer="cf", include_lonlats=False)
     """Storage options using which the dataset is to be saved.
 
@@ -91,7 +91,7 @@ class DatasetSaveOptions(Model):
     """
 
 
-class FileIO(Model):
+class FileIO(Specifications):
     transform_function: Function[T, R] | Callable[[T], Any] | None = None
     """If given, each item in the list will be first transformed according to the function, before writing or reading.
 

@@ -8,10 +8,10 @@ from loguru import logger
 from pydantic import HttpUrl, validate_call
 
 from monkey_wrench.date_time import Minutes
-from monkey_wrench.generic import Model
+from monkey_wrench.generic import Specifications
 
 
-class CollectionMeta(Model):
+class CollectionMeta(Specifications):
     """Named tuple to gather the collection metadata."""
     query_string: str
     """A colon (``:``) delimited string which represents the query string for the collection on the EUMETSAT API.

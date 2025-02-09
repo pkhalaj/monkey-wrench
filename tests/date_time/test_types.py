@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from monkey_wrench.date_time import Day, Hour, Minute, Minutes, Month, Year
-from monkey_wrench.generic import Model
+from monkey_wrench.generic import Specifications
 
 # ======================================================
 ### Tests for
@@ -24,7 +24,7 @@ from monkey_wrench.generic import Model
 def test_all_types(typ, min_max):
     mn, mx = min_max
 
-    class Test(Model):
+    class Test(Specifications):
         value: typ
 
     for v in [mn, mx, (mx + mn) // 2]:
@@ -42,7 +42,7 @@ def test_all_types(typ, min_max):
 
 
 def test_Minutes():
-    class Test(Model):
+    class Test(Specifications):
         value: Minutes
 
     assert Test(value=[1, 2]).value == [1, 2]

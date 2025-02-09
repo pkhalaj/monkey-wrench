@@ -2,10 +2,10 @@ from typing import Any, Callable, Iterable
 
 from pydantic import validate_call
 
-from monkey_wrench.generic._types import Model
+from monkey_wrench.generic._types import Specifications
 
 
-class Pattern(Model):
+class Pattern(Specifications):
     """Pydantic model for finding sub-strings in other strings."""
 
     sub_strings: str | list | None = None

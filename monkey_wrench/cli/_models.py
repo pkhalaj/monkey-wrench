@@ -4,11 +4,11 @@ from typing import ClassVar, Self
 from pydantic import FilePath, model_validator
 from pydantic_core import PydanticCustomError
 
-from monkey_wrench.generic import Model
-from monkey_wrench.input_output import AbsolutePath, InputFile
+from monkey_wrench.generic import Specifications
+from monkey_wrench.input_output import AbsolutePath, ExistingInputFile
 
 
-class CommandLineArguments(Model):
+class CommandLineArguments(Specifications):
     """Pydantic model to validate CLI arguments.
 
     It reads the CLI arguments from `sys.argv`_, where ``sys.argv[0]`` is the path of the script which is being
@@ -34,5 +34,5 @@ class CommandLineArguments(Model):
     @model_validator(mode="after")
     def validate_task_filepath_existence(self) -> Self:
         """Check that the task file exists and convert its path to an absolute path."""
-        CommandLineArguments.task_filepath = InputFile(input_filepath=sys.argv[1]).input_filepath
+        CommandLineArguments.task_filepath = ExistingInputFile(input_filepath=sys.argv[1]).input_filepath
         return self
