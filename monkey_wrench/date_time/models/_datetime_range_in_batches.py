@@ -93,6 +93,12 @@ class DateTimeRangeInBatches(DateTimePeriod):
     This is defined as the difference between the two datetime instances in each batch.
 
     Note:
+        As a rule of thumb this paramerer can be set to ``30`` days. A smaller value for ``batch_interval``
+        means a larger number of batches which increases the overall time needed to fetch all the products.
+        A larger value for ``batch_interval`` shortens the total time to fetch all the products, however, you might
+        get an error regarding sending `too many requests` to the server.
+
+    Note:
         The interval of each batch, is equal to ``batch_interval``, except for the last batch if
         ``end_datetime - start_datetime`` is not divisible by ``batch_interval``.
     """

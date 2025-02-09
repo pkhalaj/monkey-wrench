@@ -32,6 +32,10 @@ class EndDateTime(Model):
 class DateTimePeriod(StartDateTime, EndDateTime):
 
     @property
+    def datetime_period(self) -> "DateTimePeriod":
+        return DateTimePeriod(start_datetime=self.start_datetime, end_datetime=self.end_datetime)
+
+    @property
     def span(self) -> timedelta:
         """Return the span between the start and end datetimes."""
         return self.end_datetime - self.start_datetime
