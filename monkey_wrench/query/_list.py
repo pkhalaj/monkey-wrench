@@ -1,12 +1,9 @@
-"""The module providing the class for querying lists."""
-
-from datetime import datetime
-from typing import Any, Generator
+from typing import Any, Generator, Self
 
 import numpy as np
 from pydantic import PositiveInt, validate_call
 
-from monkey_wrench.date_time import DateTimeParser, assert_start_precedes_end
+from monkey_wrench.date_time import DateTimeParser, DateTimePeriod
 from monkey_wrench.query._base import Query
 
 
@@ -92,14 +89,12 @@ class List(Query):
         return self._items_vector.tolist()
 
     @validate_call
-    def query(self, start_datetime: datetime, end_datetime: datetime):
+    def query(self, datetime_period: DateTimePeriod) -> Self:
         """Query items from the ``List`` object, given a start datetime and an end datetime.
 
         Args:
-            start_datetime:
-                The start datetime to query (inclusive).
-            end_datetime:
-                The end datetime to query (exclusive).
+            datetime_period:
+                The datetime period to query the items from.
 
         Returns:
             A new ``List`` object including items that match the given query.
@@ -108,18 +103,22 @@ class List(Query):
             ValueError:
                 Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
         """
-        return self[self.__get_indices(start_datetime, end_datetime)]
+        return self[self.__get_indices(datetime_period)]
 
     @validate_call
-    def query_indices(self, start_datetime: datetime, end_datetime: datetime) -> list[int]:
+    def query_indices(self, datetime_period: DateTimePeriod) -> list[int]:
         """Similar to :func:`~List.query`, but returns the indices of items as a Python built-in list."""
-        return self.__get_indices(start_datetime, end_datetime).tolist()
+        return self.__get_indices(datetime_period).tolist()
 
     @validate_call
-    def __get_indices(self, start_datetime: datetime, end_datetime: datetime) -> np.array:
+    def __get_indices(self, datetime_period: DateTimePeriod) -> np.array:
         """Similar to :func:`~List.query_indices`, but returns the numpy indices instead."""
-        assert_start_precedes_end(start_datetime, end_datetime)
-        idx = np.where((self.__items_parsed >= start_datetime) & (self.__items_parsed < end_datetime))
+        start, end = datetime_period.as_tuple()
+        if end > start:
+            idx = np.where((self.__items_parsed >= start) & (self.__items_parsed < end))
+        else:
+            idx = np.where((self.__items_parsed <= start) & (self.__items_parsed > end))
+
         return idx[0]
 
     @validate_call

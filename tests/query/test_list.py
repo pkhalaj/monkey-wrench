@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from pydantic import ValidationError
 
-from monkey_wrench.date_time import FilePathParser, datetime_range
+from monkey_wrench.date_time import DateTimePeriod, DateTimeRange, DateTimeRangeInBatches, FilePathParser
 from monkey_wrench.input_output.seviri import input_filename_from_datetime
 from monkey_wrench.query import List
 from tests.utils import (
@@ -12,11 +12,12 @@ from tests.utils import (
     shuffle_list,
 )
 
-start_datetime = datetime(2022, 1, 1, 0, 12)
-end_datetime = datetime(2022, 1, 1, 5, 27)
+start_datetime = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
+end_datetime = datetime(2022, 1, 1, 5, 27, tzinfo=UTC)
 interval = timedelta(minutes=15)
+datetime_range = DateTimeRange(start_datetime=start_datetime, end_datetime=end_datetime, interval=interval)
 
-elements = [input_filename_from_datetime(i) for i in datetime_range(start_datetime, end_datetime, interval)]
+elements = [input_filename_from_datetime(i) for i in datetime_range]
 
 
 # ======================================================
@@ -44,9 +45,13 @@ def test_List_query(start_datetime, end_datetime, reference_indices):
         lq = List(items, FilePathParser)
         expected = get_items_from_shuffled_list_by_original_indices((indices, items), reference_indices)
 
-        assert expected == lq.query(datetime(*start_datetime), datetime(*end_datetime))
-        assert expected == [items[i] for i in lq.query_indices(datetime(*start_datetime), datetime(*end_datetime))]
-        assert expected == lq[lq.query_indices(datetime(*start_datetime), datetime(*end_datetime))]
+        datetime_period = DateTimePeriod(
+            start_datetime=datetime(*start_datetime, tzinfo=UTC),
+            end_datetime=datetime(*end_datetime, tzinfo=UTC)
+        )
+        assert lq.query(datetime_period) == expected
+        assert expected == [items[i] for i in lq.query_indices(datetime_period)]
+        assert expected == lq[lq.query_indices(datetime_period)]
 
 
 # ======================================================
@@ -88,12 +93,19 @@ def test_list_as_list(expected_length, items):
 ### Tests for List.query_in_batches()
 
 def test_list_query_in_batches():
-    items = list(datetime_range(start_datetime, end_datetime, timedelta(minutes=5)))
+    items = list(
+        DateTimeRange(start_datetime=start_datetime, end_datetime=end_datetime, interval=timedelta(minutes=5))
+    )
     str_items = ["some_prefix_" + i.strftime("%Y%m%d_%H_%M") for i in items]
     lq = List(str_items[::-1], FilePathParser)
 
     index = 0
-    for batch, _ in lq.query_in_batches(start_datetime, end_datetime, timedelta(hours=1)):
+    for batch, _ in lq.query_in_batches(
+            DateTimeRangeInBatches(
+                start_datetime=start_datetime,
+                end_datetime=end_datetime,
+                batch_interval=timedelta(hours=1)
+            )):
         assert set(str_items[index: index + 12]) == set(batch)
         index += 12
 
