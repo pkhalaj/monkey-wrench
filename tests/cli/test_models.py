@@ -13,9 +13,9 @@ from tests.utils import cli_arguments
 @pytest.mark.parametrize(("args", "msg"), [
     ([], "single"),
     ([1, 2], "single"),
-    (["task.yaml"], "point to a file"),
-    (["task.yml"], "point to a file"),
-    (["task"], "point to a file"),
+    (["task_non_existent.yaml"], "point to a file"),
+    (["task_non_existent.yml"], "point to a file"),
+    (["task_non_existent"], "point to a file"),
 ])
 def test_CommandLineArguments_raise(args, msg):
     with pytest.raises(ValidationError, match=msg):

@@ -5,12 +5,11 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from input_output import DirectoryVisitor
 
 from monkey_wrench import input_output
 from monkey_wrench.date_time import DateTimeRange, FilePathParser, SeviriIDParser
 from monkey_wrench.generic import Pattern
-from monkey_wrench.input_output import FilesIntegrityValidator, Reader, Writer
+from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader, Writer
 from tests.utils import make_dummy_datetime_files, make_dummy_file, make_dummy_files
 
 start_datetime = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
