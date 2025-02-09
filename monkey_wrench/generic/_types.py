@@ -12,7 +12,7 @@ Warning:
 """
 
 
-class Specifications(BaseModel, extra="forbid"):
+class Specifications(BaseModel, extra="forbid", arbitrary_types_allowed=True):
     """A Pydantic model to be used as a base for all other models, e.g. specifications of a task.
 
     Note:
