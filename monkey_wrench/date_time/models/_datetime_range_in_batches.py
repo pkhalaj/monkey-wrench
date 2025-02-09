@@ -103,6 +103,14 @@ class DateTimeRangeInBatches(DateTimePeriod):
         ``end_datetime - start_datetime`` is not divisible by ``batch_interval``.
     """
 
+    @property
+    def datetime_range_in_batches(self) -> "DateTimeRangeInBatches":
+        return DateTimeRangeInBatches(
+            start_datetime=self.start_datetime,
+            end_datetime=self.end_datetime,
+            batch_interval=self.batch_interval
+        )
+
     def __iter__(self) -> Generator[DateTimePeriod, None, None]:
         """Divide the specified datetime range into smaller batches, i.e. 2-tuples of start and end datetime instances.
 
