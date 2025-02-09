@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.input_output import ExistingInputFile, Reader
 from monkey_wrench.task import read_tasks_from_file
+from monkey_wrench.task.ids import Fetch
 from tests.task.const import (
     batch_interval,
     end_datetime,
@@ -20,17 +21,27 @@ from tests.task.const import (
 from tests.utils import make_yaml_file
 
 
-def test_model_product_ids(temp_dir):
-    filename = Path(temp_dir, "task.yaml")
-    make_yaml_file(filename, task)
-    validated_task = list(read_tasks_from_file(ExistingInputFile(input_filepath=filename)))[0]
+@pytest.mark.parametrize("task_factory", [
+    lambda path: get_validated_task(path),
+    lambda path: get_validated_task(path, start_datetime=start_datetime.isoformat()),
+    lambda _: Fetch(**specification_with(batch_interval=timedelta(**batch_interval)))
+])
+def test_model_product_ids(temp_dir, task_factory):
+    validated_task = task_factory(temp_dir)
+
     assert task["context"] == validated_task.context
     assert task["action"] == validated_task.action
-
     assert start_datetime == validated_task.specifications.start_datetime
     assert end_datetime == validated_task.specifications.end_datetime
     assert timedelta(**batch_interval) == validated_task.specifications.batch_interval
     assert Path(output_filepath).absolute() == validated_task.specifications.output_filepath
+
+
+def get_validated_task(path: Path, **kwargs):
+    filename = Path(path, "task.yaml")
+    make_yaml_file(filename, specification_with(**kwargs))
+    validated_task = list(read_tasks_from_file(ExistingInputFile(input_filepath=filename)))[0]
+    return validated_task
 
 
 @pytest.mark.parametrize(("task", "error_message"), [
