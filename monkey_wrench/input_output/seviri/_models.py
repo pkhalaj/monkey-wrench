@@ -14,7 +14,7 @@ from satpy.readers.utils import FSFile
 from monkey_wrench.generic import Function
 from monkey_wrench.geometry import Area
 from monkey_wrench.input_output._models import DatasetSaveOptions, FsSpecCache, OutputDirectory
-from monkey_wrench.query import EumetsatAPI, seviri_collection_url
+from monkey_wrench.query import EumetsatAPI
 
 DEFAULT_CHANNEL_NAMES = CHANNEL_NAMES.values()
 """Names of SEVIRI channels."""
@@ -40,7 +40,7 @@ class RemoteSeviriFile(FsSpecCache):
                 }
             }
         }
-        fstr = f"zip://*.nat{self.cache_str}::{seviri_collection_url()}/{product_id}"
+        fstr = f"zip://*.nat{self.cache_str}::{EumetsatAPI.seviri_collection_url()}/{product_id}"
         logger.info(f"Opening {fstr}")
         return [FSFile(f) for f in open_files(fstr, https=https_header)][0]
 
