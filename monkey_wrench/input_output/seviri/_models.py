@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import Callable
 from uuid import uuid4
 
 from fsspec import open_files
@@ -11,9 +12,11 @@ from satpy import Scene
 from satpy.readers.seviri_base import CHANNEL_NAMES
 from satpy.readers.utils import FSFile
 
+from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.generic import Function
 from monkey_wrench.geometry import Area
-from monkey_wrench.input_output._models import DatasetSaveOptions, FsSpecCache, OutputDirectory
+from monkey_wrench.input_output._models import DatasetSaveOptions, DateTimeDirectory, FsSpecCache
+from monkey_wrench.input_output.seviri._common import input_filename_from_product_id
 from monkey_wrench.query import EumetsatAPI
 
 DEFAULT_CHANNEL_NAMES = CHANNEL_NAMES.values()
@@ -45,10 +48,10 @@ class RemoteSeviriFile(FsSpecCache):
         return [FSFile(f) for f in open_files(fstr, https=https_header)][0]
 
 
-class Resampler(Area, DatasetSaveOptions, OutputDirectory, RemoteSeviriFile):
+class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    output_filename_generator: Function[str, Path]
+    output_filename_generator: Function[str, Path] | Callable[[str], Path] = input_filename_from_product_id
     """The function using which an output filename will be generated from the given input filename (SEVIRI native file).
 
     The generated filename is used to store the resampled file. The generated output filename will be prepended with
@@ -76,7 +79,8 @@ class Resampler(Area, DatasetSaveOptions, OutputDirectory, RemoteSeviriFile):
                 The product ID to open.
         """
         fs_file = self.open(product_id)
-        output_filename = self.output_directory / self.output_filename_generator(str(fs_file))
+        output_directory = self.create(SeviriIDParser.parse(product_id))
+        output_filename = output_directory / self.output_filename_generator(str(fs_file))
 
         if self.remove_file_if_exists and os.path.exists(output_filename):
             os.remove(output_filename)

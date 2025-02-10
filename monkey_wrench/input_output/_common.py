@@ -1,6 +1,4 @@
 import shutil
-from datetime import datetime
-from pathlib import Path
 from typing import TypeVar
 
 from loguru import logger
@@ -55,46 +53,3 @@ def copy_single_file_to_directory(
     destination_filepath = destination_directory / filepath.name
     logger.info(f"Copying {filepath} to {destination_filepath}")
     shutil.copy(filepath, destination_filepath)
-
-
-@validate_call
-@validate_call
-def create_datetime_directory(
-        datetime_object: datetime,
-        format_string: str = "%Y/%m/%d",
-        parent: AbsolutePath[DirectoryPath] = Path("."),
-        remove_if_exists: bool = False,
-        dry_run: bool = False
-) -> Path:
-    """Create a directory based on the datetime object.
-
-    Args:
-        datetime_object:
-            The datetime object to create the directory for.
-        format_string:
-            The format string to create subdirectories from the datetime object. Defaults to ``"%Y/%m/%d"``.
-        parent:
-            The parent directory inside which the directory will be created. Defaults to ``"."``.
-        remove_if_exists:
-            A boolean indicating whether to remove the directory (recursively) if it already exists.
-        dry_run:
-            If ``True``, nothing will be created or removed and only the directory path will be returned.
-            Defaults to ``False``, meaning that changes will be made to the disk.
-
-    Returns:
-        The full path of the (created) directory.
-
-    Example:
-        >>> path = create_datetime_directory(datetime(2022, 3, 12), format_string="%Y/%m/%d", parent=Path.home())
-        >>> expected_path = Path.home() / Path("2022/03/12")
-        >>> expected_path.exists()
-        True
-        >>> expected_path == path
-        True
-    """
-    dir_path = parent / Path(datetime_object.strftime(format_string))
-    if not dry_run:
-        if dir_path.exists() and remove_if_exists:
-            dir_path.unlink()
-        dir_path.mkdir(parents=True, exist_ok=True)
-    return dir_path

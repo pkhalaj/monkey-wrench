@@ -9,7 +9,7 @@ import pytest
 from monkey_wrench import input_output
 from monkey_wrench.date_time import DateTimeRange, FilePathParser, SeviriIDParser
 from monkey_wrench.generic import Pattern
-from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader, Writer
+from monkey_wrench.input_output import DateTimeDirectory, DirectoryVisitor, FilesIntegrityValidator, Reader, Writer
 from tests.utils import make_dummy_datetime_files, make_dummy_file, make_dummy_files
 
 start_datetime = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
@@ -210,7 +210,7 @@ def seviri_product_ids_file(path, idx):
 
 
 # ======================================================
-### Tests for create_datetime_directory()
+### Tests for DateTimeDirectory()
 
 @pytest.mark.parametrize("kwargs", [
     dict(format_string="%Y/%m/%d", dry_run=False),
@@ -218,26 +218,24 @@ def seviri_product_ids_file(path, idx):
     dict(format_string="%Y-%m/%d", dry_run=False),
     dict(format_string="%Y-%m/%d", dry_run=True),
 ])
-def test_create_datetime_dir(temp_dir, kwargs):
+def test_DateTimeDirectory(temp_dir, kwargs):
     datetime_obj = datetime(2022, 3, 12)
-    dir_path = input_output.create_datetime_directory(
-        datetime_obj,
+    dir_path = DateTimeDirectory(
         parent=temp_dir,
-        **kwargs
-    )
+        format_string=kwargs["format_string"]
+    ).create(datetime_obj, dry_run=kwargs["dry_run"])
     if not kwargs["dry_run"]:
         assert dir_path.exists()
     assert temp_dir / Path(datetime_obj.strftime(kwargs["format_string"])) == dir_path
 
 
-def test_create_datetime_dir_remove(temp_dir):
-    with mock.patch("monkey_wrench.input_output._common.Path.unlink") as unlink, \
-            mock.patch("monkey_wrench.input_output._common.Path.exists", return_value=True) as exists:
-        input_output.create_datetime_directory(
-            datetime(2022, 3, 12),
+def test_DateTimeDirectory_remove(temp_dir):
+    with mock.patch("monkey_wrench.input_output._models.Path.unlink") as unlink, \
+            mock.patch("monkey_wrench.input_output._models.Path.exists", return_value=True) as exists:
+        DateTimeDirectory(
             parent=temp_dir,
-            remove_if_exists=True
-        )
+            remove_directory_if_exists=True
+        ).create(datetime(2022, 3, 12))
         exists.assert_called()
         unlink.assert_called()
 

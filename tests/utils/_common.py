@@ -14,7 +14,8 @@ import numpy as np
 import yaml
 from pydantic import NonNegativeInt, validate_call
 
-from monkey_wrench.input_output import create_datetime_directory, seviri
+from monkey_wrench.date_time import DateTimePeriod
+from monkey_wrench.input_output import DateTimeDirectory, seviri
 
 DateTimeLike = Iterable[int]
 """Type definition for a datetime like object such as ``[2022, 10, 27]``."""
@@ -129,7 +130,8 @@ def convert_datetime_like_items_to_datetime_objects(datetime_like_items: Iterabl
 
 
 def intervals_equal(
-        expected_interval: timedelta, lst: Iterable[tuple[datetime, datetime]] | Iterable[datetime]
+        expected_interval: timedelta,
+        lst: Iterable[tuple[datetime, datetime]] | Iterable[datetime] | Iterable[DateTimePeriod]
 ) -> bool:
     """Check if all items in the list have the same interval.
 
@@ -151,6 +153,9 @@ def intervals_equal(
 
     if all([isinstance(t, tuple) and len(t) == 2 for t in lst]):
         return all([expected_interval == i - j] for i, j in lst)
+
+    if all([isinstance(t, DateTimePeriod) for t in lst]):
+        return all([expected_interval == dt.end_datetime - dt.start_datetime] for dt in lst)
 
     raise ValueError("All items in the list must be either single or 2-tuples of datetime objects.")
 
@@ -308,7 +313,7 @@ def optional_modules_mocked():
 def make_dummy_datetime_files(datetime_objs: list[datetime], parent: Path) -> list[Path]:
     files = []
     for datetime_obj in datetime_objs:
-        dir_path = create_datetime_directory(datetime_obj, parent=parent)
+        dir_path = DateTimeDirectory(parent=parent).create(datetime_obj)
         filename = seviri.input_filename_from_datetime(datetime_obj)
         files.append(make_dummy_file(dir_path / filename))
     return files

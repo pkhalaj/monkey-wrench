@@ -1,6 +1,7 @@
 import os
 import tempfile
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Generator, Literal, TypeVar
 
@@ -312,3 +313,45 @@ class FilesIntegrityValidator(MultiProcess):
     @validate_call
     def verify(self, filepaths: ListSetTuple[Path]) -> tuple[set[T] | None, set[Path] | None]:
         return self.find_missing_files(filepaths), self.find_corrupted_files(filepaths)
+
+
+class DateTimeDirectory(Specifications):
+    format_string: str = "%Y/%m/%d"
+    """The format string to create subdirectories from the datetime object. Defaults to ``"%Y/%m/%d"``."""
+
+    parent: AbsolutePath[DirectoryPath] = Path(".")
+    """The parent directory inside which the directory will be created. Defaults to ``"."``."""
+
+    remove_directory_if_exists: bool = False
+    """A boolean to determine whether to removes the directory first if it already exists.
+
+    This might save us from some issues regrading files being overwritten and corrupted.
+    """
+
+    def create(self, datetime_object: datetime, dry_run: bool = False) -> Path:
+        """Create a directory based on the datetime object.
+
+        Args:
+            datetime_object:
+                The datetime object to create the directory for.
+            dry_run:
+                If ``True``, nothing will be created or removed and only the directory path will be returned.
+                Defaults to ``False``, meaning that changes will be made to the disk.
+
+        Returns:
+            The full path of the (created) directory.
+
+        Example:
+            >>> path = DateTimeDirectory(format_string="%Y/%m/%d", parent=Path.home()).create(datetime(2022, 3, 12))
+            >>> expected_path = Path.home() / Path("2022/03/12")
+            >>> expected_path.exists()
+            True
+            >>> expected_path == path
+            True
+        """
+        dir_path = self.parent / Path(datetime_object.strftime(self.format_string))
+        if not dry_run:
+            if dir_path.exists() and self.remove_directory_if_exists:
+                dir_path.unlink()
+            dir_path.mkdir(parents=True, exist_ok=True)
+        return dir_path
