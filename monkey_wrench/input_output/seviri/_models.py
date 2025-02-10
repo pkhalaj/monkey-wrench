@@ -1,6 +1,7 @@
 """The module providing a function to read and resample SEVIRI native files from ``FSFile`` objects."""
 
 import os
+import tempfile
 from pathlib import Path
 from typing import Callable
 from uuid import uuid4
@@ -78,20 +79,21 @@ class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
             product_id:
                 The product ID to open.
         """
-        fs_file = self.open(product_id)
-        output_directory = self.create(SeviriIDParser.parse(product_id))
-        output_filename = output_directory / self.output_filename_generator(str(fs_file))
+        with tempfile.TemporaryDirectory():
+            fs_file = self.open(product_id)
+            output_directory = self.create(SeviriIDParser.parse(product_id))
+            output_filename = output_directory / self.output_filename_generator(str(fs_file))
 
-        if self.remove_file_if_exists and os.path.exists(output_filename):
-            os.remove(output_filename)
+            if self.remove_file_if_exists and os.path.exists(output_filename):
+                os.remove(output_filename)
 
-        # The ID helps us to quickly find all log messages corresponding to resampling a single file.
-        # It is useful in the case of multiprocessing.
-        log_id = uuid4()
+            # The ID helps us to quickly find all log messages corresponding to resampling a single file.
+            # It is useful in the case of multiprocessing.
+            log_id = uuid4()
 
-        logger.info(f"Resampling SEVIRI native file {fs_file} to {output_filename} -- ID: {log_id}.")
-        scene = Scene([fs_file], "seviri_l1b_native")
-        scene.load(self.channel_names)
-        resampled_scene = scene.resample(self.area, radius_of_influence=self.radius_of_influence)
-        resampled_scene.save_datasets(filename=str(output_filename), **self.dataset_save_options)
-        logger.info(f"Resampling SEVIRI native file {log_id} is complete.")
+            logger.info(f"Resampling SEVIRI native file {fs_file} to {output_filename} -- ID: {log_id}.")
+            scene = Scene([fs_file], "seviri_l1b_native")
+            scene.load(self.channel_names)
+            resampled_scene = scene.resample(self.area, radius_of_influence=self.radius_of_influence)
+            resampled_scene.save_datasets(filename=str(output_filename), **self.dataset_save_options)
+            logger.info(f"Resampling SEVIRI native file {log_id} is complete.")
