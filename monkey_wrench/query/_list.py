@@ -78,6 +78,10 @@ class List(Query):
         """Get the string representation of the ``List`` object."""
         return self._items_vector.__str__()
 
+    @property
+    def parsed_items(self) -> np.ndarray:
+        return self.__items_parsed
+
     @staticmethod
     def len(item) -> int:
         """Return the number of items in the ``List`` object."""

@@ -84,6 +84,7 @@ def test_list_as_list(expected_length, items):
     lq = List(items, FilePathParser)
     assert items == lq
     assert items == lq.to_python_list()
+    assert lq.parsed_items.tolist() == [FilePathParser.parse(i) for i in items]
     assert isinstance(lq.to_python_list(), list)
     assert isinstance(lq.to_python_list()[0], str)
     assert expected_length == List.len(lq)
