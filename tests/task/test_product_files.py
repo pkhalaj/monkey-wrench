@@ -78,7 +78,8 @@ def test_fetch_files(get_token_or_skip, temp_dir):
                 end_datetime=end_datetime.isoformat(),
                 input_filepath=str(product_ids_filename),
                 parent_directory=str(temp_dir),
-                number_of_processes=2
+                number_of_processes=2,
+                temp_directory=str(temp_dir),
             )
         )
     )
