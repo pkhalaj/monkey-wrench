@@ -19,7 +19,7 @@ from monkey_wrench.input_output._models import DatasetSaveOptions, DateTimeDirec
 from monkey_wrench.input_output.seviri._common import input_filename_from_product_id
 from monkey_wrench.query import EumetsatAPI
 
-DEFAULT_CHANNEL_NAMES = CHANNEL_NAMES.values()
+DEFAULT_CHANNEL_NAMES = list(CHANNEL_NAMES.values())
 """Names of SEVIRI channels."""
 
 
@@ -58,7 +58,7 @@ class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
     ``output_path`` to compose a complete filepath for the output file.
     """
 
-    channel_names: list[str] = DEFAULT_CHANNEL_NAMES,
+    channel_names: list[str] = DEFAULT_CHANNEL_NAMES
     """The list of channels to load from the file. Defaults to ``satpy.readers.seviri_base.CHANNEL_NAMES.values()``."""
 
     radius_of_influence: NonNegativeInt = 20_000
@@ -71,7 +71,7 @@ class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
     """
 
     @validate_call
-    def __call__(self, product_id: str) -> None:
+    def resample(self, product_id: str) -> None:
         """Resample the given SEVIRI native file (opened with ``fsspec``) using the resampler attributes.
 
         Args:
@@ -93,5 +93,5 @@ class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
         scene = Scene([fs_file], "seviri_l1b_native")
         scene.load(self.channel_names)
         resampled_scene = scene.resample(self.area, radius_of_influence=self.radius_of_influence)
-        resampled_scene.save_datasets(filename=str(output_filename), **self.save_datasets_options)
+        resampled_scene.save_datasets(filename=str(output_filename), **self.dataset_save_options)
         logger.info(f"Resampling SEVIRI native file {log_id} is complete.")
