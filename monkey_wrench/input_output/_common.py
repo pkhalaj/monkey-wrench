@@ -31,7 +31,7 @@ def copy_files_between_directories(
             The pattern to filter the files.
     """
     DirectoryVisitor(
-        input_directory=source_directory,
+        parent_directory=source_directory,
         callback=lambda f: copy_single_file_to_directory(destination_directory, f),
         recursive=False,
         **(pattern.model_dump() if pattern is not None else {})

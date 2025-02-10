@@ -34,7 +34,7 @@ def test_DirectoryVisitor(temp_dir, reverse, pattern, recursive):
     datetime_objects, _ = _make_dummy_datetime_files(temp_dir, reverse)
     top_level_files, _, _ = make_dummy_files(temp_dir, prefix="top_level_files_2022.nc")
     files = DirectoryVisitor(
-        input_directory=temp_dir, reverse=reverse, recursive=recursive, sub_strings=pattern
+        parent_directory=temp_dir, reverse=reverse, recursive=recursive, sub_strings=pattern
     ).visit()
 
     if pattern == "non_existent_pattern":
@@ -51,7 +51,7 @@ def test_DirectoryVisitor(temp_dir, reverse, pattern, recursive):
 def test_DirectoryVisitor_callback(temp_dir):
     buff = []
     _, dummy_files = _make_dummy_datetime_files(temp_dir)
-    files = DirectoryVisitor(input_directory=temp_dir, callback=lambda x: buff.append(x)).visit()
+    files = DirectoryVisitor(parent_directory=temp_dir, callback=lambda x: buff.append(x)).visit()
 
     assert set(files) == set(buff)
     assert set(dummy_files) == set(buff)
@@ -88,8 +88,8 @@ def test_copy_files_between_directories(temp_dir, pattern):
     dest_directory = _make_dummy_files_for_copy(temp_dir, pattern)
     input_output.copy_files_between_directories(temp_dir, dest_directory, pattern=Pattern(sub_strings=pattern))
 
-    assert 4 == len(DirectoryVisitor(input_directory=dest_directory).visit())
-    assert 3 == len(DirectoryVisitor(input_directory=dest_directory, sub_strings=pattern).visit())
+    assert 4 == len(DirectoryVisitor(parent_directory=dest_directory).visit())
+    assert 3 == len(DirectoryVisitor(parent_directory=dest_directory, sub_strings=pattern).visit())
 
 
 def _make_dummy_files_for_copy(temp_dir, pattern):
@@ -146,7 +146,7 @@ def test_compare_files_against_reference_transform(temp_dir):
 @pytest.fixture
 def dummy_and_reference_files_for_comparison(temp_dir):
     reference_items, expected_missing, expected_corrupted = make_dummy_files(temp_dir, number_of_files_to_remove=3)
-    collected_files = DirectoryVisitor(input_directory=temp_dir).visit()
+    collected_files = DirectoryVisitor(parent_directory=temp_dir).visit()
     items = dict(
         nominal_size=1000,
         tolerance=0.05,
@@ -221,7 +221,7 @@ def seviri_product_ids_file(path, idx):
 def test_DateTimeDirectory(temp_dir, kwargs):
     datetime_obj = datetime(2022, 3, 12)
     dir_path = DateTimeDirectory(
-        parent=temp_dir,
+        parent_directory=temp_dir,
         format_string=kwargs["format_string"]
     ).create(datetime_obj, dry_run=kwargs["dry_run"])
     if not kwargs["dry_run"]:
@@ -233,7 +233,7 @@ def test_DateTimeDirectory_remove(temp_dir):
     with mock.patch("monkey_wrench.input_output._models.Path.unlink") as unlink, \
             mock.patch("monkey_wrench.input_output._models.Path.exists", return_value=True) as exists:
         DateTimeDirectory(
-            parent=temp_dir,
+            parent_directory=temp_dir,
             remove_directory_if_exists=True
         ).create(datetime(2022, 3, 12))
         exists.assert_called()

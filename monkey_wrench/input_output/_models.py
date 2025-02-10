@@ -45,6 +45,10 @@ class OutputDirectory(Specifications):
     output_directory: AbsolutePath[DirectoryPath]
 
 
+class ParentDirectory(Specifications):
+    parent_directory: AbsolutePath[DirectoryPath]
+
+
 class TempDirectory(Specifications):
     """Pydantic for a temporary directory."""
     temp_directory: AbsolutePath[DirectoryPath]
@@ -196,7 +200,7 @@ class Reader(FileIO, InputFile):
         return items
 
 
-class DirectoryVisitor(InputDirectory, Writer, Pattern):
+class DirectoryVisitor(ParentDirectory, Writer, Pattern):
     """Pydantic model for visiting a directory tree."""
 
     @property
@@ -222,13 +226,13 @@ class DirectoryVisitor(InputDirectory, Writer, Pattern):
         files_list = []
 
         if self.recursive:
-            for root, _, files in os.walk(self.input_directory):
+            for root, _, files in os.walk(self.parent_directory):
                 for file in files:
                     if self.pattern.exists_in(file):
                         files_list.append(Path(root, file))
         else:
-            for item in os.listdir(self.input_directory):
-                if (file := Path(self.input_directory, item)).is_file():
+            for item in os.listdir(self.parent_directory):
+                if (file := Path(self.parent_directory, item)).is_file():
                     if self.pattern.exists_in(item):
                         files_list.append(file)
 
@@ -308,19 +312,16 @@ class FilesIntegrityValidator(MultiProcess):
 
     @validate_call
     def find_missing_files(self, filepaths: ListSetTuple[Path]) -> set[Path] | None:
-        return set(self.reference) - self.transform_files(filepaths) if self.reference else None
+        return (set(self.reference) - self.transform_files(filepaths)) if self.reference else None
 
     @validate_call
     def verify(self, filepaths: ListSetTuple[Path]) -> tuple[set[T] | None, set[Path] | None]:
         return self.find_missing_files(filepaths), self.find_corrupted_files(filepaths)
 
 
-class DateTimeDirectory(Specifications):
+class DateTimeDirectory(ParentDirectory):
     format_string: str = "%Y/%m/%d"
     """The format string to create subdirectories from the datetime object. Defaults to ``"%Y/%m/%d"``."""
-
-    parent: AbsolutePath[DirectoryPath] = Path(".")
-    """The parent directory inside which the directory will be created. Defaults to ``"."``."""
 
     remove_directory_if_exists: bool = False
     """A boolean to determine whether to removes the directory first if it already exists.
@@ -349,7 +350,7 @@ class DateTimeDirectory(Specifications):
             >>> expected_path == path
             True
         """
-        dir_path = self.parent / Path(datetime_object.strftime(self.format_string))
+        dir_path = self.parent_directory / Path(datetime_object.strftime(self.format_string))
         if not dry_run:
             if dir_path.exists() and self.remove_directory_if_exists:
                 dir_path.unlink()
