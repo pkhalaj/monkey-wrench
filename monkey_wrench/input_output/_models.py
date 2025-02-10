@@ -54,7 +54,7 @@ class TempDirectory(Specifications):
     temp_directory: AbsolutePath[DirectoryPath]
 
     @contextmanager
-    def __call__(self) -> Generator[Path, None, None]:
+    def context(self) -> Generator[Path, None, None]:
         """Create a temporary directory and set the global temporary directory to the given path.
 
         Note:

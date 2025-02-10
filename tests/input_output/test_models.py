@@ -246,7 +246,7 @@ def test_DateTimeDirectory_remove(temp_dir):
 def test_TempDirectory():
     default_temp_path = tempfile.gettempdir()
     here_path = os.path.abspath(".")
-    with input_output.TempDirectory(temp_directory=".")() as tmp:
+    with input_output.TempDirectory(temp_directory=".").context() as tmp:
         assert str(tmp).startswith(here_path)
         with tempfile.TemporaryDirectory() as tmpdir:
             assert tmpdir.startswith(here_path)
