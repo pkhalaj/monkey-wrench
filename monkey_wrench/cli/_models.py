@@ -1,11 +1,11 @@
 import sys
 from typing import ClassVar, Self
 
-from pydantic import FilePath, model_validator
+from pydantic import model_validator
 from pydantic_core import PydanticCustomError
 
 from monkey_wrench.generic import Specifications
-from monkey_wrench.input_output import AbsolutePath, ExistingInputFile
+from monkey_wrench.input_output import ExistingInputFile
 
 
 class CommandLineArguments(Specifications):
@@ -17,8 +17,8 @@ class CommandLineArguments(Specifications):
     .. _sys.argv: https://docs.python.org/3/library/sys.html#sys.argv
     """
 
-    task_filepath: ClassVar[AbsolutePath[FilePath]]
-    """The path of the task file, which must point to an existing valid YAML file."""
+    task_file: ClassVar[ExistingInputFile]
+    """The task file, which must be an existing valid YAML file."""
 
     @model_validator(mode="after")
     def validate_number_of_inputs(self) -> Self:
@@ -33,6 +33,6 @@ class CommandLineArguments(Specifications):
 
     @model_validator(mode="after")
     def validate_task_filepath_existence(self) -> Self:
-        """Check that the task file exists and convert its path to an absolute path."""
-        CommandLineArguments.task_filepath = ExistingInputFile(input_filepath=sys.argv[1]).input_filepath
+        """Check that the task file exists and assign it to the class variable."""
+        CommandLineArguments.task_file = ExistingInputFile(input_filepath=sys.argv[1])
         return self

@@ -25,7 +25,7 @@ def test_CommandLineArguments_raise(args, msg):
 
 def test_CommandLineArguments(empty_task_filepath):
     with cli_arguments(empty_task_filepath):
-        filepath = CommandLineArguments().task_filepath
+        filepath = CommandLineArguments().task_file.input_filepath
         assert filepath == InputFile(input_filepath=empty_task_filepath).input_filepath
         assert isinstance(filepath, PosixPath)
         assert filepath.exists()

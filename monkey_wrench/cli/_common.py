@@ -18,5 +18,5 @@ def run() -> None:
             # The task file must be a valid YAML file.
             $ monkey-wrench <task_file_path>
     """
-    for task in read_tasks_from_file(CommandLineArguments().task_filepath):
+    for task in read_tasks_from_file(CommandLineArguments().task_file):
         task.perform()
