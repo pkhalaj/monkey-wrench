@@ -1,4 +1,5 @@
-"""Module to define base models."""
+"""The module providing base models for tasks."""
+
 from enum import Enum
 from functools import wraps
 from typing import Any, Callable
@@ -7,7 +8,7 @@ from uuid import uuid4
 from loguru import logger
 from pydantic import BaseModel
 
-from monkey_wrench.task.models.specifications.base import Specifications
+from monkey_wrench.generic import Specifications
 
 
 class Context(str, Enum):
@@ -28,7 +29,7 @@ class TaskBase(BaseModel, extra="forbid", arbitrary_types_allowed=True):
     """Pydantic base model for a task."""
     context: Context
     action: Action
-    specifications: Specifications
+    specifications: type[Specifications]
 
     @staticmethod
     def log(func: Callable) -> Callable:
@@ -40,12 +41,12 @@ class TaskBase(BaseModel, extra="forbid", arbitrary_types_allowed=True):
             # The ID helps us to quickly find all log messages corresponding to a single task.
             log_id = uuid4()
             logger.info(
-                f"Performing task `{self.action.value}` `{log_id}` for `{self.context.value}` "
-                f"with specifications `{self.specifications}`"
+                f"Performing task `{self.action.value}` for `{self.context.value}` "
+                f"with specifications `{self.specifications}` -- ID: {log_id}."
             )
             outs = func(self, *args, **kwargs)
             if outs:
-                logger.info(f"Retrieved results for task {log_id}: {outs}")
+                logger.info(f"Retrieved results for task : {outs} -- ID: {log_id}.")
             return outs
 
         return wrapper

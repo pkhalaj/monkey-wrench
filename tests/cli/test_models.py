@@ -1,19 +1,21 @@
+from pathlib import PosixPath
+
 import pytest
 from pydantic import ValidationError
 
 from monkey_wrench.cli import CommandLineArguments
+from monkey_wrench.input_output import InputFile
 from tests.utils import cli_arguments
 
 # ======================================================
-### Tests for CommandLineArguments
+### Tests for CommandLineArguments()
 
 @pytest.mark.parametrize(("args", "msg"), [
     ([], "single"),
-    (["task"], "end in"),
-    (["task.txt"], "end in"),
     ([1, 2], "single"),
-    (["task.yaml"], "point to a file"),
-    (["task.yml"], "point to a file")
+    (["task_non_existent.yaml"], "point to a file"),
+    (["task_non_existent.yml"], "point to a file"),
+    (["task_non_existent"], "point to a file"),
 ])
 def test_CommandLineArguments_raise(args, msg):
     with pytest.raises(ValidationError, match=msg):
@@ -23,4 +25,7 @@ def test_CommandLineArguments_raise(args, msg):
 
 def test_CommandLineArguments(empty_task_filepath):
     with cli_arguments(empty_task_filepath):
-        CommandLineArguments()
+        filepath = CommandLineArguments().task_file.input_filepath
+        assert filepath == InputFile(input_filepath=empty_task_filepath).input_filepath
+        assert isinstance(filepath, PosixPath)
+        assert filepath.exists()

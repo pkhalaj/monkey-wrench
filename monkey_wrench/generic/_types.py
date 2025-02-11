@@ -1,14 +1,30 @@
-"""The module providing the common types that will be used in other sub-packages."""
-
 from typing import TypeVar, Union
 
-T = TypeVar("T")
-ListSetTuple = Union[list[T], set[T], tuple[T, ...]]
-"""Parametric type alias for the union of lists, sets, tuple.
+from pydantic import BaseModel
 
-Note:
-    Strings and dictionaries have been intentionally left out!
+T = TypeVar("T")
+
+ListSetTuple = Union[list[T], set[T], tuple[T, ...]]
+"""Parametric type alias for the union of lists, sets, and tuples, i.e. classic iterables.
+
+Warning:
+    Strings and dictionaries have been intentionally left out, although they are also iterables!
 """
 
-StringOrStrings = str | list[str]
-"""Type alias for a string or a list of strings that will be used e.g. as a pattern to search in other strings."""
+
+class Specifications(BaseModel, extra="forbid", arbitrary_types_allowed=True):
+    """A Pydantic model to be used as a base for all other models, e.g. specifications of a task.
+
+    Note:
+        When initializing models that inherit from ``Model``, an exception will be raised if any extra keyword arguments
+        are passed to the constructor. Extra keyword arguments correspond to extra fields that have not been explicitly
+        defined in the model.
+
+    Example:
+        >>> class Dataset(Specifications):
+        ...     name: str
+        >>>
+        >>> # The following will lead to an exception, since `number` has not been explicitly defined as a model field.
+        >>> dataset = Dataset(name="dataset-name", number=1)
+    """
+    pass

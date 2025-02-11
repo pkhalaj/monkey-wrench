@@ -1,16 +1,22 @@
-START_DATETIME_MIN = [2023, 1, 1, 4, 27]
-END_DATETIME_MAX = [2022, 12, 31, 20, 42]
-START_DATETIME = [2022, 12, 31, 21, 26]
-END_DATETIME = [2023, 1, 1, 2, 14]
-FUTURE_DATETIME = [2200, 10, 27, 0, 0, 30]
-BATCH_INTERVAL = dict(days=2, minutes=1)
-OUTPUT_FILENAME = "./output_file_which_does_not_exist.txt"
+from datetime import UTC, datetime
+
+start_datetime_min = datetime(*[2023, 1, 1, 4, 27], tzinfo=UTC)
+end_datetime_max = datetime(*[2022, 12, 31, 20, 42], tzinfo=UTC)
+start_datetime = datetime(*[2022, 12, 31, 21, 26], tzinfo=UTC)
+end_datetime = datetime(*[2023, 1, 1, 2, 14], tzinfo=UTC)
+future_datetime = datetime(*[2200, 10, 27, 0, 0, 30], tzinfo=UTC)
+batch_interval = dict(days=2, minutes=1)
+output_filepath = "./output_file_which_does_not_exist.txt"
+
+datetime_range_in_batches = dict(
+    start_datetime=start_datetime,
+    end_datetime=end_datetime,
+    batch_interval=batch_interval
+)
 
 specifications = dict(
-    start_datetime=START_DATETIME,
-    end_datetime=END_DATETIME,
-    batch_interval=BATCH_INTERVAL,
-    output_filename=OUTPUT_FILENAME,
+    output_filepath=output_filepath,
+    **datetime_range_in_batches
 )
 
 task = dict(

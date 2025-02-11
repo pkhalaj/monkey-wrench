@@ -1,13 +1,17 @@
-"""The module providing common types used in the ``query`` package."""
+from datetime import datetime
 from enum import Enum
-from typing import Generator, TypeVar
+from os import environ
+from typing import ClassVar, Generator, TypeVar
 
-from pydantic import BaseModel, validate_call
+from eumdac import AccessToken
+from loguru import logger
+from pydantic import HttpUrl, validate_call
 
 from monkey_wrench.date_time import Minutes
+from monkey_wrench.generic import Specifications
 
 
-class CollectionMeta(BaseModel):
+class CollectionMeta(Specifications):
     """Named tuple to gather the collection metadata."""
     query_string: str
     """A colon (``:``) delimited string which represents the query string for the collection on the EUMETSAT API.
@@ -36,124 +40,85 @@ class EumetsatCollection(Enum):
     seviri = CollectionMeta(query_string="EO:EUM:DAT:MSG:HRSEVIRI", snapshot_minutes=[12, 27, 42, 57])
 
 
-class BoundingBox(BaseModel):
-    """Pydantic model for a bounding box.
+class EumetsatAPI:
+    """Static class for EUMETSAT API functionalities."""
+    api_base_url = HttpUrl("https://api.eumetsat.int")
+    """The root URL of the EUMETSAT API."""
+
+    download_path_template = "{base}/data/download/1.0.0/collections/{collection}/products"
+    """The template URL for the downloading collections."""
+
+    # The following does not include any login credentials, therefore we suppress Ruff linter rule S106.
+    credentials_env_vars: ClassVar[dict[str, str]] = dict(
+        login="EUMETSAT_API_LOGIN",  # noqa: S106
+        password="EUMETSAT_API_PASSWORD"  # noqa: S106
+    )
+
+    """The keys of environment variables used to authenticate the EUMETSAT API calls.
 
     Example:
-        >>> BoundingBox(north=10, south=20, west=30, east=40)
-        north=10 south=20 west=30 east=40
+        On Linux, you can use the ``export`` command to set the credentials in a terminal,
 
-        >>> BoundingBox(10, 20, 30, 40)
-        north=10 south=20 west=30 east=40
+        .. code-block:: bash
+
+            export EUMETSAT_API_LOGIN=<login>;
+            export EUMETSAT_API_PASSWORD=<password>;
     """
 
-    north: float
-    south: float
-    west: float
-    east: float
-
+    @staticmethod
     @validate_call
-    def __init__(self, north: float = None, south: float = None, west: float = None, east: float = None):
-        kwargs = dict(north=north, south=south, west=west, east=east)
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-
-        super().__init__(**kwargs)
-
-    def serialize(self, as_string: bool = False, delimiter: str = " ") -> list[float] | str:
-        """Get the serialized version of the bounding box.
+    def make_collection_url(collection: EumetsatCollection) -> HttpUrl:
+        """Make a complete collection URL from the API base URL and the given collection (query string).
 
         Args:
-            as_string:
-                If ``True``, return a string representation of the bounding box.
-            delimiter:
-                The delimiter to use in the serialized version of the bounding box, if ``as_string`` is ``True``.
-                Defaults to a blank space.
+            collection:
+                A collection of type :class:`~monkey_wrench.query._types.EumetsatCollection`, e.g. for the SEVIRI we
+                have :obj:`EumetsatCollection.seviri`.
 
         Returns:
-            Either a string, or a list of floats as ``[<North>, <South>, <West>, <East>]``.
+            The full collection URL using which the files can be fetched.
+
+        Example:
+            >>> EumetsatAPI.make_collection_url(EumetsatCollection.seviri)
+            HttpUrl('https://api.eumetsat.int/data/download/1.0.0/collections/EO%3AEUM%3ADAT%3AMSG%3AHRSEVIRI/products')
         """
-        lst = [self.north, self.south, self.west, self.east]
+        return HttpUrl(EumetsatAPI.download_path_template.format(
+            base=str(EumetsatAPI.api_base_url).rstrip("/"),
+            collection=collection.value.query_string.replace(":", "%3A")
+        ))
 
-        if as_string:
-            return delimiter.join([str(i) for i in lst])
-        return lst
-
-
-class Vertex(BaseModel):
-    """Pydantic model for a vertex.
-
-    Example:
-        >>> Vertex(longitude=10, latitude=20)
-        longitude=10 latitude=20
-
-        >>> Vertex(10, 20)
-        longitude=10 latitude=20
-    """
-
-    longitude: float
-    latitude: float
-
+    @staticmethod
     @validate_call
-    def __init__(self, longitude: float = None, latitude: float = None):
-        kwargs = dict(longitude=longitude, latitude=latitude)
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        super().__init__(**kwargs)
+    def seviri_collection_url() -> HttpUrl:
+        """Return the complete URL for the SEVIRI collection."""
+        return EumetsatAPI.make_collection_url(EumetsatCollection.seviri)
 
-    def serialize(self, as_string: bool = False, delimiter: str = " ") -> list[float] | str:
-        """Get the serialized version of the vertex.
+    @classmethod
+    def get_token(cls) -> AccessToken:
+        """Get a token using the :obj:`credentials_env_vars`.
 
-        Args:
-            as_string:
-                If ``True``, return a string representation of the vertex.
-            delimiter:
-                The delimiter to use in the serialized version of the vertex, if ``as_string`` is ``True``.
-                Defaults to a blank space.
+        This method returns the same token if it is still valid and issues a new one otherwise.
 
         Returns:
-            Either a string, or a list of floats as ``[<longitude>, <latitude>]``.
+            A token using which the datastore can be accessed.
+
+        Note:
+            See `API key management`_ on the `eumdac` website for more information.
+
+        .. _API key management: https://api.eumetsat.int/api-key
         """
-        lst = [self.longitude, self.latitude]
+        try:
+            credentials = tuple(environ[cls.credentials_env_vars[key]] for key in ["login", "password"])
+        except KeyError as error:
+            raise KeyError(f"Please set the environment variable {error}.") from None
 
-        if as_string:
-            return delimiter.join([str(i) for i in lst])
-        return lst
+        token = AccessToken(credentials)
 
+        token_str = str(token)
+        token_str = token_str[:3] + " ... " + token_str[-3:]
 
-class Polygon(BaseModel):
-    """The Pydantic model for a polygon.
-
-    Example:
-        >>> polygon: Polygon = Polygon(vertices=[
-        ...  Vertex(14.0, 64.0),
-        ...  Vertex(16.0, 64.0),
-        ...  Vertex(16.0, 62.0),
-        ...  Vertex(14.0, 62.0),
-        ...  Vertex(14.0, 64.0),
-        ... ])
-    """
-    vertices: list[Vertex]
-
-    @validate_call
-    def __init__(self, vertices: list[Vertex] = None):
-        kwargs = dict(vertices=vertices) if vertices else {}
-        super().__init__(**kwargs)
-
-    def serialize(self, as_string: bool = False) -> list[list[float]] | str:
-        """Get the serialized version of the polygon.
-
-        Args:
-            as_string:
-                If ``True``, return a string representation of the polygon.
-
-        Returns:
-            Either a string, or a list of vertices, where each vertex is itself a list of floats.
-        """
-        lst = [v.serialize(as_string=as_string) for v in self.vertices]
-
-        if as_string:
-            return f"POLYGON(({','.join(lst)}))"
-
-        return lst
+        logger.info(f"Accessing token '{token_str}' issued at {datetime.now()} and expires {token.expiration}.")
+        return token
 
 
 T = TypeVar("T")

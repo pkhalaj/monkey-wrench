@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -6,7 +6,7 @@ import pytest
 from monkey_wrench.date_time import DateTimeParserBase, FilePathParser, SeviriIDParser
 
 # ======================================================
-### Tests for DateTimeParserBase
+### Tests for DateTimeParserBase()
 
 def test_DateTimeParserBase_parse_raise():
     with pytest.raises(NotImplementedError):
@@ -20,7 +20,7 @@ def test_DateTimeParserBase_parse_raise():
 def test_DateTimeParserBase_parse_by_regex(datetime_string, datetime_tuple):
     regex = r"^(19|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])_(0\d|1\d|2[0-3])_([0-5]\d)$"
     parsed = DateTimeParserBase.parse_by_regex(datetime_string, regex)
-    assert datetime(*datetime_tuple) == parsed
+    assert datetime(*datetime_tuple, tzinfo=UTC) == parsed
 
 
 @pytest.mark.parametrize("datetime_string", [
@@ -49,7 +49,7 @@ def test_DateTimeParserBase_parse_by_regex_raise(datetime_string):
 ])
 def test_DateTimeParserBase_parse_by_format(datetime_string, datetime_tuple):
     parsed = DateTimeParserBase.parse_by_format_string(datetime_string, "%Y%m%d_%H_%M")
-    assert datetime(*datetime_tuple) == parsed
+    assert datetime(*datetime_tuple, tzinfo=UTC) == parsed
 
 
 @pytest.mark.parametrize("datetime_string", [
@@ -68,7 +68,7 @@ def test_DateTimeParserBase_parse_by_format_raise(datetime_string):
 
 
 # ======================================================
-### Tests for SeviriIDParser
+### Tests for SeviriIDParser()
 
 @pytest.mark.parametrize(("seviri_id", "expected_datetime_tuple"), [
     ("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA", (2015, 7, 31, 22, 12)),
@@ -76,7 +76,19 @@ def test_DateTimeParserBase_parse_by_format_raise(datetime_string):
 ])
 def test_SeviriIDParser_parse(seviri_id, expected_datetime_tuple):
     datetime_obj = SeviriIDParser.parse(seviri_id)
-    assert datetime(*expected_datetime_tuple) == datetime_obj
+    assert datetime(*expected_datetime_tuple, tzinfo=UTC) == datetime_obj
+
+
+def test_SeviriIDParser_parse_collection():
+    seviri_ids = [
+        "MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
+        "MSG3-SEVI-MSG15-0100-NA-20241120172743.016000000Z-NA"
+    ]
+    datetime_objects = [
+        datetime(2015, 7, 31, 22, 12, tzinfo=UTC),
+        datetime(2024, 11, 20, 17, 27, tzinfo=UTC),
+    ]
+    assert datetime_objects == SeviriIDParser.parse_collection(seviri_ids)
 
 
 @pytest.mark.parametrize("seviri_id", [
@@ -93,7 +105,7 @@ def test_SeviriIDParser_parse_raise(seviri_id):
 
 
 # ======================================================
-### Tests for FilePathParser
+### Tests for FilePathParser()
 
 @pytest.mark.parametrize("filename", [
     "/home/user/dir/some_prefix_20150731_22_12.extension",
@@ -105,7 +117,7 @@ def test_SeviriIDParser_parse_raise(seviri_id):
 def test_FilePathParser_parse(filename):
     for func in [Path, lambda x: x]:
         datetime_obj = FilePathParser.parse(func(filename))
-        assert datetime_obj == datetime(2015, 7, 31, 22, 12)
+        assert datetime(2015, 7, 31, 22, 12, tzinfo=UTC) == datetime_obj
 
 
 @pytest.mark.parametrize("filename", [

@@ -1,77 +1,44 @@
-from pathlib import Path
+from unittest import mock
 
 import pytest
-from pyresample import load_area
-from satpy.readers import FSFile
 
-from monkey_wrench.input_output.seviri import resample_seviri_native_file
-from tests.utils import make_dummy_file, make_yaml_file
+from monkey_wrench.input_output.seviri import RemoteSeviriFile, Resampler
+from tests.geometry.test_models import get_area_definition
 
 # ======================================================
-### Tests for resample_seviri_native_file()
+### Tests for RemoteSeviriFile()
 
-area_definition = dict(
-    CHIMP_NORDIC=dict(
-        description="CHIMP region of interest over the nordic countries",
-        projection=dict(
-            proj="stere",
-            lat_0=90,
-            lat_ts=60,
-            lon_0=14,
-            x_0=0,
-            y_0=0,
-            datum="WGS84",
-            no_defs=None,
-            type="crs"),
-        shape=dict(
-            height=564,
-            width=452
-        ),
-        area_extent=dict(
-            lower_left_xy=[-745322.8983833211, -3996217.269197446],
-            upper_right_xy=[1062901.0232376591, -1747948.2287755085],
-            units="m"
-        )
-    )
-)
+product_id = "MSG3-SEVI-MSG15-0100-NA-20230413164241.669000000Z-NA"
 
 
-def make_fs_file(directory: Path, filename: str) -> FSFile:
-    return FSFile(make_dummy_file(directory / Path(filename)))
+@pytest.fixture
+def fs_file(get_token_or_skip):
+    fs_file = RemoteSeviriFile().open(product_id)
+    return fs_file
 
 
-def make_area_file(temp_dir):
-    return make_yaml_file(temp_dir / Path("chimp_nordic_4.yml"), area_definition)
+def test_RemoteSeviriFile(fs_file):
+    assert f"{product_id}.nat" == fs_file.open().name
 
 
-@pytest.mark.parametrize("area_func", [
-    make_area_file,
-    lambda path: load_area(make_area_file(path))
-])
-@pytest.mark.parametrize(("filename", "error_message"), [
-    ("test", "does not end with `.nc`"),
-    ("test.nc", "No supported files"),
-])
-def test_resample_seviri_native_input_file_raise(temp_dir, filename, error_message, area_func):
-    with pytest.raises(ValueError, match=error_message):
-        resample_seviri_native_file(
-            make_fs_file(temp_dir, filename),
-            temp_dir,
-            lambda x: x,
-            area_func(temp_dir)
-        )
+# ======================================================
+### Tests for Resampler()
 
+def test_Resampler(temp_dir, fs_file):
+    scene = mock.MagicMock()
+    scene.load = mock.MagicMock()
+    resampled_scene = mock.MagicMock()
+    scene.resample = mock.MagicMock(return_value=resampled_scene)
 
-@pytest.mark.parametrize("area", [
-    dict(),
-    area_definition,
-    None
-])
-def test_resample_seviri_native_file_with_area(temp_dir, area):
-    with pytest.raises(ValueError, match="Invalid area"):
-        resample_seviri_native_file(
-            make_fs_file(temp_dir, "test.nc"),
-            temp_dir,
-            lambda x: x,
-            area=area
+    with mock.patch("monkey_wrench.input_output.seviri._models.Scene", return_value=scene) as scene_class:
+        resampler = Resampler(parent_directory=temp_dir, area=get_area_definition())
+        resampler.resample(product_id)
+
+        scene_class.assert_called_once_with([fs_file], "seviri_l1b_native")
+        scene.load.assert_called_once_with(resampler.channel_names)
+        scene.resample.assert_called_once_with(resampler.area, radius_of_influence=resampler.radius_of_influence)
+
+        resampled_scene.save_datasets.assert_called_once_with(
+            filename=f"{temp_dir}/2023/04/13/seviri_20230413_16_42.nc",
+            **resampler.dataset_save_options
         )

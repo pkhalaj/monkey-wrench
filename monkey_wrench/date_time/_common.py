@@ -1,49 +1,88 @@
-"""The module providing common functionalities for the ``date_time`` package."""
-
 from calendar import monthrange
-from datetime import datetime, timedelta
-from typing import Never
+from datetime import UTC, datetime, timedelta
+from typing import assert_never
 
-from pydantic import PositiveInt, validate_call
+from pydantic import validate_call
 
-from monkey_wrench.date_time._types import Minutes
+from monkey_wrench.date_time._types import Day, Minutes, Month, Year
+from monkey_wrench.generic import assert_
+
+
+def assert_datetime_is_timezone_aware(datetime_object: datetime, silent: bool = False) -> bool:
+    """Assert that the ``datetime_object`` is timezone-aware.
+
+    Note:
+        This function relies on :func:`~monkey_wrench.generic.assert_`.
+
+    Examples:
+        >>> assert_datetime_is_timezone_aware(datetime.now(), silent=True)
+        False
+
+        >>> assert_datetime_is_timezone_aware(datetime.now(UTC))
+        True
+    """
+    try:
+        result = None not in [datetime_object.tzinfo, datetime_object.tzinfo.utcoffset(datetime_object)]
+    except AttributeError:
+        result = False
+
+    return assert_(result, f"{datetime_object} is not timezone-aware!", silent=silent)
 
 
 @validate_call
-def assert_start_precedes_end(start_datetime: datetime, end_datetime: datetime) -> None | Never:
-    """Raise a ``ValueError`` if ``start_datetime`` is later than the ``end_datetime``, otherwise return ``None``.
+def assert_start_precedes_end(start_datetime: datetime, end_datetime: datetime, silent: bool = False) -> bool:
+    """Assert that the ``start_datetime`` is not later than the ``end_datetime``.
 
-    Warning:
-        Do not use ``assert`` in combination with this function. The assertion is implicitly done in the
-        function.
-
-    Raises:
-        ValueError:
-            If ``start_datetime`` is later than the ``end_datetime``.
+    Note:
+        This function relies on :func:`~monkey_wrench.generic.assert_`.
 
     Examples:
         >>> # The following will not raise an exception.
         >>> assert_start_precedes_end(datetime(2020, 1, 1), datetime(2020, 12, 31))
+        True
+
+        >>> # The following will raise an exception!
+        >>> assert_start_precedes_end(datetime(2020, 1, 2), datetime(2020, 1, 1), silent=True)
+        False
 
         >>> # The following will raise an exception!
         >>> # assert_start_precedes_end(datetime(2020, 1, 2), datetime(2020, 1, 1))
     """
-    if start_datetime > end_datetime:
-        raise ValueError(f"start_datetime='{start_datetime}' is later than end_datetime='{end_datetime}'.")
+    return assert_(
+        start_datetime <= end_datetime,
+        f"start_datetime='{start_datetime}' is later than end_datetime='{end_datetime}'.",
+        silent=silent
+    )
+
+
+def assert_datetime_has_past(datetime_instance: datetime, silent: bool = False) -> bool:
+    """Assert that the ``datetime_instance`` is in not in the future.
+
+    Note:
+        This function relies on :func:`~monkey_wrench.generic.assert_`.
+
+    Examples:
+        >>> # The following will not raise an exception.
+        >>> assert_datetime_has_past(datetime(2020, 1, 1, tzinfo=UTC))
+        True
+
+        >>> assert_datetime_has_past(datetime(2100, 1, 2, tzinfo=UTC), silent=True)
+        False
+
+        >>> # The following will raise an exception!
+        >>> # assert_has_datetime_past(datetime(2100, 1, 2, tzinfo=UTC))
+    """
+    assert_datetime_is_timezone_aware(datetime_instance, silent=False)
+    return assert_(
+        datetime_instance <= datetime.now(UTC),
+        "The given datetime instance is in the future.!",
+        silent=silent
+    )
 
 
 @validate_call
-def number_of_days_in_month(year: PositiveInt, month: PositiveInt) -> int:
-    """Return the number of days in a month, taking into account the leap years.
-
-    Args:
-        year:
-            The year as a 4 digit positive integer.
-        month:
-            The one-based numbering of the given month, e.g. ``1`` corresponds to `January`.
-
-    Returns:
-        The number of days in a month.
+def number_of_days_in_month(year: Year, month: Month) -> Day:
+    """Return the number of days in a month, taking into account both common and leap years.
 
     Examples:
         >>> # `2018` was a common year.
@@ -77,30 +116,30 @@ def floor_datetime_minutes_to_specific_snapshots(
         matches the closest minute from the ``snapshots``.
 
     Examples:
-          >>> floor_datetime_minutes_to_specific_snapshots(
-          ...  datetime(2020, 1, 1, 0, 3), [12, 27, 42, 57]
-          ... )
-          datetime.datetime(2019, 12, 31, 23, 57)
+        >>> floor_datetime_minutes_to_specific_snapshots(
+        ...  datetime(2020, 1, 1, 0, 3), [12, 27, 42, 57]
+        ... )
+        datetime.datetime(2019, 12, 31, 23, 57)
 
-          >>> floor_datetime_minutes_to_specific_snapshots(
-          ...  datetime(2020, 1, 1, 0, 58), [12, 27, 42, 57]
-          ... )
-          datetime.datetime(2020, 1, 1, 0, 57)
+        >>> floor_datetime_minutes_to_specific_snapshots(
+        ...  datetime(2020, 1, 1, 0, 58), [12, 27, 42, 57]
+        ... )
+        datetime.datetime(2020, 1, 1, 0, 57)
 
-          >>> floor_datetime_minutes_to_specific_snapshots(
-          ...  datetime(2020, 1, 1, 1, 30), [12, 27, 42, 57]
-          ... )
-          datetime.datetime(2020, 1, 1, 1, 27)
+        >>> floor_datetime_minutes_to_specific_snapshots(
+        ...  datetime(2020, 1, 1, 1, 30), [12, 27, 42, 57]
+        ... )
+        datetime.datetime(2020, 1, 1, 1, 27)
 
-          >>> floor_datetime_minutes_to_specific_snapshots(
-          ...  datetime(2020, 1, 1, 1, 27), [12, 27, 42, 57]
-          ... )
-          datetime.datetime(2020, 1, 1, 1, 27)
+        >>> floor_datetime_minutes_to_specific_snapshots(
+        ...  datetime(2020, 1, 1, 1, 27), [12, 27, 42, 57]
+        ... )
+        datetime.datetime(2020, 1, 1, 1, 27)
 
-          >>> floor_datetime_minutes_to_specific_snapshots(
-          ...  datetime(2020, 1, 1, 1, 26)
-          ... )
-          datetime.datetime(2020, 1, 1, 1, 26)
+        >>> floor_datetime_minutes_to_specific_snapshots(
+        ...  datetime(2020, 1, 1, 1, 26)
+        ... )
+        datetime.datetime(2020, 1, 1, 1, 26)
     """
     if not snapshots:
         return datetime_instance
@@ -118,3 +157,5 @@ def floor_datetime_minutes_to_specific_snapshots(
     for i in range(len(snapshots) - 1):
         if snapshots[i] <= minute < snapshots[i + 1]:
             return _datetime_base + timedelta(minutes=snapshots[i])
+
+    assert_never(datetime_instance)

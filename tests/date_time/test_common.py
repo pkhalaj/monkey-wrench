@@ -1,14 +1,49 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
 from monkey_wrench.date_time import (
+    assert_datetime_has_past,
+    assert_datetime_is_timezone_aware,
     assert_start_precedes_end,
     floor_datetime_minutes_to_specific_snapshots,
     number_of_days_in_month,
 )
 
 from .const import end_datetime, start_datetime
+
+# ======================================================
+### Tests for assert_datetime_is_timezone_aware()
+
+def test_assert_datetime_is_timezone_aware():
+    assert_datetime_is_timezone_aware(start_datetime)
+
+
+def test_assert_datetime_is_timezone_aware_raise():
+    dt = datetime(2000, 1, 1, 0, 0, 0)
+    with pytest.raises(ValueError, match="timezone-aware"):
+        assert_datetime_is_timezone_aware(dt)
+
+    assert assert_datetime_is_timezone_aware(dt, silent=True) is False
+
+
+# ======================================================
+### Tests for assert_datetime_has_past()
+
+def test_assert_datetime_has_past():
+    assert_datetime_has_past(start_datetime)
+
+
+def test_assert_datetime_has_past_raise():
+    dt = datetime(2100, 1, 1)
+    with pytest.raises(ValueError, match="future"):
+        assert_datetime_has_past(dt.astimezone(UTC))
+
+    assert assert_datetime_has_past(dt.astimezone(UTC), silent=True) is False
+
+    with pytest.raises(ValueError, match="timezone-aware"):
+        assert_datetime_has_past(dt)
+
 
 # ======================================================
 ### Tests for assert_start_precedes_end()
@@ -20,6 +55,11 @@ def test_assert_start_precedes_end():
 def test_assert_start_precedes_end_raise():
     with pytest.raises(ValueError, match="is later than"):
         assert_start_precedes_end(end_datetime, start_datetime)
+
+    assert assert_start_precedes_end(end_datetime, start_datetime, silent=True) is False
+
+    with pytest.raises(TypeError, match="compare"):
+        assert_start_precedes_end(datetime(2000, 1, 1, 0, 0, 0), end_datetime)
 
 
 # ======================================================

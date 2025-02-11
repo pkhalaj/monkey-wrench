@@ -1,61 +1,31 @@
-"""The module providing the class for querying the EUMETSAT API."""
-
 import fnmatch
 import shutil
 import time
-from datetime import datetime, timedelta
-from os import environ
 from pathlib import Path
-from typing import ClassVar, Generator
+from typing import Generator
 
-from eumdac import AccessToken, DataStore, DataTailor
+from eumdac import DataStore, DataTailor
 from eumdac.collection import SearchResults
 from eumdac.product import Product
 from eumdac.tailor_models import Chain, RegionOfInterest
-from fsspec import open_files
 from loguru import logger
 from pydantic import ConfigDict, PositiveInt, validate_call
-from satpy.readers.utils import FSFile
 
 from monkey_wrench.date_time import (
+    DateTimePeriod,
+    DateTimeRangeInBatches,
     assert_start_precedes_end,
     floor_datetime_minutes_to_specific_snapshots,
 )
+from monkey_wrench.geometry import BoundingBox, Polygon
 from monkey_wrench.query._base import Query
-from monkey_wrench.query._common import seviri_collection_url
-from monkey_wrench.query._types import BoundingBox, EumetsatCollection, Polygon
+from monkey_wrench.query._types import EumetsatAPI, EumetsatCollection
 
 
-class EumetsatAPI(Query):
-    """A class with utilities to simplify querying all the product IDs from the EUMETSAT API.
-
-    Note:
-        This class uses `eumdac`_ under the hood. However, it does not expose all the functionalities of the `eumdac`,
-        only the few ones that we need!
-
-    .. _eumdac: https://user.eumetsat.int/resources/user-guides/eumetsat-data-access-client-eumdac-guide
-    """
-
-    # The following does not include any login credentials, therefore we suppress Ruff linter rule S106.
-    credentials_env_vars: ClassVar[dict[str, str]] = dict(
-        login="EUMETSAT_API_LOGIN",  # noqa: S106
-        password="EUMETSAT_API_PASSWORD"  # noqa: S106
-    )
-
-    """The keys of environment variables used to authenticate the EUMETSAT API calls.
-
-    Example:
-        On Linux, you can use the ``export`` command to set the credentials in a terminal,
-
-        .. code-block:: bash
-
-            export EUMETSAT_API_LOGIN=<login>;
-            export EUMETSAT_API_PASSWORD=<password>;
-    """
-
+class EumetsatQuery(Query):
     @validate_call
     def __init__(
-            self, collection: EumetsatCollection = EumetsatCollection.seviri, log_context: str = "EUMETSAT API"
+            self, collection: EumetsatCollection = EumetsatCollection.seviri, log_context: str = "EUMETSAT Query"
     ) -> None:
         """Initialize an instance of the class with API credentials read from the environment variables.
 
@@ -67,11 +37,6 @@ class EumetsatAPI(Query):
                 The collection, defaults to :obj:`~monkey_wrench.query._types.EumetsatCollection.seviri` for SEVIRI.
             log_context:
                 A string that will be used in log messages to determine the context. Defaults to an empty string.
-
-        Note:
-            See `API key management`_ on the `eumdac` website for more information.
-
-        .. _API key management: https://api.eumetsat.int/api-key
         """
         super().__init__(log_context=log_context)
         token = EumetsatAPI.get_token()
@@ -80,38 +45,15 @@ class EumetsatAPI(Query):
         self.__data_tailor = DataTailor(token)
         self.__selected_collection = self.__data_store.get_collection(collection.value.query_string)
 
-    @classmethod
-    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def get_token(cls) -> AccessToken:
-        """Get a token using the :obj:`credentials_env_vars`.
-
-        This method returns the same token if it is still valid and issues a new one otherwise.
-
-        Returns:
-            A token using which the datastore can be accessed.
-        """
-        try:
-            credentials = tuple(environ[cls.credentials_env_vars[key]] for key in ["login", "password"])
-        except KeyError as error:
-            raise KeyError(f"Please set the environment variable {error}.") from None
-
-        token = AccessToken(credentials)
-
-        token_str = str(token)
-        token_str = token_str[:3] + " ... " + token_str[-3:]
-
-        logger.info(f"Accessing token '{token_str}' issued at {datetime.now()} and expires {token.expiration}.")
-        return token
-
-    def len(self, product_ids: SearchResults) -> int:
+    @staticmethod
+    def len(product_ids: SearchResults) -> int:
         """Return the number of product IDs."""
         return product_ids.total_results
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def query(
             self,
-            start_datetime: datetime,
-            end_datetime: datetime,
+            datetime_period: DateTimePeriod,
             polygon: Polygon | None = None,
     ) -> SearchResults:
         """Query product IDs in a single batch.
@@ -124,54 +66,43 @@ class EumetsatAPI(Query):
             ``"MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA"``.
 
         Note:
-            The keyword arguments of ``start_time`` and ``end_time`` are treated respectively as inclusive and exclusive
-            when querying the IDs. For example, to obtain all the data up to and including ``2022/12/31``, we must set
+            ``start_time`` and ``end_time`` are treated respectively as inclusive and exclusive when querying the IDs.
+            For example, to obtain all the data up to and including ``2022/12/31``, we must set
             ``end_time=datetime(2023, 1, 1)``.
 
         Args:
-            start_datetime:
-                The start datetime (inclusive).
-            end_datetime:
-                The end datetime (exclusive).
+            datetime_period:
+                The datetime period to query for.
             polygon:
                 An object of type :class:`~monkey_wrench.query._types.Polygon`.
 
         Returns:
-            The results of the search, containing the product IDs found within the specified time range and the polygon.
+            The results of the search, containing the product IDs found within the specified period and the polygon.
 
         Raises:
             ValueError:
                 Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
         """
-        assert_start_precedes_end(start_datetime, end_datetime)
-        end_datetime = floor_datetime_minutes_to_specific_snapshots(
-            end_datetime, self.__collection.value.snapshot_minutes
+        assert_start_precedes_end(*datetime_period.as_tuple())
+        datetime_period.end_datetime = floor_datetime_minutes_to_specific_snapshots(
+            datetime_period.end_datetime, self.__collection.value.snapshot_minutes
         )
         return self.__selected_collection.search(
-            dtstart=start_datetime,
-            dtend=end_datetime,
+            dtstart=datetime_period.start_datetime,
+            dtend=datetime_period.end_datetime,
             geo=polygon.serialize(as_string=True) if polygon else None
         )
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def query_in_batches(
             self,
-            start_datetime: datetime = datetime(2022, 1, 1),
-            end_datetime: datetime = datetime(2023, 1, 1),
-            batch_interval: timedelta = timedelta(days=30),
+            datetime_range_in_batches: DateTimeRangeInBatches
     ) -> Generator[tuple[SearchResults, int], None, None]:
         """Retrieve all the product IDs, given a time range and a batch interval, fetching one batch at a time.
 
         Args:
-            start_datetime:
-                The start of the datetime range for querying (inclusive). Defaults to January 1, 2022.
-            end_datetime:
-                The end of the datetime range for querying (exclusive). Defaults to January 1, 2023.
-            batch_interval:
-                The duration of each batch interval. Defaults to ``30`` days. A smaller value for ``batch_interval``
-                means a larger number of batches which increases the overall time needed to fetch all the product IDs.
-                A larger value for ``batch_interval`` shortens the total time to fetch all the IDs, however, you might
-                get an error regarding sending `too many requests` to the server.
+            datetime_range_in_batches:
+                The datetime range to query for.
 
         Note:
             As an example, for SEVIRI, we expect to have one file (product ID) per ``15`` minutes, i.e. ``4`` files per
@@ -188,22 +119,23 @@ class EumetsatAPI(Query):
             in turn iterated over to retrieve individual products.
 
         Example:
-            >>> start_datetime = datetime(2022, 1, 1)
-            >>> end_datetime = datetime(2022, 1, 3)
-            >>> batch_interval = timedelta(days=1)
-            >>> api = EumetsatAPI()
+            >>> range_in_batches = DateTimeRangeInBatches(
+            ...  start_datetime=datetime(2022, 1, 1),
+            ...  end_datetime=datetime(2022, 1, 3),
+            ...  batch_interval=timedelta(days=1
+            ... )
             >>>
-            >>> for batch, retrieved_count in api.query_in_batches(start_datetime, end_datetime, batch_interval):
+            >>> api = EumetsatQuery()
+            >>>
+            >>> for batch, retrieved_count in api.query_in_batches(range_in_batches):
             ...     assert retrieved_count == batch.total_results
             ...     print(batch)
             ...     for product in batch:
             ...         print(product)
         """
-        expected_total_count = self.len(self.query(start_datetime, end_datetime))
+        expected_total_count = self.len(self.query(datetime_range_in_batches.datetime_period))
         yield from super().query_in_batches(
-            start_datetime,
-            end_datetime,
-            batch_interval,
+            datetime_range_in_batches,
             expected_total_count=expected_total_count
         )
 
@@ -287,35 +219,3 @@ class EumetsatAPI(Query):
             elif customisation.status in ["QUEUED", "RUNNING"]:
                 logger.info(f"Job is {customisation.status.lower()}.")
                 time.sleep(sleep_time)
-
-    @staticmethod
-    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-    def open_seviri_native_file_remotely(product_id: str, cache: str | None = None) -> FSFile:
-        """Open SEVIRI native files (``.nat``) remotely, inside a zip archive using the given product ID.
-
-        Note:
-            See `fsspec cache <fs>`_, to learn more about buffering and random access in `fsspec`.
-
-        Args:
-            product_id:
-                The product ID to open.
-            cache:
-                How to buffer, e.g. ``"filecache"``, ``"blockcache"``, or ``None``. Defaults to ``None``.
-
-        Returns:
-            A file object of type ``FSFile``, which can be further used by ``satpy``.
-
-        .. _fs: https://filesystem-spec.readthedocs.io/en/latest/features.html#file-buffering-and-random-access
-        """
-        https_header = {
-            "encoded": True,
-            "client_kwargs": {
-                "headers": {
-                    "Authorization": f"Bearer {EumetsatAPI.get_token()}",
-                }
-            }
-        }
-        cache_str = f"::{cache}" if cache else ""
-        fstr = f"zip://*.nat{cache_str}::{seviri_collection_url()}/{product_id}"
-        logger.info(f"Opening {fstr}")
-        return [FSFile(f) for f in open_files(fstr, https=https_header)][0]

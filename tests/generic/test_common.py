@@ -2,38 +2,30 @@ from types import NoneType
 
 import pytest
 
-from monkey_wrench.generic import apply_to_single_or_collection, element_type, pattern_exists
+from monkey_wrench.generic import apply_to_single_or_collection, assert_, collection_element_type, type_
 
 # ======================================================
-### Tests for pattern_exists()
+### Tests for assert_()
 
-@pytest.mark.parametrize(("pattern", "kwargs", "res"), [
-    ("This", dict(match_all=True, case_sensitive=True), True),
-    ("This", dict(match_all=False, case_sensitive=True), True),
-    ("This", dict(match_all=False, case_sensitive=False), True),
-    ("This", dict(match_all=True, case_sensitive=False), True),
-    #
-    ("this", dict(match_all=True, case_sensitive=True), False),
-    ("this", dict(match_all=False, case_sensitive=True), False),
-    ("this", dict(match_all=True, case_sensitive=False), True),
-    ("this", dict(match_all=False, case_sensitive=False), True),
-    #
-    (["this", "SAMPLE"], dict(match_all=True, case_sensitive=True), False),
-    (["this", "SAMPLE"], dict(match_all=True, case_sensitive=False), True),
-    (["This", "SAMPLE"], dict(match_all=False, case_sensitive=True), True),
-    (["This", "SAMPLE"], dict(match_all=False, case_sensitive=False), True),
-    # ,
-    (["This", "not"], dict(match_all=False, case_sensitive=True), True),
-    (["This", "not"], dict(match_all=False, case_sensitive=False), True),
-    (["This", "not"], dict(match_all=True, case_sensitive=True), False),
-    (["This", "not"], dict(match_all=True, case_sensitive=False), False),
-    #
-    (["This", "is", "a", "sample"], dict(match_all=True, case_sensitive=True), True),
-    (["This", "is", "a", "not", "sample"], dict(match_all=True, case_sensitive=True), False),
-    (["This", "is", "a", "not", "sample"], dict(match_all=False, case_sensitive=True), True),
+@pytest.mark.parametrize(("inp", "out"), [
+    (1, 1),
+    (True, True),
+    (False, False),
+    (5 > 3, True),
+    ({}, {}),
+    ([], [])
 ])
-def test_pattern_exist(pattern, kwargs, res):
-    assert res == pattern_exists("This is a sample!", pattern, **kwargs)
+def test_assert_(inp, out):
+    assert out == assert_(inp, "")
+
+
+@pytest.mark.parametrize(("inp", "msg", "exception"), [
+    (0, "fail", TypeError),
+    ([], "fail2", ValueError),
+])
+def test_assert_raise(inp, msg, exception):
+    with pytest.raises(exception, match=msg):
+        assert_(inp, msg, silent=False, exception=exception)
 
 
 # ======================================================
@@ -52,11 +44,43 @@ def test_pattern_exist(pattern, kwargs, res):
     ("book", "bookbook")
 ])
 def test_apply_to_single_or_collection(inp, out):
-    assert out == apply_to_single_or_collection(lambda x: x * 2, inp)
+    assert apply_to_single_or_collection(lambda x: x * 2, inp) == out
 
 
 # ======================================================
-### Tests for element_type()
+### Tests for collection_element_type()
+
+@pytest.mark.parametrize(("inp", "out"), [
+    ([3, 2, 1], int),
+    ((3., 2., 1.), float),
+    ({1: "a", 2: "b"}, str),
+])
+def test_collection_element_type(inp, out):
+    assert collection_element_type(inp) is out
+
+
+@pytest.mark.parametrize("inp", [
+    set(),
+    dict(),
+    list(),
+    tuple()
+])
+def test_collection_element_type_empty(inp):
+    assert collection_element_type(inp) is None
+
+
+@pytest.mark.parametrize(("inp", "msg", "exception"), [
+    ([3, 2., 1], "different", TypeError),
+    ({3, "2"}, "different", TypeError),
+    (1, "a valid", ValueError),
+])
+def test_collection_element_type_raise(inp, msg, exception):
+    with pytest.raises(exception, match=msg):
+        collection_element_type(inp)
+
+
+# ======================================================
+### Tests for type_()
 
 @pytest.mark.parametrize(("inp", "out"), [
     ([3, 2, 1], int),
@@ -67,8 +91,8 @@ def test_apply_to_single_or_collection(inp, out):
     (None, NoneType),
     (True, bool)
 ])
-def test_element_type(inp, out):
-    assert out is element_type(inp)
+def test_type_(inp, out):
+    assert type_(inp) is out
 
 
 @pytest.mark.parametrize("inp", [
@@ -77,5 +101,5 @@ def test_element_type(inp, out):
     list(),
     tuple()
 ])
-def test_element_type_empty(inp):
-    assert element_type(inp) is None
+def test_type_empty(inp):
+    assert type_(inp) is None

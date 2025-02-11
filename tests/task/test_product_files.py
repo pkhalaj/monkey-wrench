@@ -1,27 +1,26 @@
 import os
 from pathlib import Path
 
-import pytest
-
-from monkey_wrench.input_output import write_items_to_txt_file
+from monkey_wrench.input_output import ExistingInputFile, Writer
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
-from monkey_wrench.task import InputFile, read_tasks_from_file
-from tests.task.const import END_DATETIME, START_DATETIME, ids, ids_in_query
+from monkey_wrench.task import read_tasks_from_file
+from tests.geometry.test_models import get_area_definition
+from tests.task.const import end_datetime, ids_in_query, start_datetime
 from tests.utils import make_dummy_files, make_yaml_file
 
 
 def test_verify_files_success(temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
-    directory = Path(temp_dir, "here")
-    os.makedirs(directory, exist_ok=True)
+    data_directory = Path(temp_dir, "data")
+    os.makedirs(data_directory, exist_ok=True)
 
     nominal_size = 10000
     tolerance = 0.01
     fluctuation = 0.1
 
     files, removed, corrupted = make_dummy_files(
-        directory,
+        data_directory,
         filenames=input_filename_from_product_id(ids_in_query),
         nominal_size_in_bytes=nominal_size,
         tolerance=tolerance,
@@ -29,23 +28,24 @@ def test_verify_files_success(temp_dir):
         number_of_files_to_remove=3
     )
 
-    write_items_to_txt_file(ids, product_ids_filename)
+    Writer(output_filepath=product_ids_filename).write(ids_in_query)
+
     make_yaml_file(
         task_filename,
         dict(
             context="files",
             action="verify",
             specifications=dict(
-                start_datetime=START_DATETIME,
-                end_datetime=END_DATETIME,
-                input_filename=str(product_ids_filename),
-                input_directory=str(directory),
+                start_datetime=start_datetime.isoformat(),
+                end_datetime=end_datetime.isoformat(),
+                reference=str(product_ids_filename),
+                parent_directory=str(data_directory),
                 nominal_size=nominal_size,
                 tolerance=tolerance,
             ))
     )
 
-    validated_task = list(read_tasks_from_file(InputFile(input_filename=task_filename)))[0]
+    validated_task = list(read_tasks_from_file(ExistingInputFile(input_filepath=task_filename)))[0]
     outs = validated_task.perform()
 
     keys_map = {
@@ -58,28 +58,31 @@ def test_verify_files_success(temp_dir):
     for k in outs.keys():
         for p in keys_map.keys():
             if p in k:
-                assert keys_map[p] == outs[k]
+                assert outs[k] == keys_map[p]
 
 
-@pytest.mark.skip
-def test_fetch_files_success(get_token_or_skip, temp_dir):
+def test_fetch_files(get_token_or_skip, temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
-    write_items_to_txt_file(ids, product_ids_filename)
-    directory = Path(".")
+    Writer(output_filepath=product_ids_filename).write(ids_in_query[:2])
+
     make_yaml_file(
         task_filename,
         dict(
             context="files",
             action="fetch",
             specifications=dict(
-                start_datetime=START_DATETIME,
-                end_datetime=END_DATETIME,
-                input_filename=str(product_ids_filename),
-                output_directory=str(directory),
+                area=get_area_definition(),
+                cache="filecache",
+                start_datetime=start_datetime.isoformat(),
+                end_datetime=end_datetime.isoformat(),
+                input_filepath=str(product_ids_filename),
+                parent_directory=str(temp_dir),
                 number_of_processes=2,
-            ))
+                temp_directory=str(temp_dir),
+            )
+        )
     )
 
-    for task in read_tasks_from_file(InputFile(input_filename=task_filename)):
+    for task in read_tasks_from_file(ExistingInputFile(input_filepath=task_filename)):
         task.perform()

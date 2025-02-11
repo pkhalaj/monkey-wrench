@@ -1,5 +1,6 @@
 import tempfile
 from pathlib import Path
+from typing import Generator
 
 import pytest
 from requests import HTTPError
@@ -25,7 +26,7 @@ def get_token_or_skip():
 
 
 @pytest.fixture
-def temp_dir() -> Path:
+def temp_dir() -> Generator[Path, None, None]:
     """Make a temporary directory and return it."""
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir = Path(tmpdir)
