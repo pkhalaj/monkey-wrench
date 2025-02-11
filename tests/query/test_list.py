@@ -181,3 +181,30 @@ def test_k_sized_batches(k, idx_start, idx_end):
         assert prev_batch[0] < batch[0]
         assert [*prev_batch[1:], batch[-1]] == batch
         prev_batch = batch
+
+
+@pytest.mark.parametrize(("k", "index_start", "index_end", "quotient", "remainder"), [
+    (3, 0, -1, 7, 0),
+    (1, 0, 20, 21, 0),
+    (2, 0, -1, 11, 1),
+    (8, 0, 20, 3, 5),
+    (21, 0, -1, 1, 0),
+    (7, 5, 10, 1, 0),
+    (4, 10, 15, 2, 2),
+    (1, 10, 15, 6, 0),
+    (2, 10, 15, 3, 0)
+])
+def test_k_sized_partitions(k, index_start, index_end, quotient, remainder):
+    lst = List(elements, FilePathParser)
+    subs = list(lst.partition_in_k_sized_batches_by_index(k, index_start=index_start, index_end=index_end))
+    index_start = lst.normalize_index(index_start)
+    index_end = lst.normalize_index(index_end)
+
+    buff = []
+    for sub in subs:
+        buff.extend(sub)
+
+    assert all(len(s) == k for s in subs[:-1])
+    assert len(subs) == quotient
+    assert len(subs[-1]) == (remainder if remainder > 0 else min(k, index_end - index_start + 1))
+    assert elements[index_start: index_end + 1] == buff

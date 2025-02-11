@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Generator, Self
 
 import numpy as np
@@ -69,8 +70,8 @@ class List(Query):
         new_list = List.__new__(List)
         super(List, new_list).__init__(log_context=self.log_context)
 
-        new_list._items_vector = self._items_vector[indices]
-        new_list.__items_parsed = self.__items_parsed[indices]
+        new_list._items_vector = deepcopy(self._items_vector[indices])
+        new_list.__items_parsed = deepcopy(self.__items_parsed[indices])
 
         return new_list
 
@@ -202,3 +203,32 @@ class List(Query):
             batch = self._items_vector[index - k + 1: index + 1]
             yield batch.tolist() if batches_as_python_lists else batch
             index += 1
+
+    @validate_call
+    def partition_in_k_sized_batches_by_index(
+            self, k: PositiveInt, index_start: int = 0, index_end: int = -1, batches_as_python_lists: bool = True
+    ) -> Generator:
+        """Partition the list, where the batches are of size ``k`` or less.
+
+        Note:
+            The partition is given for all items that are in ``[index_start, index_end]`` (boht inclusive).
+
+        Note:
+            This is similar to :func:`~List.generate_k_sized_batches_by_index`, but there are differences. First, this
+            method generates partitions, i.e. sub-lists do not have any common items. Second, there could be one
+            sub-list whose size is less than ``k``. This happens when the length of available items to partition is less
+            than ``k``.
+        """
+        index_start = self.normalize_index(index_start)
+        index_end = self.normalize_index(index_end)
+        if index_start > index_end:
+            raise ValueError("`index_start` cannot be greater than `index_end`.")
+
+        if (index_end - index_start) + 1 <= k:
+            batch = self._items_vector[index_start: index_end + 1]
+            yield batch.tolist() if batches_as_python_lists else batch
+            return
+
+        for index in range(index_start, index_end + 1, k):
+            batch = self._items_vector[index: min(index + k, index_end + 1)]
+            yield batch.tolist() if batches_as_python_lists else batch
