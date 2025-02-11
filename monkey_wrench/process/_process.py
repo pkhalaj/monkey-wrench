@@ -1,6 +1,7 @@
 """The module providing functionalities for multiprocessing."""
 
-from multiprocessing import Pool
+import time
+from multiprocessing import Pool, Process
 from typing import Callable, TypeVar
 
 from pydantic import NonNegativeInt
@@ -28,7 +29,7 @@ class MultiProcess(Specifications):
     A value of ``1`` disables multiprocessing. This is useful for e.g. testing purposes.
     """
 
-    def run(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> list[R]:
+    def run_with_results(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> list[R]:
         """Call the provided function with different arguments using multiple processes.
 
         Args:
@@ -50,3 +51,19 @@ class MultiProcess(Specifications):
         with Pool(processes=self.number_of_processes) as pool:
             results = pool.map(function, arguments)
         return results
+
+    def run(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> None:
+        """Similar to :func:`run_with_results`, but does not return anything."""
+        arguments = list(arguments)
+
+        for index in range(0, len(arguments), self.number_of_processes):
+            procs = []
+            for arg in arguments[index: index + self.number_of_processes]:
+                proc = Process(target=function, args=(arg,))
+                procs.append(proc)
+                proc.start()
+
+            for proc in procs:
+                proc.join()
+
+            time.sleep(2)

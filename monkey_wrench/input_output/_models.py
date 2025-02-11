@@ -303,7 +303,7 @@ class FilesIntegrityValidator(MultiProcess):
         if self.nominal_size is None:
             return None
 
-        file_sizes = self.run(os.path.getsize, filepaths)
+        file_sizes = self.run_with_results(os.path.getsize, filepaths)
         return {fp for fp, fs in zip(filepaths, file_sizes, strict=True) if self.is_corrupted(fs)}
 
     @validate_call
