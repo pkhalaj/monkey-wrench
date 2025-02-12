@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import NonNegativeInt
 
 from monkey_wrench.date_time import DateTimePeriod, FilePathParser, SeviriIDParser
-from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader, TempDirectory
+from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader
 from monkey_wrench.input_output.seviri import Resampler
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import List
@@ -26,8 +26,7 @@ class FetchSpecifications(
     DateTimePeriod,
     MultiProcess,
     Resampler,
-    Reader,
-    TempDirectory
+    Reader
 ):
     """Pydantic model for the specifications of a fetch task."""
     pass
@@ -82,8 +81,7 @@ class Fetch(Task):
         )
         for product_id in product_ids:
             self.specifications.create(SeviriIDParser.parse(product_id))
-        with TempDirectory(temp_directory=self.specifications.temp_directory).context():
-            self.specifications.run(self.specifications.resample, product_ids.to_python_list())
+        self.specifications.run(self.specifications.resample, product_ids.to_python_list())
 
 
 FilesTask = Fetch | Verify

@@ -9,8 +9,15 @@ import pytest
 from monkey_wrench import input_output
 from monkey_wrench.date_time import DateTimeRange, FilePathParser, SeviriIDParser
 from monkey_wrench.generic import Pattern
-from monkey_wrench.input_output import DateTimeDirectory, DirectoryVisitor, FilesIntegrityValidator, Reader, Writer
-from tests.utils import make_dummy_datetime_files, make_dummy_file, make_dummy_files
+from monkey_wrench.input_output import (
+    DateTimeDirectory,
+    DirectoryVisitor,
+    FilesIntegrityValidator,
+    Reader,
+    TempDirectory,
+    Writer,
+)
+from tests.utils import EnvironmentVariables, make_dummy_datetime_files, make_dummy_file, make_dummy_files
 
 start_datetime = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
 end_datetime = datetime(2022, 1, 4, tzinfo=UTC)
@@ -246,8 +253,22 @@ def test_DateTimeDirectory_remove(temp_dir):
 def test_TempDirectory():
     default_temp_path = tempfile.gettempdir()
     here_path = os.path.abspath(".")
-    with input_output.TempDirectory(temp_directory=".").context() as tmp:
+    with TempDirectory(temp_directory=".").context() as tmp:
         assert str(tmp).startswith(here_path)
         with tempfile.TemporaryDirectory() as tmpdir:
             assert tmpdir.startswith(here_path)
     assert default_temp_path == tempfile.gettempdir()
+
+
+@pytest.mark.parametrize(("tmpdir_factory", "expected"), [
+    (lambda x: x, True),
+    (lambda x: None, False)
+])
+def test_TempDirectory_default(temp_dir, tmpdir_factory, expected):
+    tmp_directory = Path(temp_dir, "another_temp_dir")
+    os.makedirs(tmp_directory, exist_ok=True)
+
+    with EnvironmentVariables(**{"TMPDIR": tmpdir_factory(str(tmp_directory))}):
+        with TempDirectory().context() as tmp:
+            assert str(tmp).startswith("/tmp")
+            assert ("/another_temp_dir/" in str(tmp)) is expected

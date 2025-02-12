@@ -77,11 +77,11 @@ select = ["A", "B", "D", "E", "W", "F", "I", "N", "PT", "S", "TID", "C90", "Q", 
 #   T201: use of print is detected
 # TID252: relative imports are not prefered
 # We supress the aformentioned Ruff rules on a per-file basis as follows:
-"__init__.py" = ["D104"]                                                        # public packages
-"**/models/*.py" = ["D100", "D101", "D102", "D103", "S101"]                     # pydantic models
-"tests/*" = ["D100", "D101", "D102", "D103", "D105", "N802", "S101", "TID252"]  # all tests
-"docs/source/conf.py" = ["D100", "A001"]                                        # sphinx [otherwise it misbehaves]
-"examples/*" = ["D100", "D103", "S101", "TID252", "T201"]                       # all examples
+"__init__.py" = ["D104"]                                                                # public packages
+"**/models/*.py" = ["D100", "D101", "D102", "D103", "S101"]                             # pydantic models
+"tests/*" = ["D100", "D101", "D102", "D103", "D105", "N802", "S101", "S108", "TID252"]  # all tests
+"docs/source/conf.py" = ["D100", "A001"]                                                # sphinx
+"examples/*" = ["D100", "D103", "S101", "TID252", "T201"]                               # all examples
 
 [tool.ruff.lint.pep8-naming]
 classmethod-decorators = [

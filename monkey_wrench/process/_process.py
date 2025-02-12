@@ -1,18 +1,18 @@
 """The module providing functionalities for multiprocessing."""
 
-import time
 from multiprocessing import Pool, Process
 from typing import Callable, TypeVar
 
 from pydantic import NonNegativeInt
 
-from monkey_wrench.generic import ListSetTuple, Specifications
+from monkey_wrench.generic import ListSetTuple
+from monkey_wrench.input_output._types import TempDirectory
 
 T = TypeVar("T")
 R = TypeVar("R")
 
 
-class MultiProcess(Specifications):
+class MultiProcess(TempDirectory):
     """Pydantic model for multiprocessing.
 
     Example:
@@ -45,25 +45,23 @@ class MultiProcess(Specifications):
         Returns:
             A list of returned results from the function in the same order as the given arguments (if not a set).
         """
-        if self.number_of_processes == 1:
-            return [function(arg) for arg in arguments]
+        with self.context():
+            if self.number_of_processes == 1:
+                return [function(arg) for arg in arguments]
 
-        with Pool(processes=self.number_of_processes) as pool:
-            results = pool.map(function, arguments)
+            with Pool(processes=self.number_of_processes) as pool:
+                results = pool.map(function, arguments)
         return results
 
     def run(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> None:
         """Similar to :func:`run_with_results`, but does not return anything."""
         arguments = list(arguments)
-
         for index in range(0, len(arguments), self.number_of_processes):
-            procs = []
-            for arg in arguments[index: index + self.number_of_processes]:
-                proc = Process(target=function, args=(arg,))
-                procs.append(proc)
-                proc.start()
-
-            for proc in procs:
-                proc.join()
-
-            time.sleep(2)
+            with self.context():
+                procs = []
+                for arg in arguments[index: index + self.number_of_processes]:
+                    proc = Process(target=function, args=(arg,))
+                    procs.append(proc)
+                    proc.start()
+                for proc in procs:
+                    proc.join()

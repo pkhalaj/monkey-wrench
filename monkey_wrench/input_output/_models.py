@@ -1,6 +1,4 @@
 import os
-import tempfile
-from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Generator, Literal, TypeVar
@@ -47,30 +45,6 @@ class OutputDirectory(Specifications):
 
 class ParentDirectory(Specifications):
     parent_directory: AbsolutePath[DirectoryPath]
-
-
-class TempDirectory(Specifications):
-    """Pydantic for a temporary directory."""
-    temp_directory: AbsolutePath[DirectoryPath]
-
-    @contextmanager
-    def context(self) -> Generator[Path, None, None]:
-        """Create a temporary directory and set the global temporary directory to the given path.
-
-        Note:
-            The reason to set the global temporary directory is to ensure that any other inner functions or context
-            managers that might invoke ``tempfile.TemporaryDirectory()`` also use the given global temporary directory.
-
-        Yields:
-            The full path of the (created) temporary directory.
-        """
-        _default_tempdir = tempfile.gettempdir()
-        try:
-            with tempfile.TemporaryDirectory(dir=self.temp_directory) as _dir:
-                tempfile.tempdir = _dir
-                yield Path(_dir)
-        finally:
-            tempfile.tempdir = _default_tempdir
 
 
 class FsSpecCache(Specifications):
