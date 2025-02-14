@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.input_output import ExistingInputFile, Reader
-from monkey_wrench.task import read_tasks_from_file
+from monkey_wrench.task.common import read_tasks_from_file
 from monkey_wrench.task.ids import Fetch
 from tests.task.const import (
     batch_interval,

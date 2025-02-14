@@ -3,7 +3,7 @@ from pathlib import Path
 
 from monkey_wrench.input_output import ExistingInputFile, Writer
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
-from monkey_wrench.task import read_tasks_from_file
+from monkey_wrench.task.common import read_tasks_from_file
 from tests.geometry.test_models import get_area_definition
 from tests.task.const import end_datetime, ids_in_query, start_datetime
 from tests.utils import make_dummy_files, make_yaml_file
