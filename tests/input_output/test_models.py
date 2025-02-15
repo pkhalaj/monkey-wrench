@@ -13,6 +13,7 @@ from monkey_wrench.input_output import (
     DateTimeDirectory,
     DirectoryVisitor,
     FilesIntegrityValidator,
+    FsSpecCache,
     Reader,
     TempDirectory,
     Writer,
@@ -38,11 +39,20 @@ number_of_days = (end_datetime - start_datetime).days
     ".nc", ".", "nc", [".", "nc"], None, "", "2022", "non_existent_pattern"
 ])
 def test_DirectoryVisitor(temp_dir, reverse, pattern, recursive):
+    output_filepath = temp_dir / Path("output.txt")
     datetime_objects, _ = _make_dummy_datetime_files(temp_dir, reverse)
     top_level_files, _, _ = make_dummy_files(temp_dir, prefix="top_level_files_2022.nc")
     files = DirectoryVisitor(
-        parent_directory=temp_dir, reverse=reverse, recursive=recursive, sub_strings=pattern
+        parent_directory=temp_dir,
+        reverse=reverse,
+        recursive=recursive,
+        sub_strings=pattern,
+        output_filepath=output_filepath
     ).visit()
+
+    if output_filepath.exists():
+        items = Reader(input_filepath=output_filepath).read()
+        assert set(items) == {str(f) for f in files}
 
     if pattern == "non_existent_pattern":
         assert len(files) == 0
@@ -272,3 +282,16 @@ def test_TempDirectory_default(temp_dir, tmpdir_factory, expected):
         with TempDirectory().context() as tmp:
             assert str(tmp).startswith("/tmp")
             assert ("/another_temp_dir/" in str(tmp)) is expected
+
+
+# ======================================================
+### Tests for FsSpecCache()
+
+@pytest.mark.parametrize("fc", [
+    "filecache",
+    "blockcache",
+    None
+])
+def test_FsSpecCache(fc):
+    fsc = FsSpecCache(cache=fc)
+    assert fsc.cache_str == (f"::{fc}" if fc else "")
