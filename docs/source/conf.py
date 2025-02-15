@@ -108,6 +108,27 @@ autodoc_default_options = {
     "undoc-members": False,
 }
 
+all_members = {
+    ("DateTimePeriod", "<class 'monkey_wrench.date_time.models._base.{name}'>"): False,
+    ("DateTimeRange", "<class 'monkey_wrench.date_time.models._datetime_range.{name}'>"): False,
+    ("DateTimeRangeInBatches", "<class 'monkey_wrench.date_time.models._datetime_range_in_batches.{name}'>"): False,
+    ("EndDateTime", "<class 'monkey_wrench.date_time.models._base.{name}'>"): False,
+    ("StartDateTime", "<class 'monkey_wrench.date_time.models._base.{name}'>"): False,
+    ("Function", "<class 'monkey_wrench.generic.models._function.{name}'>"): False,
+    ("Pattern", "<class 'monkey_wrench.generic.models._pattern.{name}'>"): False
+}
+
+
+def check_if_member_is_duplicate(member_name, obj):
+    """Check if the item is a duplicate in indices."""
+    for k, v in all_members.items():
+        if k[0] == member_name and k[1].format(name=k[0]) == str(obj):
+            if v:
+                return True
+            else:
+                all_members[k] = True
+    return False
+
 
 def is_special_member(member_name: str) -> bool:
     """Checks if the given member is special, i.e. its name has the following format ``__<some-str>__``."""
@@ -119,6 +140,9 @@ def skip(app, typ, member_name, obj, flag, options):
 
     ``True`` means skip the member.
     """
+    if check_if_member_is_duplicate(member_name, obj):
+        return True
+
     for pattern in patterns_to_exclude:
         if pattern in member_name:
             return True
