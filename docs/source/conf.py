@@ -77,10 +77,16 @@ html_theme = "sphinx_rtd_theme"
 
 # Specify which special members have to be kept
 special_members_dict = {
-    "EumetsatAPI": ["init"],
-    "List": ["init"],
-    "Query": ["init"]
+    "EumetsatAPI": [],
+    "EumetsatQuery": [],
+    "List": [],
+    "LogMixin": [],
+    "Query": [],
 }
+
+for v in special_members_dict.values():
+    if not v:
+        v.append("init")
 
 # Specify which patterns have to be excluded
 patterns_to_exclude = {"_abc_impl", "model_config"}
