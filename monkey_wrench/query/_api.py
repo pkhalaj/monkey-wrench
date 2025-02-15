@@ -131,9 +131,8 @@ class EumetsatQuery(Query):
             ...  api = EumetsatQuery()
             ...  for batch, retrieved_count in api.query_in_batches(range_in_batches):
             ...     assert retrieved_count == batch.total_results
-            ...     print(batch)
             ...     for product in batch:
-            ...         print(product)
+            ...         pass
             ... except KeyError as e:  # If the API credentials are not set!
             ...  assert "environment variable" in str(e)
         """
