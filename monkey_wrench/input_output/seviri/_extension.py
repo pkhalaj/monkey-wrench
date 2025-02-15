@@ -109,11 +109,6 @@ def seviri_extension_context() -> Generator[Callable, None, None]:
 
     Yields:
         A SEVIRI-aware CHIMP CLI function which can perform a retrieval.
-
-    Example:
-        >>> with seviri_extension_context() as chimp_cli:
-        ...     print("The `SEVIRI` extension is now available to CHIMP.")
-        The `SEVIRI` extension is now available to CHIMP.
     """
     from chimp import extensions, processing
 
