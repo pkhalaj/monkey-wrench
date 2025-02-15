@@ -146,7 +146,7 @@ class EumetsatQuery(Query):
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def fetch_products(
             self,
-            search_results,  # TODO: When adding `SearchResults` as the type, making the documentation fails!
+            search_results: SearchResults,
             output_directory: Path,
             bounding_box: BoundingBox | None = None,
             output_file_format: str = "netcdf4",
