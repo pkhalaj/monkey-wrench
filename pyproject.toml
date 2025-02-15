@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp",
+    "dask>=2025.2",
     "eumdac",
     "fsspec",
     "loguru",
