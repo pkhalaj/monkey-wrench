@@ -1,6 +1,4 @@
 import os
-import tempfile
-from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Generator, Literal, TypeVar
@@ -47,30 +45,6 @@ class OutputDirectory(Specifications):
 
 class ParentDirectory(Specifications):
     parent_directory: AbsolutePath[DirectoryPath]
-
-
-class TempDirectory(Specifications):
-    """Pydantic for a temporary directory."""
-    temp_directory: AbsolutePath[DirectoryPath]
-
-    @contextmanager
-    def context(self) -> Generator[Path, None, None]:
-        """Create a temporary directory and set the global temporary directory to the given path.
-
-        Note:
-            The reason to set the global temporary directory is to ensure that any other inner functions or context
-            managers that might invoke ``tempfile.TemporaryDirectory()`` also use the given global temporary directory.
-
-        Yields:
-            The full path of the (created) temporary directory.
-        """
-        _default_tempdir = tempfile.gettempdir()
-        try:
-            with tempfile.TemporaryDirectory(dir=self.temp_directory) as _dir:
-                tempfile.tempdir = _dir
-                yield Path(_dir)
-        finally:
-            tempfile.tempdir = _default_tempdir
 
 
 class FsSpecCache(Specifications):
@@ -303,7 +277,7 @@ class FilesIntegrityValidator(MultiProcess):
         if self.nominal_size is None:
             return None
 
-        file_sizes = self.run(os.path.getsize, filepaths)
+        file_sizes = self.run_with_results(os.path.getsize, filepaths)
         return {fp for fp, fs in zip(filepaths, file_sizes, strict=True) if self.is_corrupted(fs)}
 
     @validate_call
@@ -343,7 +317,12 @@ class DateTimeDirectory(ParentDirectory):
             The full path of the (created) directory.
 
         Example:
-            >>> path = DateTimeDirectory(format_string="%Y/%m/%d", parent=Path.home()).create(datetime(2022, 3, 12))
+            >>> path = DateTimeDirectory(
+            ...  format_string="%Y/%m/%d",
+            ...  parent_directory=Path.home()
+            ... ).create(
+            ...  datetime(2022, 3, 12)
+            ... )
             >>> expected_path = Path.home() / Path("2022/03/12")
             >>> expected_path.exists()
             True

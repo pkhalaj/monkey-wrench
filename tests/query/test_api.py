@@ -53,11 +53,11 @@ def test_EumetsatAPI_get_token(get_token_or_skip):
 
 def test_EumetsatQuery_query(get_token_or_skip):
     from monkey_wrench.query import EumetsatQuery
-    dateime_period = DateTimePeriod(
+    datetime_period = DateTimePeriod(
         start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
         end_datetime=datetime(2022, 1, 2, tzinfo=UTC)
     )
-    assert 96 == EumetsatQuery().query(dateime_period).total_results
+    assert 96 == EumetsatQuery().query(datetime_period).total_results
 
 
 # ======================================================

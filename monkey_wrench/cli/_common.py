@@ -1,6 +1,6 @@
 from monkey_wrench.cli._models import CommandLineArguments
 from monkey_wrench.error import pretty_error_logs
-from monkey_wrench.task import read_tasks_from_file
+from monkey_wrench.task.common import read_tasks_from_file
 
 
 @pretty_error_logs

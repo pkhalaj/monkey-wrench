@@ -1,25 +1,30 @@
 """The module providing functionalities for multiprocessing."""
 
-from multiprocessing import Pool
+from multiprocessing import Pool, Process
 from typing import Callable, TypeVar
 
 from pydantic import NonNegativeInt
 
-from monkey_wrench.generic import ListSetTuple, Specifications
+from monkey_wrench.generic import ListSetTuple
+from monkey_wrench.input_output._types import TempDirectory
 
 T = TypeVar("T")
 R = TypeVar("R")
 
 
-class MultiProcess(Specifications):
+class MultiProcess(TempDirectory):
     """Pydantic model for multiprocessing.
 
     Example:
         >>> def power(x):          # Note that the function only accepts a single argument!
-        ...   return x[0] ** x[1]  # We use indices to extract our desired arguments from the single input argument.
+        ...   print(x[0] ** x[1])  # We use indices to extract our desired arguments from the single input argument.
         >>>
-        >>> MultiProcess(number_of_processes=2).run(power, [(1, 3), (2, 5)])
-        [1, 32]
+        >>> MultiProcess(
+        ...  number_of_processes=2
+        ... ).run(
+        ...  power,
+        ...  [(1, 3), (2, 5)]
+        ... )
     """
 
     number_of_processes: NonNegativeInt = 1
@@ -28,7 +33,7 @@ class MultiProcess(Specifications):
     A value of ``1`` disables multiprocessing. This is useful for e.g. testing purposes.
     """
 
-    def run(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> list[R]:
+    def run_with_results(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> list[R]:
         """Call the provided function with different arguments using multiple processes.
 
         Args:
@@ -44,9 +49,23 @@ class MultiProcess(Specifications):
         Returns:
             A list of returned results from the function in the same order as the given arguments (if not a set).
         """
-        if self.number_of_processes == 1:
-            return [function(arg) for arg in arguments]
+        with self.context():
+            if self.number_of_processes == 1:
+                return [function(arg) for arg in arguments]
 
-        with Pool(processes=self.number_of_processes) as pool:
-            results = pool.map(function, arguments)
+            with Pool(processes=self.number_of_processes) as pool:
+                results = pool.map(function, arguments)
         return results
+
+    def run(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> None:
+        """Similar to :func:`run_with_results`, but does not return anything."""
+        arguments = list(arguments)
+        for index in range(0, len(arguments), self.number_of_processes):
+            with self.context():
+                procs = []
+                for arg in arguments[index: index + self.number_of_processes]:
+                    proc = Process(target=function, args=(arg,))
+                    procs.append(proc)
+                    proc.start()
+                for proc in procs:
+                    proc.join()
