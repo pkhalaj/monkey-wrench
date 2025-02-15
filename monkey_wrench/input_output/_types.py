@@ -26,7 +26,7 @@ class TempDirectory(Specifications):
 
     def get_temp_directory(self) -> AbsolutePath[DirectoryPath]:
         """Return the path to the temporary directory."""
-        # The following is only the default temp directory that will be used by the OS any ways.
+        # The following is only the default temp directory that will be used by the OS anyway.
         # Therefore, we suppress Ruff linter rule S108.
         if self.temp_directory is None:
             self.temp_directory = Path(os.environ.get("TMPDIR", "/tmp/"))  # noqa: S108
