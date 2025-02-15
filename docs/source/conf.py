@@ -15,6 +15,10 @@ import re
 
 from sphinx.ext import apidoc
 
+# The following import, although being unused, is needed to fix the max recursions
+# depth issue with sphinx. As a result we supress Ruff linter rule F401.
+import monkey_wrench  # noqa: F401
+
 # -- Project information -----------------------------------------------------
 
 project = "monkey-wrench"
