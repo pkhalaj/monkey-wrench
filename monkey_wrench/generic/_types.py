@@ -21,10 +21,15 @@ class Specifications(BaseModel, extra="forbid", arbitrary_types_allowed=True):
         defined in the model.
 
     Example:
+        >>> from pydantic import ValidationError
+        >>>
         >>> class Dataset(Specifications):
         ...     name: str
         >>>
-        >>> # The following will lead to an exception, since `number` has not been explicitly defined as a model field.
-        >>> dataset = Dataset(name="dataset-name", number=1)
+        >>> try:
+        ...  # The following will lead to an exception, since `number` has not been explicitly defined as a model field.
+        ...  dataset = Dataset(name="dataset-name", number=1)
+        ... except ValidationError as e:
+        ...  assert "Extra inputs are not permitted" in str(e)
     """
     pass

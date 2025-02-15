@@ -317,7 +317,12 @@ class DateTimeDirectory(ParentDirectory):
             The full path of the (created) directory.
 
         Example:
-            >>> path = DateTimeDirectory(format_string="%Y/%m/%d", parent=Path.home()).create(datetime(2022, 3, 12))
+            >>> path = DateTimeDirectory(
+            ...  format_string="%Y/%m/%d",
+            ...  parent_directory=Path.home()
+            ... ).create(
+            ...  datetime(2022, 3, 12)
+            ... )
             >>> expected_path = Path.home() / Path("2022/03/12")
             >>> expected_path.exists()
             True

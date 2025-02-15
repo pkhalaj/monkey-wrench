@@ -17,10 +17,14 @@ class MultiProcess(TempDirectory):
 
     Example:
         >>> def power(x):          # Note that the function only accepts a single argument!
-        ...   return x[0] ** x[1]  # We use indices to extract our desired arguments from the single input argument.
+        ...   print(x[0] ** x[1])  # We use indices to extract our desired arguments from the single input argument.
         >>>
-        >>> MultiProcess(number_of_processes=2).run(power, [(1, 3), (2, 5)])
-        [1, 32]
+        >>> MultiProcess(
+        ...  number_of_processes=2
+        ... ).run(
+        ...  power,
+        ...  [(1, 3), (2, 5)]
+        ... )
     """
 
     number_of_processes: NonNegativeInt = 1

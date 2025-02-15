@@ -119,19 +119,23 @@ class EumetsatQuery(Query):
             in turn iterated over to retrieve individual products.
 
         Example:
+            >>> from datetime import datetime, timedelta, UTC
+            >>>
             >>> range_in_batches = DateTimeRangeInBatches(
-            ...  start_datetime=datetime(2022, 1, 1),
-            ...  end_datetime=datetime(2022, 1, 3),
-            ...  batch_interval=timedelta(days=1
+            ...  start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
+            ...  end_datetime=datetime(2022, 1, 3, tzinfo=UTC),
+            ...  batch_interval=timedelta(days=1)
             ... )
             >>>
-            >>> api = EumetsatQuery()
-            >>>
-            >>> for batch, retrieved_count in api.query_in_batches(range_in_batches):
+            >>> try:
+            ...  api = EumetsatQuery()
+            ...  for batch, retrieved_count in api.query_in_batches(range_in_batches):
             ...     assert retrieved_count == batch.total_results
             ...     print(batch)
             ...     for product in batch:
             ...         print(product)
+            ... except KeyError as e:  # If the API credentials are not set!
+            ...  assert "environment variable" in str(e)
         """
         expected_total_count = self.len(self.query(datetime_range_in_batches.datetime_period))
         yield from super().query_in_batches(
