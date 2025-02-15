@@ -139,7 +139,7 @@ def _make_dummy_files_for_copy(temp_dir, pattern):
     ),
 ])
 def test_compare_files_against_reference(dummy_and_reference_files_for_comparison, expected, keys):
-    collected_files, files_information = dummy_and_reference_files_for_comparison
+    collected_files, files_information, temp_dir = dummy_and_reference_files_for_comparison
 
     kwargs = {k: files_information[k] for k in keys}
 
@@ -148,6 +148,11 @@ def test_compare_files_against_reference(dummy_and_reference_files_for_compariso
     )
     expected_ = tuple(files_information.get(i) for i in expected)
     assert file_size_validator.verify(collected_files) == expected_
+
+    file_size_validator = FilesIntegrityValidator(
+        **(file_size_validator.model_dump() | {"reference": DirectoryVisitor(parent_directory=temp_dir)})
+    )
+    assert [bool(i) for i in file_size_validator.verify(collected_files)] == [False, False]
 
 
 def test_compare_files_against_reference_transform(temp_dir):
@@ -173,7 +178,7 @@ def dummy_and_reference_files_for_comparison(temp_dir):
         number_of_processes=1,
         none=None
     )
-    return collected_files, items
+    return collected_files, items, temp_dir
 
 
 # ======================================================
