@@ -2,7 +2,50 @@ from typing import Any, Callable, Iterable
 
 from pydantic import validate_call
 
-from monkey_wrench.generic._types import Model
+from monkey_wrench.generic._common import apply_to_single_or_collection
+from monkey_wrench.generic._types import ListSetTuple, Model
+from monkey_wrench.generic.models._function import TransformFunction
+
+
+class StringTransformation(Model):
+    """Pydantic model for transformations on strings, e.g. before writing to or after reading from a file."""
+
+    trim: bool = True
+    """A boolean indicating whether to remove trailing/leading whitespaces, tabs, and newlines from string items.
+
+    Defaults to ``True``.
+    """
+
+    transform_function: TransformFunction[Any, str] | None = None
+    """If given, each item will be transformed according to the function. The output of the function must be a string.
+
+    Defaults to ``None``, which means no transformation is performed and items will be treated as they are.
+    """
+
+    @validate_call
+    def _transform_item(self, item: Any) -> str:
+        """Transform a single item."""
+        return self.transform_function(item) if self.transform_function is not None else str(item)
+
+    @validate_call
+    def transform_items(self, items: Any):
+        """Transform a single or multiple items (of any type)."""
+        return apply_to_single_or_collection(self._transform_item, items)
+
+    @validate_call
+    def _trim_item(self, item: Any) -> str:
+        """Trim a single item."""
+        item_str = str(item)
+        return item_str.strip() if self.trim else item_str
+
+    @validate_call
+    def trim_items(self, items: Any) -> ListSetTuple[str] | str:
+        """Trim a single or multiple items.
+
+        Note:
+            The items can be of any type and will be first coerced into string.
+        """
+        return apply_to_single_or_collection(self._trim_item, items)
 
 
 class Pattern(Model):
@@ -23,6 +66,10 @@ class Pattern(Model):
     When it is set to ``False``, only one match suffices. In the case of a single sub-string this parameter does not
     have any effect.
     """
+
+    @property
+    def pattern(self) -> "Pattern":
+        return Pattern(sub_strings=self.sub_strings, case_sensitive=self.case_sensitive, match_all=self.match_all)
 
     @property
     def sub_strings_list(self):

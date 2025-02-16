@@ -44,7 +44,7 @@ class RemoteSeviriFile(FsSpecCache):
                 }
             }
         }
-        fstr = f"zip://*.nat{self.cache_str}::{EumetsatAPI.seviri_collection_url()}/{product_id}"
+        fstr = f"zip://*.nat{self.fsspec_cache_str}::{EumetsatAPI.seviri_collection_url()}/{product_id}"
         logger.info(f"Opening {fstr}")
         return [FSFile(f) for f in open_files(fstr, https=https_header)][0]
 
@@ -81,7 +81,7 @@ class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
         """
         with tempfile.TemporaryDirectory():
             fs_file = self.open(product_id)
-            output_directory = self.create(SeviriIDParser.parse(product_id))
+            output_directory = self.create_datetime_directory(SeviriIDParser.parse(product_id))
             output_filename = output_directory / self.output_filename_generator(str(fs_file))
 
             if self.remove_file_if_exists and os.path.exists(output_filename):

@@ -54,8 +54,8 @@ class Verify(Task):
             self.specifications.datetime_period
         ).parsed_items.tolist()
 
-        self.specifications.transform_function = FilePathParser.parse
-        missing, corrupted = self.specifications.verify(files)
+        self.specifications.filepath_transform_function = FilePathParser.parse
+        missing, corrupted = self.specifications.verify_files(files)
 
         return {
             "number of files found": len(files),
@@ -80,7 +80,7 @@ class Fetch(Task):
             self.specifications.datetime_period
         )
         for product_id in product_ids:
-            self.specifications.create(SeviriIDParser.parse(product_id))
+            self.specifications.create_datetime_directory(SeviriIDParser.parse(product_id))
         self.specifications.run(self.specifications.resample, product_ids.to_python_list())
 
 

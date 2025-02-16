@@ -3,14 +3,14 @@ from pathlib import Path
 import pytest
 from pydantic import DirectoryPath, FilePath, NewPath, ValidationError
 
-from monkey_wrench.generic import Specifications
+from monkey_wrench.generic import Model
 from monkey_wrench.input_output import AbsolutePath
 
 # ======================================================
 ### Tests for AbsolutePath()
 
 def test_AbsolutePath_NewPath(empty_task_filepath, temp_dir):
-    class Test(Specifications):
+    class Test(Model):
         path: AbsolutePath[NewPath]
 
     with pytest.raises(ValidationError, match="exists"):
@@ -23,7 +23,7 @@ def test_AbsolutePath_NewPath(empty_task_filepath, temp_dir):
 
 
 def test_AbsolutePath_DirectoryPath(temp_dir):
-    class Test(Specifications):
+    class Test(Model):
         path: AbsolutePath[DirectoryPath]
 
     Test(path=temp_dir)
@@ -33,7 +33,7 @@ def test_AbsolutePath_DirectoryPath(temp_dir):
 
 
 def test_AbsolutePath_FilePath(empty_task_filepath, temp_dir):
-    class Test(Specifications):
+    class Test(Model):
         path: AbsolutePath[FilePath]
 
     Test(path=empty_task_filepath)

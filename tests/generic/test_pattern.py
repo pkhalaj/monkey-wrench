@@ -1,6 +1,6 @@
 import pytest
 
-from monkey_wrench.generic import Pattern
+from monkey_wrench.generic import Pattern, StringTransformation
 
 # ======================================================
 ### Tests for Pattern()
@@ -48,3 +48,31 @@ def test_pattern_exist(kwargs, res):
     assert pattern.case_sensitive is kwargs.get("case_sensitive", True)
     assert pattern.match_all is kwargs.get("match_all", True)
     assert pattern.match_function is match_function
+
+
+# ======================================================
+### Tests for Trim()
+
+test_string = "test_string"
+
+
+@pytest.mark.parametrize("inp", [
+    test_string,
+    [f" {test_string}", f"{test_string} "],
+    f" {test_string} ",
+    (f" {test_string} \n\t", f"\t\t {test_string} \n\t", f"\t\t {test_string} \n \t \n")
+])
+def test_Trim(inp):
+    assert StringTransformation().trim_items(inp) == expected(inp)
+    assert StringTransformation(trim=False).trim_items(inp) == inp
+    assert StringTransformation(transform_function=lambda x: str(x).strip()).transform_items(inp) == expected(inp)
+
+
+def expected(inp):
+    match inp:
+        case str():
+            return test_string
+        case list():
+            return [test_string] * len(inp)
+        case tuple():
+            return tuple([test_string] * len(inp))

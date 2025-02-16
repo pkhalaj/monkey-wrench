@@ -8,7 +8,7 @@ import pytest
 
 from monkey_wrench import input_output
 from monkey_wrench.date_time import DateTimeRange, FilePathParser, SeviriIDParser
-from monkey_wrench.generic import Pattern
+from monkey_wrench.generic import Pattern, StringTransformation
 from monkey_wrench.input_output import (
     DateTimeDirectory,
     DirectoryVisitor,
@@ -47,7 +47,7 @@ def test_DirectoryVisitor(temp_dir, reverse, pattern, recursive):
         reverse=reverse,
         recursive=recursive,
         sub_strings=pattern,
-        output_filepath=output_filepath
+        visitor_writer=Writer(output_filepath=output_filepath)
     ).visit()
 
     if output_filepath.exists():
@@ -68,7 +68,7 @@ def test_DirectoryVisitor(temp_dir, reverse, pattern, recursive):
 def test_DirectoryVisitor_callback(temp_dir):
     buff = []
     _, dummy_files = _make_dummy_datetime_files(temp_dir)
-    files = DirectoryVisitor(parent_directory=temp_dir, callback=lambda x: buff.append(x)).visit()
+    files = DirectoryVisitor(parent_directory=temp_dir, visitor_callback=lambda x: buff.append(x)).visit()
 
     assert set(files) == set(buff)
     assert set(dummy_files) == set(buff)
@@ -123,7 +123,7 @@ def _make_dummy_files_for_copy(temp_dir, pattern):
 @pytest.mark.parametrize(("expected", "keys"), [
     (
             ("expected_missing", "expected_corrupted"),
-            ("reference", "nominal_size", "tolerance", "number_of_processes")
+            ("reference", "nominal_file_size", "file_size_relative_tolerance", "number_of_processes")
     ),
     (
             (None, None),
@@ -135,7 +135,7 @@ def _make_dummy_files_for_copy(temp_dir, pattern):
     ),
     (
             (None, "expected_corrupted"),
-            ("nominal_size", "tolerance", "number_of_processes")
+            ("nominal_file_size", "file_size_relative_tolerance", "number_of_processes")
     ),
 ])
 def test_compare_files_against_reference(dummy_and_reference_files_for_comparison, expected, keys):
@@ -144,23 +144,24 @@ def test_compare_files_against_reference(dummy_and_reference_files_for_compariso
     kwargs = {k: files_information[k] for k in keys}
 
     file_size_validator = FilesIntegrityValidator(
-        **{k: kwargs.pop(k) for k in {"number_of_processes", "nominal_size", "tolerance", "reference"} if k in kwargs}
+        **{k: kwargs.pop(k) for k in
+           {"number_of_processes", "nominal_file_size", "file_size_relative_tolerance", "reference"} if k in kwargs}
     )
     expected_ = tuple(files_information.get(i) for i in expected)
-    assert file_size_validator.verify(collected_files) == expected_
+    assert file_size_validator.verify_files(collected_files) == expected_
 
     file_size_validator = FilesIntegrityValidator(
         **(file_size_validator.model_dump() | {"reference": DirectoryVisitor(parent_directory=temp_dir)})
     )
-    assert [bool(i) for i in file_size_validator.verify(collected_files)] == [False, False]
+    assert [bool(i) for i in file_size_validator.verify_files(collected_files)] == [False, False]
 
 
 def test_compare_files_against_reference_transform(temp_dir):
     datetime_objs, collected_files = _make_dummy_datetime_files(temp_dir)
 
     missing, _ = FilesIntegrityValidator(
-        reference=datetime_objs, transform_function=FilePathParser.parse
-    ).verify(collected_files)
+        reference=datetime_objs, filepath_transform_function=FilePathParser.parse
+    ).verify_files(collected_files)
 
     assert missing == set()
 
@@ -170,8 +171,8 @@ def dummy_and_reference_files_for_comparison(temp_dir):
     reference_items, expected_missing, expected_corrupted = make_dummy_files(temp_dir, number_of_files_to_remove=3)
     collected_files = DirectoryVisitor(parent_directory=temp_dir).visit()
     items = dict(
-        nominal_size=1000,
-        tolerance=0.05,
+        nominal_file_size=1000,
+        file_size_relative_tolerance=0.05,
         reference=reference_items,
         expected_missing=expected_missing,
         expected_corrupted=expected_corrupted,
@@ -202,24 +203,31 @@ def test_write_to_file_and_read_from_file(temp_dir):
 
     Writer(
         output_filepath=p0,
-        exceptions=[],
+        on_write_raise_exceptions=[],
     ).write(product_ids_orig)
 
     Writer(
         output_filepath=p1,
-        exceptions=[],
-        transform_function=lambda pid: f"MSG3-SEVI-MSG15-0100-NA-{pid}000000Z-NA"
+        on_write_raise_exceptions=[],
+        pre_writing_transformation=StringTransformation(
+            transform_function=lambda pid: f"MSG3-SEVI-MSG15-0100-NA-{pid}000000Z-NA"
+        )
     ).write(product_ids_orig)
 
     Writer(
         output_filepath=p2,
-        exceptions=[],
+        on_write_raise_exceptions=[],
     ).write_in_batches(([x], 1) for x in product_ids)
 
     read_ids_orig = Reader(input_filepath=p0).read()
     read_ids = Reader(input_filepath=p1).read()
     read_ids_batches = Reader(input_filepath=p2).read()
-    read_ids_transformed = Reader(input_filepath=p1, transform_function=SeviriIDParser.parse).read()
+    read_ids_transformed = Reader(
+        input_filepath=p1,
+        post_reading_transformation=StringTransformation(
+            transform_function=SeviriIDParser.parse
+        )
+    ).read()
 
     assert read_ids_orig == product_ids_orig
     assert read_ids == product_ids
@@ -235,19 +243,19 @@ def seviri_product_ids_file(path, idx):
 ### Tests for DateTimeDirectory()
 
 @pytest.mark.parametrize("kwargs", [
-    dict(format_string="%Y/%m/%d", dry_run=False),
-    dict(format_string="%Y/%m/%d", dry_run=True),
-    dict(format_string="%Y-%m/%d", dry_run=False),
-    dict(format_string="%Y-%m/%d", dry_run=True),
+    dict(format_string="%Y/%m/%d"),
+    dict(format_string="%Y-%m/%d"),
 ])
 def test_DateTimeDirectory(temp_dir, kwargs):
     datetime_obj = datetime(2022, 3, 12)
-    dir_path = DateTimeDirectory(
+    datetime_directory = DateTimeDirectory(
         parent_directory=temp_dir,
-        format_string=kwargs["format_string"]
-    ).create(datetime_obj, dry_run=kwargs["dry_run"])
-    if not kwargs["dry_run"]:
-        assert dir_path.exists()
+        datetime_format_string=kwargs["format_string"]
+    )
+    dir_path = datetime_directory.create_datetime_directory(datetime_obj)
+
+    assert datetime_directory.get_datetime_directory(datetime_obj) == dir_path
+    assert dir_path.exists()
     assert temp_dir / Path(datetime_obj.strftime(kwargs["format_string"])) == dir_path
 
 
@@ -256,8 +264,8 @@ def test_DateTimeDirectory_remove(temp_dir):
             mock.patch("monkey_wrench.input_output._models.Path.exists", return_value=True) as exists:
         DateTimeDirectory(
             parent_directory=temp_dir,
-            remove_directory_if_exists=True
-        ).create(datetime(2022, 3, 12))
+            reset_child_datetime_directory=True
+        ).create_datetime_directory(datetime(2022, 3, 12))
         exists.assert_called()
         unlink.assert_called()
 
@@ -268,7 +276,7 @@ def test_DateTimeDirectory_remove(temp_dir):
 def test_TempDirectory():
     default_temp_path = tempfile.gettempdir()
     here_path = os.path.abspath(".")
-    with TempDirectory(temp_directory=".").context() as tmp:
+    with TempDirectory(temporary_directory=".").context() as tmp:
         assert str(tmp).startswith(here_path)
         with tempfile.TemporaryDirectory() as tmpdir:
             assert tmpdir.startswith(here_path)
@@ -298,5 +306,5 @@ def test_TempDirectory_default(temp_dir, tmpdir_factory, expected):
     None
 ])
 def test_FsSpecCache(fc):
-    fsc = FsSpecCache(cache=fc)
-    assert fsc.cache_str == (f"::{fc}" if fc else "")
+    fsc = FsSpecCache(fsspec_cache=fc)
+    assert fsc.fsspec_cache_str == (f"::{fc}" if fc else "")

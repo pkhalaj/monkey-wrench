@@ -40,8 +40,8 @@ def test_verify_files_success(temp_dir):
                 end_datetime=end_datetime.isoformat(),
                 reference=str(product_ids_filename),
                 parent_directory=str(data_directory),
-                nominal_size=nominal_size,
-                tolerance=tolerance,
+                nominal_file_size=nominal_size,
+                file_size_relative_tolerance=tolerance,
             ))
     )
 

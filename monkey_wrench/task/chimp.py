@@ -74,7 +74,7 @@ class Retrieve(Task):
             self.specifications.model_filepath,
             "seviri",
             input_filepaths,
-            self.specifications.temp_directory,
+            self.specifications.temporary_directory,
             device=self.specifications.device,
             sequence_length=self.specifications.sequence_length,
             temporal_overlap=self.specifications.temporal_overlap,
@@ -86,17 +86,17 @@ class Retrieve(Task):
 
         datetime_directory = DateTimeDirectory(
             parent_directory=self.specifications.output_directory
-        ).create(
+        ).create_datetime_directory(
             FilePathParser.parse(input_filepaths[-1])
         )
 
         copy_files_between_directories(
-            self.specifications.temp_directory,
+            self.specifications.temporary_directory,
             datetime_directory,
             Pattern(sub_strings=last_retrieved_snapshot)
         )
 
-        DirectoryVisitor(parent_directory=self.specifications.temp_directory, callback=Path.unlink).visit()
+        DirectoryVisitor(parent_directory=self.specifications.temporary_directory, visitor_callback=Path.unlink).visit()
 
 
 ChimpTask = Retrieve
