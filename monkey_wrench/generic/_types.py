@@ -1,4 +1,4 @@
-from typing import TypeVar, Union
+from typing import Self, TypeVar, Union
 
 from pydantic import BaseModel, ConfigDict
 
@@ -47,3 +47,34 @@ class Model(BaseModel):
     .. _arbitrary types: https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.arbitrary_types_allowed
     """
     model_config = ConfigDict(frozen=True, extra="forbid", arbitrary_types_allowed=True)
+
+    def new_with(self, **kwargs) -> Self:
+        """Create an instance of the same model but with new values for the fields as determined by ``kwargs``.
+
+        Warning:
+            The new instance will be validated against all field and model validators before being returned. This is
+            true even for the fields which have not been updated via ``kwargs``. As a result, if validators for fields
+            have side effects, it is important to ensure that the side effects do not unintentially get repeated!
+            Look at the example below for such an unintentional side effect!
+
+        Example:
+            >>> from typing_extensions import Annotated
+            >>> from pydantic import AfterValidator
+            >>>
+            >>> class Dataset(Model):
+            ...     set_number: int
+            ...     count: int
+            ...     name: Annotated[str, AfterValidator(lambda x: x + ".extension")]
+            >>>
+            >>> dataset = Dataset(name="dataset-original", count=10, set_number=1)
+            >>> dataset
+            Dataset(set_number=1, count=10, name='dataset-original.extension')
+            >>>
+            >>> dataset_new = dataset.new_with(set_number=2)
+            >>> dataset_new
+            Dataset(set_number=2, count=10, name='dataset-original.extension.extension')
+            >>> # The reason that we have the repetition of `.extension` is that the validator runs again for `name`.
+            >>> # Note that `name` has not been even updated via the `with_new()` method!
+            >>> # The value of `count` has not been affected because its validator `int` does not have a side effect!
+        """
+        return self.__class__(**(self.model_dump() | kwargs))
