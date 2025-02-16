@@ -6,7 +6,7 @@ from typing import Any, Callable, Generator, Literal, TypeVar
 from loguru import logger
 from pydantic import DirectoryPath, FilePath, NewPath, NonNegativeFloat, NonNegativeInt, field_validator, validate_call
 
-from monkey_wrench.generic import Function, ListSetTuple, Pattern, Specifications
+from monkey_wrench.generic import Function, ListSetTuple, Model, Pattern
 from monkey_wrench.input_output._types import AbsolutePath
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import Batches
@@ -15,39 +15,39 @@ T = TypeVar("T")
 R = TypeVar("R")
 
 
-class ExistingInputFile(Specifications):
+class ExistingInputFile(Model):
     input_filepath: AbsolutePath[FilePath]
 
 
-class InputFile(Specifications):
+class InputFile(Model):
     input_filepath: AbsolutePath[FilePath] | AbsolutePath[NewPath] | None = None
 
 
-class NewOutputFile(Specifications):
+class NewOutputFile(Model):
     output_filepath: AbsolutePath[NewPath]
 
 
-class OutputFile(Specifications):
+class OutputFile(Model):
     output_filepath: AbsolutePath[NewPath] | AbsolutePath[FilePath] | None = None
 
 
-class ModelFile(Specifications):
+class ModelFile(Model):
     model_filepath: AbsolutePath[FilePath]
 
 
-class InputDirectory(Specifications):
+class InputDirectory(Model):
     input_directory: AbsolutePath[DirectoryPath]
 
 
-class OutputDirectory(Specifications):
+class OutputDirectory(Model):
     output_directory: AbsolutePath[DirectoryPath]
 
 
-class ParentDirectory(Specifications):
+class ParentDirectory(Model):
     parent_directory: AbsolutePath[DirectoryPath]
 
 
-class FsSpecCache(Specifications):
+class FsSpecCache(Model):
     cache: Literal["filecache", "blockcache"] | None = None
     """How to buffer, e.g. ``"filecache"``, ``"blockcache"``, or ``None``. Defaults to ``None``.
 
@@ -61,7 +61,7 @@ class FsSpecCache(Specifications):
         return f"::{self.cache}" if self.cache else ""
 
 
-class DatasetSaveOptions(Specifications):
+class DatasetSaveOptions(Model):
     dataset_save_options: dict[str, bool | str | int] = dict(writer="cf", include_lonlats=False)
     """Storage options using which the dataset is to be saved.
 
@@ -70,7 +70,7 @@ class DatasetSaveOptions(Specifications):
     """
 
 
-class FileIO(Specifications):
+class FileIO(Model):
     transform_function: Function[T, R] | Callable[[T], Any] | None = None
     """If given, each item in the list will be first transformed according to the function, before writing or reading.
 

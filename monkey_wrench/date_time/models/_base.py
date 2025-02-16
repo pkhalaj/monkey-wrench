@@ -5,7 +5,7 @@ from pydantic import AfterValidator, AwareDatetime, Field
 from typing_extensions import Annotated
 
 from monkey_wrench.date_time._common import assert_datetime_has_past
-from monkey_wrench.generic import Specifications
+from monkey_wrench.generic import Model
 
 AwarePastDateTime = Annotated[AwareDatetime, AfterValidator(lambda dt: assert_datetime_has_past(dt) and dt)]
 """Type annotation and validator for a time-zone aware ``datetime`` object, which has past."""
@@ -21,11 +21,11 @@ TimeInterval = timedelta | TimeDeltaDict
 """Type alias for a time interval, given both as a ``timedelta`` or as a :class:`TimeDeltaDict`."""
 
 
-class StartDateTime(Specifications):
+class StartDateTime(Model):
     start_datetime: AwarePastDateTime
 
 
-class EndDateTime(Specifications):
+class EndDateTime(Model):
     end_datetime: AwarePastDateTime
 
 

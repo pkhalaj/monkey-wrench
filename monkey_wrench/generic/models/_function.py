@@ -5,7 +5,7 @@ from typing import Any, Callable, Generic, TypeVar
 
 from pydantic import PrivateAttr, field_validator
 
-from monkey_wrench.generic._types import Specifications
+from monkey_wrench.generic._types import Model
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -60,7 +60,7 @@ def _import_monkey_wrench_function(function_path: str) -> Callable:
     return obj
 
 
-class Function(Specifications, Generic[T, R]):
+class Function(Model, Generic[T, R]):
     """Pydantic model for a dynamically imported function from **Monkey Wrench**.
 
     Note:

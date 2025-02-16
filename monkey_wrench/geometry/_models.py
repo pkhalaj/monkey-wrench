@@ -4,11 +4,11 @@ from typing import Any
 from pydantic import BaseModel, FilePath, field_validator, validate_call
 from pyresample import AreaDefinition, area_config, load_area
 
-from monkey_wrench.generic import Specifications
+from monkey_wrench.generic import Model
 from monkey_wrench.input_output._types import AbsolutePath
 
 
-class Area(Specifications):
+class Area(Model):
     area: AbsolutePath[FilePath] | dict[str, Any] | AreaDefinition
     """A filepath, a dictionary, or an object of type AreaDefinition which holds the area information for resampling."""
 
