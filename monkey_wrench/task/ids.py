@@ -20,7 +20,7 @@ class FetchSpecifications(DateTimeRangeInBatches, Writer):
     pass
 
 
-class Fetch(Task):
+class FetchIds(Task):
     """Pydantic base model for the fetch task."""
     action: Literal[Action.fetch]
     specifications: FetchSpecifications
@@ -36,4 +36,4 @@ class Fetch(Task):
         }
 
 
-IdsTask = Fetch
+IdsTask = FetchIds

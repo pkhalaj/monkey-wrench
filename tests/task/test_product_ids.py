@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.input_output import Reader
 from monkey_wrench.task.common import read_tasks_from_file
-from monkey_wrench.task.ids import Fetch
+from monkey_wrench.task.ids import FetchIds
 from tests.task.const import (
     batch_interval,
     end_datetime,
@@ -24,7 +24,7 @@ from tests.utils import make_yaml_file
 @pytest.mark.parametrize("task_factory", [
     lambda path: get_validated_task(path),
     lambda path: get_validated_task(path, start_datetime=start_datetime.isoformat()),
-    lambda _: Fetch(**specification_with(batch_interval=timedelta(**batch_interval)))
+    lambda _: FetchIds(**specification_with(batch_interval=timedelta(**batch_interval)))
 ])
 def test_model_product_ids(temp_dir, task_factory):
     validated_task = task_factory(temp_dir)

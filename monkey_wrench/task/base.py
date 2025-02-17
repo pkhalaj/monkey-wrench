@@ -31,7 +31,7 @@ class TaskBase(BaseModel, extra="forbid", arbitrary_types_allowed=True):
     """Pydantic base model for a task."""
     context: Context
     action: Action
-    specifications: type[Specifications]
+    specifications: Specifications
 
     @staticmethod
     def log(func: Callable) -> Callable:

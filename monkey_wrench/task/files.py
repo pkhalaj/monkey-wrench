@@ -40,7 +40,7 @@ class FetchSpecifications(
     pass
 
 
-class Verify(Task):
+class VerifyFiles(Task):
     """Pydantic model for the verification task."""
     action: Literal[Action.verify]
     specifications: VerifySpecifications
@@ -72,7 +72,7 @@ class Verify(Task):
         }
 
 
-class Fetch(Task):
+class FetchFiles(Task):
     """Pydantic model for the fetch task."""
     action: Literal[Action.fetch]
     specifications: FetchSpecifications
@@ -95,4 +95,4 @@ class Fetch(Task):
         )
 
 
-FilesTask = Fetch | Verify
+FilesTask = FetchFiles | VerifyFiles

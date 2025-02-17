@@ -9,7 +9,7 @@ from monkey_wrench.input_output import ExistingFilePath
 from monkey_wrench.task.files import FilesTask
 from monkey_wrench.task.ids import IdsTask
 
-Task = FilesTask | IdsTask
+Task = IdsTask | FilesTask
 
 
 class _Task(BaseModel):
