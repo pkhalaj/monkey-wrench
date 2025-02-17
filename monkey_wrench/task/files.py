@@ -1,8 +1,8 @@
 """Module to define Pydantic models for tasks related to product files."""
 
-from typing import Literal
+from typing import Literal, TypeVar
 
-from pydantic import NonNegativeInt
+from pydantic import NonNegativeInt, model_validator
 
 from monkey_wrench.date_time import DateTimePeriod, FilePathParser, SeviriIDParser
 from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader
@@ -10,6 +10,8 @@ from monkey_wrench.input_output.seviri import Resampler
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import List
 from monkey_wrench.task.base import Action, Context, TaskBase
+
+T = TypeVar("T")
 
 
 class Task(TaskBase):
@@ -19,7 +21,13 @@ class Task(TaskBase):
 
 class VerifySpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrityValidator, Reader):
     """Pydantic model for the specifications of a verification task."""
-    pass
+
+    @model_validator(mode="before")
+    def validate_filepath_transform_function(self):
+        """Ensure that the filepath transform function is set to a default value if it is not given explicitly."""
+        if not self.get("filepath_transform_function", None):
+            self["filepath_transform_function"] = FilePathParser.parse
+        return self
 
 
 class FetchSpecifications(
@@ -54,7 +62,6 @@ class Verify(Task):
             self.specifications.datetime_period
         ).parsed_items.tolist()
 
-        self.specifications.filepath_transform_function = FilePathParser.parse
         missing, corrupted = self.specifications.verify_files(files)
 
         return {
