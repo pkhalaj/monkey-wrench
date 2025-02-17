@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from monkey_wrench.input_output import ExistingInputFile, Writer
+from monkey_wrench.input_output import DirectoryVisitor, Writer
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
 from monkey_wrench.task.common import read_tasks_from_file
 from tests.geometry.test_models import get_area_definition
@@ -40,12 +40,13 @@ def test_verify_files_success(temp_dir):
                 end_datetime=end_datetime.isoformat(),
                 reference=str(product_ids_filename),
                 parent_directory=str(data_directory),
+                input_filepath=str(product_ids_filename),
                 nominal_file_size=nominal_size,
                 file_size_relative_tolerance=tolerance,
             ))
     )
 
-    validated_task = list(read_tasks_from_file(ExistingInputFile(input_filepath=task_filename)))[0]
+    validated_task = list(read_tasks_from_file(task_filename))[0]
     outs = validated_task.perform()
 
     keys_map = {
@@ -64,6 +65,8 @@ def test_verify_files_success(temp_dir):
 def test_fetch_files(get_token_or_skip, temp_dir):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
+    parent_directory = temp_dir / Path("output")
+    os.makedirs(parent_directory, exist_ok=True)
     Writer(output_filepath=product_ids_filename).write(ids_in_query[:2])
 
     make_yaml_file(
@@ -73,16 +76,19 @@ def test_fetch_files(get_token_or_skip, temp_dir):
             action="fetch",
             specifications=dict(
                 area=get_area_definition(),
-                cache="filecache",
+                fsspec_cache="filecache",
                 start_datetime=start_datetime.isoformat(),
                 end_datetime=end_datetime.isoformat(),
                 input_filepath=str(product_ids_filename),
-                parent_directory=str(temp_dir),
+                parent_directory=str(parent_directory),
                 number_of_processes=2,
-                temp_directory=str(temp_dir),
+                temp_directory_path=str(temp_dir),
             )
         )
     )
 
-    for task in read_tasks_from_file(ExistingInputFile(input_filepath=task_filename)):
+    for task in read_tasks_from_file(task_filename):
         task.perform()
+
+    paths = DirectoryVisitor(parent_directory=parent_directory).visit()
+    assert {str(p.stem) for p in paths} == {"seviri_20230101_01_57", "seviri_20230101_02_12"}

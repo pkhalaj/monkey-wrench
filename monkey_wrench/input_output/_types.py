@@ -34,7 +34,7 @@ WriteMode = Literal["w", "a"]
 class TempDirectory(Model):
     """Pydantic model for a temporary directory, including a context manager."""
 
-    temporary_directory: ExistingDirectoryPath
+    temp_directory_path: ExistingDirectoryPath
     """The path to an existing directory, which will be used as the top-level temporary directory.
 
     Note:
@@ -52,12 +52,12 @@ class TempDirectory(Model):
         """Return the path to the top-level temporary directory according to the priority rules."""
         # The following is the default temporary directory that will be used by the OS anyway.
         # Therefore, we suppress Ruff linter rule S108.
-        if not self.get("temporary_directory", None):
-            self["temporary_directory"] = Path(os.environ.get("TMPDIR", "/tmp/"))  # noqa: S108
+        if not self.get("temp_directory_path", None):
+            self["temp_directory_path"] = Path(os.environ.get("TMPDIR", "/tmp/"))  # noqa: S108
         return self
 
     @contextmanager
-    def context(self) -> Generator[Path, None, None]:
+    def context_manager(self) -> Generator[Path, None, None]:
         """Context manager to create a temporary directory and set the global temporary directory to the specified path.
 
         Note:
@@ -73,7 +73,7 @@ class TempDirectory(Model):
         """
         _default_tempdir = tempfile.gettempdir()
         try:
-            with tempfile.TemporaryDirectory(dir=self.temporary_directory) as _dir:
+            with tempfile.TemporaryDirectory(dir=self.temp_directory_path) as _dir:
                 tempfile.tempdir = _dir
                 yield Path(_dir)
         finally:

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Generator, Literal, TypeVar
 
 from loguru import logger
-from pydantic import FilePath, NonNegativeFloat, NonNegativeInt, field_validator, validate_call
+from pydantic import FilePath, NonNegativeFloat, NonNegativeInt, validate_call
 
 from monkey_wrench.generic import ListSetTuple, Model, Pattern, StringTransformation, TransformFunction
 from monkey_wrench.input_output._types import (
@@ -299,13 +299,26 @@ class FilesIntegrityValidator(MultiProcess):
     Defaults to ``None`` which means the search for missing files will not be performed.
     """
 
-    @field_validator("reference", mode="after")
-    def validate_reference_items_from_file(cls, reference: Any) -> Any:
-        if isinstance(reference, Path):
-            return Reader(input_filepath=reference).read()
-        if isinstance(reference, DirectoryVisitor):
-            return reference.visit()
-        return reference
+    @staticmethod
+    def get_reference_items(
+            reference: ListSetTuple[T] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
+    ) -> Any:
+        match reference:
+            case None:
+                return None
+            case Path():
+                return Reader(input_filepath=reference).read()
+            case DirectoryVisitor():
+                return reference.visit()
+            case _:
+                return reference
+
+    def __get_reference_items(
+            self, reference: ListSetTuple[T] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
+    ) -> Any:
+        if reference is None:
+            reference = self.reference
+        return FilesIntegrityValidator.get_reference_items(reference)
 
     def file_is_corrupted(self, file_size: NonNegativeInt) -> bool:
         return abs(1 - file_size / self.nominal_file_size) > self.file_size_relative_tolerance
@@ -324,12 +337,21 @@ class FilesIntegrityValidator(MultiProcess):
             filepaths)
 
     @validate_call
-    def find_missing_files(self, filepaths: ListSetTuple[Path]) -> set[Path] | None:
-        return (set(self.reference) - self.transform_files(filepaths)) if self.reference else None
+    def find_missing_files(
+            self,
+            filepaths: ListSetTuple[Path],
+            reference: ListSetTuple[T] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
+    ) -> set[Path] | None:
+        reference = self.__get_reference_items(reference)
+        return (set(reference) - self.transform_files(filepaths)) if reference else None
 
     @validate_call
-    def verify_files(self, filepaths: ListSetTuple[Path]) -> tuple[set[T] | None, set[Path] | None]:
-        return self.find_missing_files(filepaths), self.find_corrupted_files(filepaths)
+    def verify_files(
+            self,
+            filepaths: ListSetTuple[Path],
+            reference: ListSetTuple[T] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
+    ) -> tuple[set[T] | None, set[Path] | None]:
+        return self.find_missing_files(filepaths, reference), self.find_corrupted_files(filepaths)
 
 
 class DateTimeDirectory(ParentDirectory):

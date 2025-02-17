@@ -1,11 +1,10 @@
 """Module to define Pydantic models for tasks related to product files."""
-
 from typing import Literal, TypeVar
 
 from pydantic import NonNegativeInt, model_validator
 
 from monkey_wrench.date_time import DateTimePeriod, FilePathParser, SeviriIDParser
-from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader
+from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader, TempDirectory
 from monkey_wrench.input_output.seviri import Resampler
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import List
@@ -34,7 +33,8 @@ class FetchSpecifications(
     DateTimePeriod,
     MultiProcess,
     Resampler,
-    Reader
+    Reader,
+    TempDirectory
 ):
     """Pydantic model for the specifications of a fetch task."""
     pass
@@ -55,18 +55,18 @@ class Verify(Task):
             self.specifications.datetime_period
         ).to_python_list()
 
-        self.specifications.reference = List(
-            self.specifications.reference,
+        reference = List(
+            self.specifications.get_reference_items(self.specifications.reference),
             SeviriIDParser
         ).query(
             self.specifications.datetime_period
         ).parsed_items.tolist()
 
-        missing, corrupted = self.specifications.verify_files(files)
+        missing, corrupted = self.specifications.verify_files(files, reference)
 
         return {
             "number of files found": len(files),
-            "number of reference items": len(self.specifications.reference),
+            "number of reference items": len(reference),
             "number of missing files": len(missing),
             "number of corrupted files": len(corrupted),
         }
@@ -88,7 +88,11 @@ class Fetch(Task):
         )
         for product_id in product_ids:
             self.specifications.create_datetime_directory(SeviriIDParser.parse(product_id))
-        self.specifications.run(self.specifications.resample, product_ids.to_python_list())
+        self.specifications.run(
+            self.specifications.resample,
+            product_ids.to_python_list(),
+            self.specifications.temp_directory_path
+        )
 
 
 FilesTask = Fetch | Verify
