@@ -21,11 +21,11 @@ PathType = TypeVar("PathType", DirectoryPath, NewPath, FilePath)
 AbsolutePath = Annotated[PathType, AfterValidator(lambda path: path.resolve().absolute())]
 """Type annotation and Pydantic validator to represent (convert to) an absolute and normalized path."""
 
-ExistingFile = Annotated[AbsolutePath[FilePath], AfterValidator(ensure_path_does_not_end_with_slash)]
-NewFile = Annotated[AbsolutePath[NewPath], AfterValidator(ensure_path_does_not_end_with_slash)]
+ExistingFilePath = Annotated[AbsolutePath[FilePath], AfterValidator(ensure_path_does_not_end_with_slash)]
+NewFilePath = Annotated[AbsolutePath[NewPath], AfterValidator(ensure_path_does_not_end_with_slash)]
 
-ExistingDirectory = AbsolutePath[DirectoryPath]
-NewDirectory = AbsolutePath[NewPath]
+ExistingDirectoryPath = AbsolutePath[DirectoryPath]
+NewDirectoryPath = AbsolutePath[NewPath]
 
 WriteMode = Literal["w", "a"]
 """Either ``"a"`` for appending to, or ``"w"`` for overwriting an existing file."""
@@ -34,7 +34,7 @@ WriteMode = Literal["w", "a"]
 class TempDirectory(Model):
     """Pydantic model for a temporary directory, including a context manager."""
 
-    temporary_directory: ExistingDirectory | None = None
+    temporary_directory: ExistingDirectoryPath
     """The path to an existing directory, which will be used as the top-level temporary directory.
 
     Note:

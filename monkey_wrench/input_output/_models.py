@@ -7,7 +7,13 @@ from loguru import logger
 from pydantic import FilePath, NonNegativeFloat, NonNegativeInt, field_validator, validate_call
 
 from monkey_wrench.generic import ListSetTuple, Model, Pattern, StringTransformation, TransformFunction
-from monkey_wrench.input_output._types import AbsolutePath, ExistingDirectory, ExistingFile, NewFile, WriteMode
+from monkey_wrench.input_output._types import (
+    AbsolutePath,
+    ExistingDirectoryPath,
+    ExistingFilePath,
+    NewFilePath,
+    WriteMode,
+)
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import Batches
 
@@ -16,35 +22,35 @@ R = TypeVar("R")
 
 
 class ExistingInputFile(Model):
-    input_filepath: ExistingFile
+    input_filepath: ExistingFilePath
 
 
 class InputFile(Model):
-    input_filepath: ExistingFile | NewFile | None = None
+    input_filepath: ExistingFilePath | NewFilePath | None = None
 
 
 class NewOutputFile(Model):
-    output_filepath: NewFile
+    output_filepath: NewFilePath
 
 
 class OutputFile(Model):
-    output_filepath: ExistingFile | NewFile | None = None
+    output_filepath: ExistingFilePath | NewFilePath | None = None
 
 
 class ModelFile(Model):
-    model_filepath: ExistingFile
+    model_filepath: ExistingFilePath
 
 
 class InputDirectory(Model):
-    input_directory: ExistingDirectory
+    input_directory: ExistingDirectoryPath
 
 
 class OutputDirectory(Model):
-    output_directory: ExistingDirectory
+    output_directory: ExistingDirectoryPath
 
 
 class ParentDirectory(Model):
-    parent_directory: ExistingDirectory
+    parent_directory: ExistingDirectoryPath
     """The top level directory where the child directories reside."""
 
 

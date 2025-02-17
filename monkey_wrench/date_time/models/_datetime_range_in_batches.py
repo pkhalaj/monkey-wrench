@@ -1,5 +1,6 @@
 """The module providing the ``DateTimeRangeInBatches`` model."""
 
+from copy import deepcopy
 from typing import Generator
 
 from monkey_wrench.date_time.models._base import DateTimePeriod, TimeInterval
@@ -117,9 +118,9 @@ class DateTimeRangeInBatches(DateTimePeriod):
         Yields:
             A generator of batches, where each batch is a 2-tuple of the start and end datetime instances.
         """
-        start = self.start_datetime
-        end = self.end_datetime
-        _batch_interval = self.batch_interval
+        start = deepcopy(self.start_datetime)
+        end = deepcopy(self.end_datetime)
+        _batch_interval = deepcopy(self.batch_interval)
 
         if start == end:
             yield DateTimePeriod(start_datetime=start, end_datetime=end)

@@ -1,5 +1,6 @@
 """The module providing the ``DateTimeRange`` model."""
 
+from copy import deepcopy
 from datetime import datetime
 from typing import Generator
 
@@ -103,9 +104,9 @@ class DateTimeRange(DateTimePeriod):
         Yields:
             A generator of datetime instances.
         """
-        start = self.start_datetime
-        end = self.end_datetime
-        step = self.interval
+        start = deepcopy(self.start_datetime)
+        end = deepcopy(self.end_datetime)
+        step = deepcopy(self.interval)
 
         if start == end:
             return None
