@@ -5,10 +5,10 @@ from typing import Any, Callable, Generic, TypeVar
 
 from pydantic import PrivateAttr, field_validator
 
-from monkey_wrench.generic._types import Specifications
+from monkey_wrench.generic._types import Model
 
-T = TypeVar("T")
-R = TypeVar("R")
+InputType = TypeVar("InputType")
+ReturnType = TypeVar("ReturnType")
 
 
 @lru_cache(maxsize=1024)
@@ -60,7 +60,7 @@ def _import_monkey_wrench_function(function_path: str) -> Callable:
     return obj
 
 
-class Function(Specifications, Generic[T, R]):
+class Function(Model, Generic[InputType, ReturnType]):
     """Pydantic model for a dynamically imported function from **Monkey Wrench**.
 
     Note:
@@ -73,12 +73,16 @@ class Function(Specifications, Generic[T, R]):
     kwargs: dict[str, Any] = dict()
     """Keyword arguments passed to the function. Defaults to an empty dictionary."""
 
-    __imported_function: Callable[[T, ...], R] = PrivateAttr()
+    __imported_function: Callable[[InputType, ...], ReturnType] = PrivateAttr()
 
     @field_validator("path", mode="after")
     def validate_function_path(cls, path: str) -> None:
         cls.__imported_function = _import_monkey_wrench_function(path)
 
     @classmethod
-    def __call__(cls, arg: T, **kwargs: dict[str, Any]) -> R:
+    def __call__(cls, arg: InputType, **kwargs: dict[str, Any]) -> ReturnType:
         return cls.__imported_function(arg, **kwargs)
+
+
+TransformFunction = Function[InputType, ReturnType] | Callable[[InputType], ReturnType]
+"""Type annotation for a function that transforms items, e.g. before writing to or after reading from a file."""

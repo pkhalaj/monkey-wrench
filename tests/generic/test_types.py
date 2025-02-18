@@ -1,13 +1,13 @@
 import pytest
 from pydantic import ValidationError
 
-from monkey_wrench.generic import Specifications
+from monkey_wrench.generic import Model
 
 # ======================================================
 ### Tests for Model()
 
 def test_Model():
-    class ModelNew(Specifications):
+    class ModelNew(Model):
         field: str
 
     ModelNew(field="test")

@@ -1,30 +1,39 @@
 """The module providing functionalities for multiprocessing."""
 
+import tempfile
 from multiprocessing import Pool, Process
+from pathlib import Path
 from typing import Callable, TypeVar
 
 from pydantic import NonNegativeInt
 
-from monkey_wrench.generic import ListSetTuple
+from monkey_wrench.generic import ListSetTuple, Model
 from monkey_wrench.input_output._types import TempDirectory
 
 T = TypeVar("T")
 R = TypeVar("R")
 
 
-class MultiProcess(TempDirectory):
+def _wrap_function_no_return(function: Callable[[T], R], argument: T, temporary_directory_path: Path) -> None:
+    """Wrap the function by setting the global temporary directory.
+
+    The function is to be run in a separate **spawned** (and not forked) process!
+    """
+    tempfile.tempdir = str(temporary_directory_path)
+    function(argument)
+
+
+class MultiProcess(Model):
     """Pydantic model for multiprocessing.
 
     Example:
-        >>> def power(x):          # Note that the function only accepts a single argument!
-        ...   print(x[0] ** x[1])  # We use indices to extract our desired arguments from the single input argument.
-        >>>
-        >>> MultiProcess(
-        ...  number_of_processes=2
-        ... ).run(
-        ...  power,
-        ...  [(1, 3), (2, 5)]
-        ... )
+
+        .. code-block:: python
+
+            def power(x):            # Note that the function only accepts a single argument!
+                print(x[0] ** x[1])  # We use indices to extract our desired arguments from the single input argument.
+
+            MultiProcess(number_of_processes=2).run(power, [(1, 3), (2, 5)])
     """
 
     number_of_processes: NonNegativeInt = 1
@@ -49,22 +58,27 @@ class MultiProcess(TempDirectory):
         Returns:
             A list of returned results from the function in the same order as the given arguments (if not a set).
         """
-        with self.context():
-            if self.number_of_processes == 1:
-                return [function(arg) for arg in arguments]
+        if self.number_of_processes == 1:
+            return [function(arg) for arg in arguments]
 
-            with Pool(processes=self.number_of_processes) as pool:
-                results = pool.map(function, arguments)
+        with Pool(processes=self.number_of_processes) as pool:
+            results = pool.map(function, arguments)
         return results
 
-    def run(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> None:
-        """Similar to :func:`run_with_results`, but does not return anything."""
+    def run(
+            self, function: Callable[[T], R], arguments: ListSetTuple[T], temp_directory_path: Path | None = None
+    ) -> None:
+        """Similar to :func:`run_with_results`, but does not return anything.
+
+        If the function returns anything, it will be thrown away!
+        """
         arguments = list(arguments)
+        temp_directory = TempDirectory(temp_directory_path=temp_directory_path)
         for index in range(0, len(arguments), self.number_of_processes):
-            with self.context():
+            with temp_directory.context_manager() as tmp_dir:
                 procs = []
                 for arg in arguments[index: index + self.number_of_processes]:
-                    proc = Process(target=function, args=(arg,))
+                    proc = Process(target=_wrap_function_no_return, args=(function, arg, tmp_dir))
                     procs.append(proc)
                     proc.start()
                 for proc in procs:

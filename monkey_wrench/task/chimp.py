@@ -20,12 +20,12 @@ from monkey_wrench.query import List
 from monkey_wrench.task.base import Action, Context, TaskBase
 
 
-class Task(TaskBase):
+class ChimpTaskBase(TaskBase):
     """Pydantic base model for all CHIMP related tasks."""
     context: Literal[Context.chimp]
 
 
-class RetrieveSpecifications(DateTimePeriod, DirectoryVisitor, ModelFile, OutputDirectory, TempDirectory):
+class ChimpRetrieveSpecifications(DateTimePeriod, DirectoryVisitor, ModelFile, OutputDirectory, TempDirectory):
     """Pydantic model for the specifications of CHIMP retrievals."""
     device: Literal["cpu", "cuda"] = "cpu"
     sequence_length: NonNegativeInt = 16
@@ -34,10 +34,10 @@ class RetrieveSpecifications(DateTimePeriod, DirectoryVisitor, ModelFile, Output
     verbose: PositiveInt = 1
 
 
-class Retrieve(Task):
+class ChimpRetrieve(ChimpTaskBase):
     """Pydantic model for the CHIMP retrieval task."""
     action: Literal[Action.retrieve]
-    specifications: RetrieveSpecifications
+    specifications: ChimpRetrieveSpecifications
 
     @TaskBase.log
     def perform(self) -> None:
@@ -74,7 +74,7 @@ class Retrieve(Task):
             self.specifications.model_filepath,
             "seviri",
             input_filepaths,
-            self.specifications.temp_directory,
+            self.specifications.temp_directory_path,
             device=self.specifications.device,
             sequence_length=self.specifications.sequence_length,
             temporal_overlap=self.specifications.temporal_overlap,
@@ -86,17 +86,18 @@ class Retrieve(Task):
 
         datetime_directory = DateTimeDirectory(
             parent_directory=self.specifications.output_directory
-        ).create(
+        ).create_datetime_directory(
             FilePathParser.parse(input_filepaths[-1])
         )
 
         copy_files_between_directories(
-            self.specifications.temp_directory,
+            self.specifications.temp_directory_path,
             datetime_directory,
             Pattern(sub_strings=last_retrieved_snapshot)
         )
 
-        DirectoryVisitor(parent_directory=self.specifications.temp_directory, callback=Path.unlink).visit()
+        DirectoryVisitor(parent_directory=self.specifications.temp_directory_path,
+                         visitor_callback=Path.unlink).visit()
 
 
-ChimpTask = Retrieve
+ChimpTask = ChimpRetrieve

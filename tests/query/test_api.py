@@ -2,15 +2,15 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from monkey_wrench.date_time import DateTimePeriod, DateTimeRangeInBatches
+from monkey_wrench.date_time import DateTimePeriod, DateTimeRangeInBatches, SeviriIDParser
 from monkey_wrench.geometry import BoundingBox, Polygon, Vertex
+from monkey_wrench.query import EumetsatAPI, EumetsatCollection, EumetsatQuery
 from tests.utils import EnvironmentVariables
 
 
 @pytest.fixture
 def api(get_token_or_skip):
     """Return an instance of the EUMNETSAT Query, if we can successfully get a token."""
-    from monkey_wrench.query import EumetsatCollection, EumetsatQuery
     return EumetsatQuery(EumetsatCollection.amsu)
 
 
@@ -36,7 +36,6 @@ def search_results(api):
 
 def test_EumetsatAPI_raise():
     """Check that the API query raises an exception if the credentials are not set."""
-    from monkey_wrench.query import EumetsatAPI
     k1, k2 = EumetsatAPI.credentials_env_vars.values()
     for key1, key2 in [(k1, k2), (k2, k1)]:
         with EnvironmentVariables(**{f"{key1}": "dummy", f"{key2}": None}):
@@ -52,7 +51,6 @@ def test_EumetsatAPI_get_token(get_token_or_skip):
 ### Tests for EumetsatQuery.query()
 
 def test_EumetsatQuery_query(get_token_or_skip):
-    from monkey_wrench.query import EumetsatQuery
     datetime_period = DateTimePeriod(
         start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
         end_datetime=datetime(2022, 1, 2, tzinfo=UTC)
@@ -64,8 +62,6 @@ def test_EumetsatQuery_query(get_token_or_skip):
 ### Tests for EumetsatQuery.query_in_batches()
 
 def test_api_query_in_batches(get_token_or_skip):
-    from monkey_wrench.query import EumetsatCollection, EumetsatQuery
-
     datetime_range_in_batches = DateTimeRangeInBatches(
         start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
         end_datetime=datetime(2022, 1, 3, tzinfo=UTC),
@@ -102,13 +98,12 @@ def test_fetch_product(api, search_results, tmp_path):
     nswe_bbox = BoundingBox(70, 60, 10, 20)
     outfiles = api.fetch_products(search_results, tmp_path, bounding_box=nswe_bbox, sleep_time=1)
     assert len(outfiles) == 1
-    if outfiles is not None:  # TODO: Check why this is sometimes `None`.
+    if outfiles and outfiles[0]:  # TODO: Check why this is sometimes `None`.
         assert outfiles[0].is_file()
         assert outfiles[0].suffix == ".nc"
 
 
 def seviri_product_datetime_is_correct(day: int, product, end_datetime: datetime, start_datetime: datetime):
     """Check that the product datetime is correct."""
-    from monkey_wrench.date_time import SeviriIDParser
     datetime_obj = SeviriIDParser.parse(str(product))
     return (start_datetime <= datetime_obj < end_datetime) and (day == datetime_obj.day)

@@ -13,7 +13,7 @@ product_id = "MSG3-SEVI-MSG15-0100-NA-20230413164241.669000000Z-NA"
 
 @pytest.fixture
 def fs_file(get_token_or_skip):
-    fs_file = RemoteSeviriFile().open(product_id)
+    fs_file = RemoteSeviriFile(fsspec_cache=None).open(product_id)
     return fs_file
 
 
@@ -34,7 +34,6 @@ def test_Resampler(temp_dir, fs_file):
         resampler = Resampler(parent_directory=temp_dir, area=get_area_definition())
         resampler.resample(product_id)
 
-        scene_class.assert_called_once_with([fs_file], "seviri_l1b_native")
         scene.load.assert_called_once_with(resampler.channel_names)
         scene.resample.assert_called_once_with(resampler.area, radius_of_influence=resampler.radius_of_influence)
 
@@ -42,3 +41,4 @@ def test_Resampler(temp_dir, fs_file):
             filename=f"{temp_dir}/2023/04/13/seviri_20230413_16_42.nc",
             **resampler.dataset_save_options
         )
+        scene_class.assert_called_once_with([fs_file], "seviri_l1b_native")

@@ -24,11 +24,13 @@ from .const import end_datetime, interval, quotient, remainder, start_datetime
 
 ])
 def test_DateTimeRangeInBatches(batches, first_batch, last_batch):
-    batches = list(batches)
-    assert quotient + 1 == len(batches)
-    assert intervals_equal(interval, batches[:-1])
-    assert Counter(first_batch) == Counter(batches[0])
-    assert Counter(last_batch) == Counter(batches[-1])
+    batches_list = list(batches)
+    assert quotient + 1 == len(batches_list)
+    assert intervals_equal(interval, batches_list[:-1])
+    assert Counter(first_batch) == Counter(batches_list[0])
+    assert Counter(last_batch) == Counter(batches_list[-1])
+    assert batches.datetime_range_in_batches == batches
+    assert list(batches.datetime_range_in_batches) == batches_list
 
 
 @pytest.mark.parametrize(("start_datetime", "end_datetime", "temporal_sign", "result"), [

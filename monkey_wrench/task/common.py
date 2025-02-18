@@ -1,27 +1,28 @@
 """The module which defines a function to read the tasks from a file."""
 
-from typing import Generator
+from typing import Generator, Union
 
 import yaml
-from pydantic import BaseModel, validate_call
+from pydantic import BaseModel, Field, validate_call
+from typing_extensions import Annotated
 
-from monkey_wrench.input_output import ExistingInputFile
+from monkey_wrench.input_output import ExistingFilePath
 from monkey_wrench.task.files import FilesTask
 from monkey_wrench.task.ids import IdsTask
 
-Task = FilesTask | IdsTask
+Task = Annotated[Union[FilesTask, IdsTask], Field(discriminator="context")]
 
 
-class _Task(BaseModel):
-    data: Task
+class _AnyTask(BaseModel):
+    document: Task
 
 
 @validate_call
-def read_tasks_from_file(file: ExistingInputFile) -> Generator[Task, None, None]:
+def read_tasks_from_file(filepath: ExistingFilePath) -> Generator[Task, None, None]:
     """Read and parse task(s) from the given ``.yaml`` file.
 
     Args:
-        file:
+        filepath:
             The path of the YAML file to read the task(s) from. In case of multiple tasks in the same file, different
             tasks must be separated by three dashes ``"---"``. In the language of YAML files, each task is essentially
             a document.
@@ -29,6 +30,6 @@ def read_tasks_from_file(file: ExistingInputFile) -> Generator[Task, None, None]
     Yields:
         A generator yielding the task(s) from the given YAML file.
     """
-    with open(file.input_filepath, "r") as f:
+    with open(filepath, "r") as f:
         for document in yaml.safe_load_all(f):
-            yield _Task(data=document).data
+            yield _AnyTask(document=document).document

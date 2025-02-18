@@ -47,7 +47,7 @@ def make_area_file(path: Path):
     lambda path: load_area(make_area_file(path))
 ])
 def test_Area(area_factory, temp_dir):
-    area = Area(area=make_area_file(temp_dir)).area
+    area = Area(area=area_factory(temp_dir)).area
     area_expected = load_area(make_area_file(temp_dir))
 
     assert area == area_expected

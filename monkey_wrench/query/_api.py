@@ -84,12 +84,12 @@ class EumetsatQuery(Query):
                 Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
         """
         assert_start_precedes_end(*datetime_period.as_tuple())
-        datetime_period.end_datetime = floor_datetime_minutes_to_specific_snapshots(
+        floored_end_datetime = floor_datetime_minutes_to_specific_snapshots(
             datetime_period.end_datetime, self.__collection.value.snapshot_minutes
         )
         return self.__selected_collection.search(
             dtstart=datetime_period.start_datetime,
-            dtend=datetime_period.end_datetime,
+            dtend=floored_end_datetime,
             geo=polygon.serialize(as_string=True) if polygon else None
         )
 
@@ -131,9 +131,8 @@ class EumetsatQuery(Query):
             ...  api = EumetsatQuery()
             ...  for batch, retrieved_count in api.query_in_batches(range_in_batches):
             ...     assert retrieved_count == batch.total_results
-            ...     print(batch)
             ...     for product in batch:
-            ...         print(product)
+            ...         pass
             ... except KeyError as e:  # If the API credentials are not set!
             ...  assert "environment variable" in str(e)
         """

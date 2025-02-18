@@ -115,7 +115,8 @@ all_members = {
     ("EndDateTime", "<class 'monkey_wrench.date_time.models._base.{name}'>"): False,
     ("StartDateTime", "<class 'monkey_wrench.date_time.models._base.{name}'>"): False,
     ("Function", "<class 'monkey_wrench.generic.models._function.{name}'>"): False,
-    ("Pattern", "<class 'monkey_wrench.generic.models._pattern.{name}'>"): False
+    ("Pattern", "<class 'monkey_wrench.generic.models._pattern.{name}'>"): False,
+    ("StringTransformation", "<class 'monkey_wrench.generic.models._pattern.{name}'>"): False,
 }
 
 

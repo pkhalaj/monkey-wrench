@@ -5,9 +5,9 @@ import pytest
 from pydantic import ValidationError
 
 from monkey_wrench.date_time import SeviriIDParser
-from monkey_wrench.input_output import ExistingInputFile, Reader
+from monkey_wrench.input_output import Reader
 from monkey_wrench.task.common import read_tasks_from_file
-from monkey_wrench.task.ids import Fetch
+from monkey_wrench.task.ids import FetchIds
 from tests.task.const import (
     batch_interval,
     end_datetime,
@@ -24,7 +24,7 @@ from tests.utils import make_yaml_file
 @pytest.mark.parametrize("task_factory", [
     lambda path: get_validated_task(path),
     lambda path: get_validated_task(path, start_datetime=start_datetime.isoformat()),
-    lambda _: Fetch(**specification_with(batch_interval=timedelta(**batch_interval)))
+    lambda _: FetchIds(**specification_with(batch_interval=timedelta(**batch_interval)))
 ])
 def test_model_product_ids(temp_dir, task_factory):
     validated_task = task_factory(temp_dir)
@@ -40,7 +40,7 @@ def test_model_product_ids(temp_dir, task_factory):
 def get_validated_task(path: Path, **kwargs):
     filename = Path(path, "task.yaml")
     make_yaml_file(filename, specification_with(**kwargs))
-    validated_task = list(read_tasks_from_file(ExistingInputFile(input_filepath=filename)))[0]
+    validated_task = list(read_tasks_from_file(filename))[0]
     return validated_task
 
 
@@ -50,14 +50,14 @@ def get_validated_task(path: Path, **kwargs):
     (specification_with(end_datetime=datetime(2000, 1, 1)), "timezone"),
     (specification_with(start_datetime=future_datetime), "future"),
     (task | dict(extra_argument="extra arguments are not allowed!"), "Extra inputs"),
-    (task_with(context="non_existent_context"), "Input should be"),
+    (task_with(context="non_existent_context"), "'context' does not match any of the expected tags"),
     (task_with(action="non_existent_action"), "Input should be"),
 ])
 def test_model_product_ids_raise(temp_dir, task, error_message):
     filename = Path(temp_dir, "task.yaml")
     make_yaml_file(filename, task)
     with pytest.raises(ValidationError, match=error_message):
-        list(read_tasks_from_file(ExistingInputFile(input_filepath=filename)))
+        list(read_tasks_from_file(filename))
 
 
 def test_fetch_product_ids_success(get_token_or_skip, temp_dir):
@@ -65,7 +65,7 @@ def test_fetch_product_ids_success(get_token_or_skip, temp_dir):
     output_filename = Path(temp_dir, "products_ids.txt")
     make_yaml_file(filename, specification_with(output_filepath=str(output_filename)))
 
-    validated_task = list(read_tasks_from_file(ExistingInputFile(input_filepath=filename)))[0]
+    validated_task = list(read_tasks_from_file(filename))[0]
     validated_task.perform()
 
     data = Reader(input_filepath=validated_task.specifications.output_filepath).read()
