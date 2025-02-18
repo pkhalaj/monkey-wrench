@@ -217,7 +217,7 @@ class DirectoryVisitor(ParentDirectory, Pattern):
     """If given, it will be used to dump the list of visited items to a file."""
 
     visitor_callback: TransformFunction[Path, Any] | None = None
-    """A function that will be called everytime a match is found for a file. Defaults to ``None``."""
+    """A function that will be called every time a match is found for a file. Defaults to ``None``."""
 
     reverse: bool = False
     """A boolean to determine whether to sort the files in reverse order.

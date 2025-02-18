@@ -43,8 +43,8 @@ class TempDirectory(Model):
 
     Note:
         If it is not set (i.e. it is ``None``), it takes on a value according to the following order of priority:
-            1- The value of the ``TMPDIR`` environment variable.
-            2- ``/tmp/``.
+             1. The value of the ``TMPDIR`` environment variable.
+             2. ``/tmp/``.
     """
 
     @model_validator(mode="before")
