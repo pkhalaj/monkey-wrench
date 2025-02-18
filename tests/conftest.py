@@ -5,6 +5,7 @@ from typing import Generator
 import pytest
 from requests import HTTPError
 
+from monkey_wrench.query import EumetsatAPI
 from tests.utils import make_yaml_file
 from tests.utils.eumdac import EumdacPackage
 
@@ -12,7 +13,6 @@ from tests.utils.eumdac import EumdacPackage
 @pytest.fixture
 def get_token_or_skip():
     """Attempt to get a valid token and return it. Otherwise, skip the test."""
-    from monkey_wrench.query import EumetsatAPI
 
     def skip(other: str, exc: BaseException) -> None:
         pytest.skip(f"Could not get a valid token. {other}\nMore:{exc}")
