@@ -1,18 +1,18 @@
 Introduction
 -------------
 
-**Monkey Wrench** gathers the tools to run pre-trained neural network (NN) models for 
-precipitation intensity using satellite data, based on the **Chalmers/CSU Integrated 
-Multi-Satellite Precipitation Retrieval Program**, also refered to as `CHIMP`_ for short. 
-CHIMP, is a general framework for training, evaluating and running NN based retrievals of physical 
-properties from remote-sensing observations. However, the focus of **Monkey Wrench** 
-has so far been NN based retrievals of precipitation intensity using satellite data, 
+**Monkey Wrench** gathers the tools to run pre-trained neural network (NN) models for
+precipitation intensity using satellite data, based on the **Chalmers/CSU Integrated
+Multi-Satellite Precipitation Retrieval Program**, also refered to as `CHIMP`_ for short.
+CHIMP, is a general framework for training, evaluating and running NN based retrievals of physical
+properties from remote-sensing observations. However, the focus of **Monkey Wrench**
+has so far been NN based retrievals of precipitation intensity using satellite data,
 and CHIMP will be used here synonymously with such already pre-trained models.
 
-In particular, **Monkey Wrench** includes utilities to fetch and process CHIMP input files, 
-analyse and visualise its output, and much more! It is an attempt to avoid 
-*reinventing the wheel* by consolidating all Python scripts and codes that we use 
-at `SMHI`_ alongside CHIMP. 
+In particular, **Monkey Wrench** includes utilities to fetch and process CHIMP input files,
+analyse and visualise its output, and much more! It is an attempt to avoid
+*reinventing the wheel* by consolidating all Python scripts and codes that we use
+at `SMHI`_ alongside CHIMP.
 
 Example use cases of **Monkey wrench**:
 
@@ -28,7 +28,7 @@ Example use cases of **Monkey wrench**:
   **Monkey Wrench** has been developed at the Swedish Meteorological and
   Hydrological Institute (SMHI_) as part of the *Skyfall* project, partly funded
   by the Swedish Civil Contingencies Agency (MSB_).
-  
+
 .. note::
   **Monkey Wrench** uses the `eumdac`_ package for API calls.
   This allows for customized downloading of files from EUMETSAT Data Store tailored to our needs. However, our wrapper
@@ -37,10 +37,9 @@ Example use cases of **Monkey wrench**:
 .. warning::
   **Monkey Wrench** is a work in progress and under active development. As a result, the API and the scheme of task (YAML) files might and will change!
 
-
 **License & Disclaimer**
 
-  This program is distributed under the `GNU General Public License Version 3`_.  You should have received a copy of the GNU General Public License along with this program. If not, see `<https://www.gnu.org/licenses/gpl-3.0.html>`_.
+  This program is distributed under the `GNU General Public License Version 3`_. You should have received a copy of the GNU General Public License along with this program. If not, see `<https://www.gnu.org/licenses/gpl-3.0.html>`_.
 
 .. _CHIMP: https://github.com/simonpf/chimp
 .. _GNU General Public License Version 3: https://www.gnu.org/licenses/gpl-3.0.html

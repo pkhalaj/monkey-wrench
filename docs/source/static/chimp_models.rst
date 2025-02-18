@@ -9,7 +9,7 @@ The animation below compares the retrieved radar reflectivity for the different 
 .. figure:: https://github.com/user-attachments/assets/d96ef894-fc82-4640-a4c8-bbd2b359cd4d
   :alt: comparison of the retrieved radar reflectivity for the different model versions
   :align: center
-  
+
   Credit: `Simon Pfreundschuh <https://github.com/simonpf>`_
 
 

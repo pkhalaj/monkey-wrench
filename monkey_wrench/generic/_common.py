@@ -94,7 +94,7 @@ def apply_to_single_or_collection(
 
 @validate_call
 def collection_element_type(collection: dict[Any, T] | ListSetTuple[T]) -> T:
-    """Return the type collection elements, e.g. for ``set[T]`` it returns ``T``.
+    """Return the type of collection elements, e.g. for ``set[T]`` it returns ``T``.
 
     Args:
         collection:

@@ -43,8 +43,8 @@ class TempDirectory(Model):
 
     Note:
         If it is not set (i.e. it is ``None``), it takes on a value according to the following order of priority:
-            1- The value of the ``TMPDIR`` environment variable.
-            2- ``/tmp/``.
+             1. The value of the ``TMPDIR`` environment variable.
+             2. ``/tmp/``.
     """
 
     @model_validator(mode="before")
@@ -62,7 +62,7 @@ class TempDirectory(Model):
 
         Note:
             The temporary directory created by this context manager will reside inside
-            :attr:`TempDirectory.temporary_directory`.
+            :attr:`TempDirectory.temp_directory_path`.
 
         Note:
             The reason to set the global temporary directory is to ensure that any other inner functions or context
