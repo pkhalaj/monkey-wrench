@@ -351,6 +351,7 @@ class FilesIntegrityValidator(MultiProcess):
             filepaths: ListSetTuple[Path],
             reference: ListSetTuple[T] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
     ) -> tuple[set[T] | None, set[Path] | None]:
+        """Check for missing and corrupted files."""
         return self.find_missing_files(filepaths, reference), self.find_corrupted_files(filepaths)
 
 

@@ -20,12 +20,12 @@ from monkey_wrench.query import List
 from monkey_wrench.task.base import Action, Context, TaskBase
 
 
-class Task(TaskBase):
+class ChimpTaskBase(TaskBase):
     """Pydantic base model for all CHIMP related tasks."""
     context: Literal[Context.chimp]
 
 
-class RetrieveSpecifications(DateTimePeriod, DirectoryVisitor, ModelFile, OutputDirectory, TempDirectory):
+class ChimpRetrieveSpecifications(DateTimePeriod, DirectoryVisitor, ModelFile, OutputDirectory, TempDirectory):
     """Pydantic model for the specifications of CHIMP retrievals."""
     device: Literal["cpu", "cuda"] = "cpu"
     sequence_length: NonNegativeInt = 16
@@ -34,10 +34,10 @@ class RetrieveSpecifications(DateTimePeriod, DirectoryVisitor, ModelFile, Output
     verbose: PositiveInt = 1
 
 
-class Retrieve(Task):
+class ChimpRetrieve(ChimpTaskBase):
     """Pydantic model for the CHIMP retrieval task."""
     action: Literal[Action.retrieve]
-    specifications: RetrieveSpecifications
+    specifications: ChimpRetrieveSpecifications
 
     @TaskBase.log
     def perform(self) -> None:
@@ -100,4 +100,4 @@ class Retrieve(Task):
                          visitor_callback=Path.unlink).visit()
 
 
-ChimpTask = Retrieve
+ChimpTask = ChimpRetrieve

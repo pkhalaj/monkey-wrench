@@ -91,9 +91,9 @@ class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
             # It is useful in the case of multiprocessing.
             log_id = uuid4()
 
-            logger.info(f"Resampling SEVIRI native file {fs_file} to {output_filename} -- ID: {log_id}.")
+            logger.info(f"Resampling SEVIRI native file `{fs_file}` to `{output_filename}` -- ID: `{log_id}`")
             scene = Scene([fs_file], "seviri_l1b_native")
             scene.load(self.channel_names)
             resampled_scene = scene.resample(self.area, radius_of_influence=self.radius_of_influence)
             resampled_scene.save_datasets(filename=str(output_filename), **self.dataset_save_options)
-            logger.info(f"Resampling SEVIRI native file {log_id} is complete.")
+            logger.info(f"Resampling SEVIRI native file `{log_id}` is complete.")

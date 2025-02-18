@@ -31,28 +31,28 @@ class TaskBase(BaseModel, extra="forbid", arbitrary_types_allowed=True):
     """Pydantic base model for a task."""
     context: Context
     action: Action
-    specifications: Specifications
+    specifications: type[Specifications]
 
     @staticmethod
     def log(func: Callable) -> Callable:
         """Decorator to log the details of the given task as well as the returned result."""
 
         @wraps(func)
-        def wrapper(self, *args, **kwargs) -> dict[str, Any] | None:
+        def wrapper(self) -> dict[str, Any] | None:
             """Wrapper function to perform tha logging first and the task afterward."""
             # The ID helps us to quickly find all log messages corresponding to a single task.
             log_id = uuid4()
             logger.info(
-                f"Performing task `{self.action.value}` for `{self.context.value}` "
-                f"with specifications `{self.specifications}` -- ID: {log_id}."
+                f"Performing task `{self.context.value}.{self.action.value}` "
+                f"with specifications `{self.specifications}` -- ID: `{log_id}`"
             )
-            outs = func(self, *args, **kwargs)
+            outs = func(self)
             if outs:
-                logger.info(f"Retrieved results for task : {outs} -- ID: {log_id}.")
+                logger.info(f"Retrieved results for task `{log_id}`: `{outs}`")
             return outs
 
         return wrapper
 
-    def perform(self, *args, **kwargs) -> dict[str, Any] | None:
+    def perform(self) -> dict[str, Any] | None:
         """Perform the action using the given arguments."""
         raise NotImplementedError()

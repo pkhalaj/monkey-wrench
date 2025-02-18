@@ -1,6 +1,10 @@
 import os
 from pathlib import Path
 
+import pytest
+
+from monkey_wrench.date_time import FilePathParser, SeviriIDParser
+from monkey_wrench.generic import apply_to_single_or_collection
 from monkey_wrench.input_output import DirectoryVisitor, Writer
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
 from monkey_wrench.task.common import read_tasks_from_file
@@ -9,7 +13,26 @@ from tests.task.const import end_datetime, ids_in_query, start_datetime
 from tests.utils import make_dummy_files, make_yaml_file
 
 
-def test_verify_files_success(temp_dir):
+@pytest.mark.parametrize("verbose", [
+    [],
+    False,
+    True,
+    ["files"],
+    ["files", "reference"],
+    ["files", "missing"],
+    ["files", "corrupted"],
+    ["files", "reference", "missing"],
+    ["files", "reference", "corrupted"],
+    ["files", "missing", "corrupted"],
+    ["files", "reference", "missing", "corrupted"],
+    ["missing"],
+    ["missing", "corrupted"],
+    ["reference"],
+    ["reference", "missing"],
+    ["reference", "corrupted"],
+    ["corrupted"]
+])
+def test_verify_files_success(temp_dir, verbose):
     task_filename = Path(temp_dir, "task.yaml")
     product_ids_filename = Path(temp_dir, "product_ids.txt")
     data_directory = Path(temp_dir, "data")
@@ -43,23 +66,41 @@ def test_verify_files_success(temp_dir):
                 input_filepath=str(product_ids_filename),
                 nominal_file_size=nominal_size,
                 file_size_relative_tolerance=tolerance,
+                verbose=verbose,
             ))
     )
+
+    if verbose is True:
+        verbose = ["files", "reference", "missing", "corrupted"]
+    if verbose is False:
+        verbose = []
 
     validated_task = list(read_tasks_from_file(task_filename))[0]
     outs = validated_task.perform()
 
+    missing = apply_to_single_or_collection(FilePathParser.parse, removed)
+    reference = apply_to_single_or_collection(SeviriIDParser.parse, ids_in_query)
+    files = apply_to_single_or_collection(input_filename_from_product_id, ids_in_query)
+    files = {data_directory / f for f in files} - set(removed)
+    files = sorted(list(files))
+
     keys_map = {
-        "corrupted": len(corrupted),
-        "missing": len(removed),
-        "found": len(ids_in_query) - len(removed),
-        "reference": len(ids_in_query)
+        "corrupted files": verbose_or_not(corrupted, "corrupted", verbose),
+        "missing items": verbose_or_not(missing, "missing", verbose),
+        "files found": verbose_or_not(files, "files", verbose),
+        "reference items": verbose_or_not(reference, "reference", verbose),
     }
 
     for k in outs.keys():
         for p in keys_map.keys():
             if p in k:
                 assert outs[k] == keys_map[p]
+
+
+def verbose_or_not(field, field_name, verbose):
+    if field_name in verbose:
+        return field
+    return len(field)
 
 
 def test_fetch_files(get_token_or_skip, temp_dir):
