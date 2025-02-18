@@ -96,7 +96,7 @@ class Writer(OutputFile):
     Defaults to :obj:`monkey_wrench.generic.StringTransformation()`, which means the items will be trimmed.
 
     Note:
-        The items will be first transformed according to the ``pre_writing_transformation.transform_function``, and
+        The items will first be transformed according to the ``pre_writing_transformation.transform_function``, and
         then trimmed.
     """
 
@@ -362,7 +362,7 @@ class DateTimeDirectory(ParentDirectory):
     reset_child_datetime_directory: bool = False
     """A boolean to determine whether to remove the (child) directory first if it already exists. Defaults to ``False``.
 
-    This might save us from some issues regrading files being overwritten and corrupted.
+    This might save us from issues regarding files being overwritten and corrupted.
     """
 
     def get_datetime_directory(self, datetime_object: datetime) -> Path:
