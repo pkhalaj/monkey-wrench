@@ -10,20 +10,20 @@ from monkey_wrench.query import EumetsatQuery
 from monkey_wrench.task.base import Action, Context, TaskBase
 
 
-class Task(TaskBase):
+class IdsTaskBase(TaskBase):
     """Pydantic base model for tasks related to product IDs."""
     context: Literal[Context.product_ids]
 
 
-class FetchSpecifications(DateTimeRangeInBatches, Writer):
+class FetchIdsSpecifications(DateTimeRangeInBatches, Writer):
     """Pydantic base model for the specifications of a fetch task."""
     pass
 
 
-class FetchIds(Task):
+class FetchIds(IdsTaskBase):
     """Pydantic base model for the fetch task."""
     action: Literal[Action.fetch]
-    specifications: FetchSpecifications
+    specifications: FetchIdsSpecifications
 
     @TaskBase.log
     def perform(self) -> dict[str, NonNegativeInt]:

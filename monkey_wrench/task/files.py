@@ -1,7 +1,8 @@
 """Module to define Pydantic models for tasks related to product files."""
-from typing import Literal, TypeVar
+from typing import Literal, TypeVar, Union
 
-from pydantic import NonNegativeInt, model_validator
+from pydantic import Field, NonNegativeInt, model_validator
+from typing_extensions import Annotated
 
 from monkey_wrench.date_time import DateTimePeriod, FilePathParser, SeviriIDParser
 from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader, TempDirectory
@@ -13,12 +14,12 @@ from monkey_wrench.task.base import Action, Context, TaskBase
 T = TypeVar("T")
 
 
-class Task(TaskBase):
+class FilesTaskBase(TaskBase):
     """Pydantic base model for tasks related to product files."""
     context: Literal[Context.product_files]
 
 
-class VerifySpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrityValidator, Reader):
+class VerifyFilesSpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrityValidator, Reader):
     """Pydantic model for the specifications of a verification task."""
 
     @model_validator(mode="before")
@@ -29,7 +30,7 @@ class VerifySpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrityValid
         return self
 
 
-class FetchSpecifications(
+class FetchFilesSpecifications(
     DateTimePeriod,
     MultiProcess,
     Resampler,
@@ -40,10 +41,10 @@ class FetchSpecifications(
     pass
 
 
-class VerifyFiles(Task):
+class VerifyFiles(FilesTaskBase):
     """Pydantic model for the verification task."""
     action: Literal[Action.verify]
-    specifications: VerifySpecifications
+    specifications: VerifyFilesSpecifications
 
     @TaskBase.log
     def perform(self) -> dict[str, NonNegativeInt]:
@@ -72,10 +73,10 @@ class VerifyFiles(Task):
         }
 
 
-class FetchFiles(Task):
+class FetchFiles(FilesTaskBase):
     """Pydantic model for the fetch task."""
     action: Literal[Action.fetch]
-    specifications: FetchSpecifications
+    specifications: FetchFilesSpecifications
 
     @TaskBase.log
     def perform(self) -> None:
@@ -95,4 +96,7 @@ class FetchFiles(Task):
         )
 
 
-FilesTask = FetchFiles | VerifyFiles
+FilesTask = Annotated[
+    Union[FetchFiles, VerifyFiles],
+    Field(discriminator="action")
+]

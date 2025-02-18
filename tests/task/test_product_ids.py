@@ -50,7 +50,7 @@ def get_validated_task(path: Path, **kwargs):
     (specification_with(end_datetime=datetime(2000, 1, 1)), "timezone"),
     (specification_with(start_datetime=future_datetime), "future"),
     (task | dict(extra_argument="extra arguments are not allowed!"), "Extra inputs"),
-    (task_with(context="non_existent_context"), "Input should be"),
+    (task_with(context="non_existent_context"), "'context' does not match any of the expected tags"),
     (task_with(action="non_existent_action"), "Input should be"),
 ])
 def test_model_product_ids_raise(temp_dir, task, error_message):

@@ -1,19 +1,20 @@
 """The module which defines a function to read the tasks from a file."""
 
-from typing import Generator
+from typing import Generator, Union
 
 import yaml
-from pydantic import BaseModel, validate_call
+from pydantic import BaseModel, Field, validate_call
+from typing_extensions import Annotated
 
 from monkey_wrench.input_output import ExistingFilePath
 from monkey_wrench.task.files import FilesTask
 from monkey_wrench.task.ids import IdsTask
 
-Task = IdsTask | FilesTask
+Task = Annotated[Union[FilesTask, IdsTask], Field(discriminator="context")]
 
 
-class _Task(BaseModel):
-    data: Task
+class _AnyTask(BaseModel):
+    document: Task
 
 
 @validate_call
@@ -31,4 +32,4 @@ def read_tasks_from_file(filepath: ExistingFilePath) -> Generator[Task, None, No
     """
     with open(filepath, "r") as f:
         for document in yaml.safe_load_all(f):
-            yield _Task(data=document).data
+            yield _AnyTask(document=document).document
