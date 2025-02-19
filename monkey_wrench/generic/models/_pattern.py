@@ -1,4 +1,4 @@
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, TypeVar, assert_never
 
 from pydantic import validate_call
 
@@ -6,8 +6,11 @@ from monkey_wrench.generic._common import apply_to_single_or_collection
 from monkey_wrench.generic._types import ListSetTuple, Model
 from monkey_wrench.generic.models._function import TransformFunction
 
+OriginalType = TypeVar("OriginalType")
+TransformedType = TypeVar("TransformedType")
 
-class StringTransformation(Model):
+
+class StringTransformation[OriginalType, TransformedType](Model):
     """Pydantic model for transformations on strings, e.g. before writing to or after reading from a file."""
 
     trim: bool = True
@@ -16,42 +19,40 @@ class StringTransformation(Model):
     Defaults to ``True``.
     """
 
-    transform_function: TransformFunction[Any, str] | None = None
-    """If given, each item will be transformed according to the function. The output of the function must be a string.
+    transform_function: TransformFunction[OriginalType, TransformedType] | None = None
+    """If given, each item will be transformed according to the function.
 
     Defaults to ``None``, which means no transformation is performed and items will be treated as they are.
     """
 
     @validate_call
-    def _transform_item(self, item: Any) -> str:
+    def _transform_item(self, item: OriginalType) -> OriginalType | TransformedType:
         """Transform a single item."""
-        return self.transform_function(item) if self.transform_function is not None else str(item)
+        return self.transform_function(item) if self.transform_function is not None else item
 
     @validate_call
-    def transform_items(self, items: Any):
+    def transform_items(
+            self, items: ListSetTuple[OriginalType] | OriginalType
+    ) -> ListSetTuple[TransformedType] | ListSetTuple[OriginalType] | OriginalType | TransformedType:
         """Transform a single or multiple items (of any type)."""
         return apply_to_single_or_collection(self._transform_item, items)
 
     @validate_call
-    def _trim_item(self, item: Any) -> str:
-        """Trim a single item."""
+    def _trim_item(self, item: OriginalType) -> str:
+        """Trim a single item. The item can be of any type and will be coerced into a string first."""
         item_str = str(item)
         return item_str.strip() if self.trim else item_str
 
     @validate_call
-    def trim_items(self, items: Any) -> ListSetTuple[str] | str:
-        """Trim a single or multiple items.
-
-        Note:
-            The items can be of any type and will be first coerced into string.
-        """
+    def trim_items(self, items: ListSetTuple[OriginalType] | OriginalType) -> ListSetTuple[str] | str:
+        """Trim a single or multiple items. The items can be of any type and will be first coerced into strings."""
         return apply_to_single_or_collection(self._trim_item, items)
 
 
 class Pattern(Model):
     """Pydantic model for finding sub-strings in other strings."""
 
-    sub_strings: str | list | None = None
+    sub_strings: str | list[str] | None = None
     """The sub-strings to look for. It can be either a single string, a list of strings, or  ``None.``.
 
     Defaults to ``None``, which means :func:`exists_in` returns ``True``.
@@ -72,9 +73,17 @@ class Pattern(Model):
         return Pattern(sub_strings=self.sub_strings, case_sensitive=self.case_sensitive, match_all=self.match_all)
 
     @property
-    def sub_strings_list(self):
+    def sub_strings_list(self) -> list[str]:
         """Enclose ``sub_strings`` in a list, if there is only a single sub-string."""
-        return self.sub_strings if isinstance(self.sub_strings, list) else [self.sub_strings]
+        match self.sub_strings:
+            case None:
+                return []
+            case list():
+                return self.sub_strings
+            case str():
+                return [self.sub_strings]
+            case _:
+                assert_never(self.sub_strings)
 
     @property
     def match_function(self) -> Callable[[Iterable[object]], bool]:
