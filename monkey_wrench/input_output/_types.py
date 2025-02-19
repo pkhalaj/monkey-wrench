@@ -11,9 +11,9 @@ from monkey_wrench.generic import Model
 
 
 def ensure_path_does_not_end_with_slash(path: Path) -> Path:
-    """Check that the path does not end with a slash, and therefore it does not point to a directory."""
-    if str(path).endswith("/"):
-        raise ValueError("A file path cannot end with a slash")
+    """Check that the path does not end with a slash, and therefore, it does not point to a directory."""
+    if str(path).endswith("/") or str(path).endswith("\\"):
+        raise ValueError("A file path cannot end with a slash!")
     return path
 
 
@@ -22,13 +22,50 @@ AbsolutePath = Annotated[PathType, AfterValidator(lambda path: path.resolve().ab
 """Type annotation and Pydantic validator to represent (convert to) an absolute and normalized path."""
 
 ExistingFilePath = Annotated[AbsolutePath[FilePath], AfterValidator(ensure_path_does_not_end_with_slash)]
+"""Type annotation and Pydantic validator for an existing file path.
+
+Note:
+    After the validation, the path will be normalized and made into an absolute path.
+
+Warning:
+    The path must not end with `/` or ``\\``.
+"""
+
 NewFilePath = Annotated[AbsolutePath[NewPath], AfterValidator(ensure_path_does_not_end_with_slash)]
+"""Type annotation and Pydantic validator for a non-existing file path.
+
+Note:
+    After the validation, the path will be normalized and made into an absolute path.
+
+Warning:
+    The path must not end with `/` or ``\\``.
+"""
 
 ExistingDirectoryPath = AbsolutePath[DirectoryPath]
-NewDirectoryPath = AbsolutePath[NewPath]
+"""Type annotation and Pydantic validator for an existing directory path.
 
-WriteMode = Literal["w", "a"]
-"""Either ``"a"`` for appending to, or ``"w"`` for overwriting an existing file."""
+Note:
+    After the validation, the path will be normalized and made into an absolute path.
+
+Note:
+    The path can optionally end with `/` or ``\\``.
+"""
+
+NewDirectoryPath = AbsolutePath[NewPath]
+"""Type annotation and Pydantic validator for a non-existing directory path.
+
+Note:
+    After the validation, the path will be normalized and made into an absolute path.
+
+Note:
+    The path can optionally end with `/` or ``\\``.
+"""
+
+OpenMode = Literal["w", "a"]
+"""Type alias for the union of a literal ``"a"`` (for appending to), or ``"w"`` (for overwriting an existing file).
+
+This only concerns ASCII (text) files.
+"""
 
 
 class TempDirectory(Model):
@@ -38,13 +75,16 @@ class TempDirectory(Model):
     """The path to an existing directory, which will be used as the top-level temporary directory.
 
     Note:
-        This directory will be used as a parent directory for subsequent temporary directories. As a result, it will not
-        be removed. However, the child temporary directories will always be removed.
+        This directory will be used as a parent directory for subsequent (child) temporary directories. As a result, it
+        will not be removed or cleaned up. However, the child temporary directories will always be removed and
+        cleaned up.
 
     Note:
         If it is not set (i.e. it is ``None``), it takes on a value according to the following order of priority:
-             1. The value of the ``TMPDIR`` environment variable.
-             2. ``/tmp/``.
+
+            1- The value of the ``TMPDIR`` environment variable.
+
+            2- ``/tmp/``.
     """
 
     @model_validator(mode="before")
@@ -58,7 +98,7 @@ class TempDirectory(Model):
 
     @contextmanager
     def context_manager(self) -> Generator[Path, None, None]:
-        """Context manager to create a temporary directory and set the global temporary directory to the specified path.
+        """Context manager to create a temporary directory and also set the global temporary directory to the same path.
 
         Note:
             The temporary directory created by this context manager will reside inside
