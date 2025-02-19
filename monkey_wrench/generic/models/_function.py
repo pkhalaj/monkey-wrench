@@ -1,9 +1,9 @@
 import importlib
 from functools import lru_cache
 from types import FunctionType
-from typing import Any, Callable, Generic, TypeVar
+from typing import Callable, Generic, TypeVar
 
-from pydantic import PrivateAttr, field_validator
+from pydantic import field_validator
 
 from monkey_wrench.generic._types import Model
 
@@ -12,7 +12,7 @@ ReturnType = TypeVar("ReturnType")
 
 
 @lru_cache(maxsize=1024)
-def _import_monkey_wrench_function(function_path: str) -> Callable:
+def _import_monkey_wrench_function(function_path: str) -> Callable[[InputType], ReturnType]:
     """Import a function (dynamically) from **Monkey Wrench** using its (string) identifier in the namespace.
 
     Warning:
@@ -70,18 +70,16 @@ class Function(Model, Generic[InputType, ReturnType]):
     path: str
     """The fully qualified namespace path to the function excluding the leading ``monkey_wrench.``."""
 
-    kwargs: dict[str, Any] = dict()
-    """Keyword arguments passed to the function. Defaults to an empty dictionary."""
-
-    __imported_function: Callable[[InputType, ...], ReturnType] = PrivateAttr()
+    __imported_function: Callable[[InputType], ReturnType]
 
     @field_validator("path", mode="after")
     def validate_function_path(cls, path: str) -> None:
+        """Check that function has been successfully imported."""
         cls.__imported_function = _import_monkey_wrench_function(path)
 
     @classmethod
-    def __call__(cls, arg: InputType, **kwargs: dict[str, Any]) -> ReturnType:
-        return cls.__imported_function(arg, **kwargs)
+    def __call__(cls, arg: InputType) -> ReturnType:
+        return cls.__imported_function(arg)
 
 
 TransformFunction = Function[InputType, ReturnType] | Callable[[InputType], ReturnType]
