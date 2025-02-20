@@ -203,12 +203,12 @@ def test_write_to_file_and_read_from_file(temp_dir):
 
     Writer(
         output_filepath=p0,
-        on_write_raise_exceptions=[],
+        on_write_catch_exceptions=[],
     ).write(product_ids_orig)
 
     Writer(
         output_filepath=p1,
-        on_write_raise_exceptions=[],
+        on_write_catch_exceptions=[],
         pre_writing_transformation=StringTransformation(
             transform_function=lambda pid: f"MSG3-SEVI-MSG15-0100-NA-{pid}000000Z-NA"
         )
@@ -216,7 +216,7 @@ def test_write_to_file_and_read_from_file(temp_dir):
 
     Writer(
         output_filepath=p2,
-        on_write_raise_exceptions=[],
+        on_write_catch_exceptions=[],
     ).write_in_batches(([x], 1) for x in product_ids)
 
     read_ids_orig = Reader(input_filepath=p0).read()

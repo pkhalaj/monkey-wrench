@@ -10,8 +10,8 @@ from monkey_wrench.generic import Pattern
 from monkey_wrench.input_output import (
     DateTimeDirectory,
     DirectoryVisitor,
+    ExistingOutputDirectory,
     ModelFile,
-    OutputDirectory,
     TempDirectory,
     copy_files_between_directories,
 )
@@ -25,7 +25,7 @@ class ChimpTaskBase(TaskBase):
     context: Literal[Context.chimp]
 
 
-class ChimpRetrieveSpecifications(DateTimePeriod, DirectoryVisitor, ModelFile, OutputDirectory, TempDirectory):
+class ChimpRetrieveSpecifications(DateTimePeriod, DirectoryVisitor, ModelFile, ExistingOutputDirectory, TempDirectory):
     """Pydantic model for the specifications of CHIMP retrievals."""
     device: Literal["cpu", "cuda"] = "cpu"
     sequence_length: NonNegativeInt = 16

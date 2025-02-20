@@ -1,10 +1,12 @@
 """The module providing the decorator for pretty-printing of error messages."""
 
 from functools import wraps
-from typing import Any, Callable
+from typing import Any, Callable, TypeVar
 
 from loguru import logger
 from pydantic import ValidationError
+
+ReturnType = TypeVar("ReturnType")
 
 
 def __make_better_error_message(exception: Any) -> str:
@@ -28,11 +30,11 @@ def __make_better_error_message(exception: Any) -> str:
     return f"{msg} -- `{inp}` of type <{type(inp).__name__}> is invalid for assignment to `{loc}`."
 
 
-def pretty_error_logs(func: Callable) -> Callable:
+def pretty_error_logs(func: Callable[[Any], ReturnType]) -> Callable[[Any], ReturnType]:
     """Decorator to catch and log prettier error messages when running in the task runner mode."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> ReturnType:
         """Wrapper function to catch and log error messages."""
         try:
             return func(*args, **kwargs)

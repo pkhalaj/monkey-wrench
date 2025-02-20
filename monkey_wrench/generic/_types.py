@@ -1,4 +1,4 @@
-from typing import Self, TypeVar, Union
+from typing import Any, Self, TypeVar, Union
 
 from pydantic import BaseModel, ConfigDict
 
@@ -21,7 +21,7 @@ class Model(BaseModel):
             1- They do not allow any `extra keyword arguments`_ to be passed to the constructor if the corresponding
             field is not explicitly defined.
 
-            2- The fields are `faux-immutable`_.
+            2- The fields are `faux-immutable`_ (frozen).
 
             3- They allow for `arbitrary types`_ to be validated, e.g. when using `pydantic.validate_call`_ decorator.
 
@@ -48,7 +48,7 @@ class Model(BaseModel):
     """
     model_config = ConfigDict(frozen=True, extra="forbid", arbitrary_types_allowed=True)
 
-    def new_with(self, **kwargs) -> Self:
+    def new_with(self, **kwargs: dict[str, Any]) -> Self:
         """Create an instance of the same model but with new values for the fields as determined by ``kwargs``.
 
         Warning:
@@ -73,8 +73,8 @@ class Model(BaseModel):
             >>> dataset_new = dataset.new_with(set_number=2)
             >>> dataset_new
             Dataset(set_number=2, count=10, name='dataset-original.extension.extension')
-            >>> # The reason that we have the repetition of `.extension` is that the validator runs again for `name`.
-            >>> # Note that `name` has not been even updated via the `with_new()` method!
-            >>> # The value of `count` has not been affected because its validator `int` does not have a side effect!
+            >>> # `.extension` gets duplicated as the validator for `name` runs twice.
+            >>> # `name` has not been explicitly passed to the `with_new()` method!
+            >>> # `count` has not been affected since its validator `int` is pure!
         """
         return self.__class__(**(self.model_dump() | kwargs))

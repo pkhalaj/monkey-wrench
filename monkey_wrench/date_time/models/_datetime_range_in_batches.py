@@ -7,7 +7,7 @@ from monkey_wrench.date_time.models._base import DateTimePeriod, TimeInterval
 
 
 class DateTimeRangeInBatches(DateTimePeriod):
-    """Pydantic model to for a datetime range in batches.
+    """Pydantic model for a datetime range in batches.
 
     Note:
         This can be used both as a model and also as a generator. See the examples below.
@@ -94,7 +94,7 @@ class DateTimeRangeInBatches(DateTimePeriod):
     This is defined as the difference between the two datetime instances in each batch.
 
     Note:
-        As a rule of thumb this paramerer can be set to ``30`` days. A smaller value for ``batch_interval``
+        As a rule of thumb this parameter can be set to ``30`` days. A smaller value for ``batch_interval``
         means a larger number of batches which increases the overall time needed to fetch all the products.
         A larger value for ``batch_interval`` shortens the total time to fetch all the products, however, you might
         get an error regarding sending `too many requests` to the server.

@@ -75,7 +75,7 @@ def assert_datetime_has_past(datetime_instance: datetime, silent: bool = False) 
     assert_datetime_is_timezone_aware(datetime_instance, silent=False)
     return assert_(
         datetime_instance <= datetime.now(UTC),
-        "The given datetime instance is in the future.!",
+        "The given datetime instance is in the future!",
         silent=silent
     )
 

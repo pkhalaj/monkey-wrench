@@ -93,8 +93,8 @@ def apply_to_single_or_collection(
 
 
 @validate_call
-def collection_element_type(collection: dict[Any, T] | ListSetTuple[T]) -> T:
-    """Return the type collection elements, e.g. for ``set[T]`` it returns ``T``.
+def collection_element_type(collection: dict[Any, T] | ListSetTuple[T]) -> type[T] | None:
+    """Return the type of collection elements, e.g. for ``set[T]`` it returns ``T``.
 
     Args:
         collection:
@@ -121,20 +121,17 @@ def collection_element_type(collection: dict[Any, T] | ListSetTuple[T]) -> T:
     if len(collection) == 0:
         return None
 
-    if isinstance(collection, dict):
-        collection = collection.values()
+    elements = tuple(collection.values() if isinstance(collection, dict) else collection)
+    any_element_type = type(elements[0])
 
-    collection = tuple(collection)
-    any_element_type = type(collection[0])
-
-    if all([isinstance(e, any_element_type) for e in collection]):
+    if all([isinstance(e, any_element_type) for e in elements]):
         return any_element_type
 
     raise TypeError("Cannot return a single element type when collection elements are of different types.")
 
 
 @validate_call
-def type_(single_or_collection: dict[Any, T] | ListSetTuple[T] | T) -> T:
+def type_(single_or_collection: dict[Any, T] | ListSetTuple[T] | T) -> type[T] | None:
     """Return the type of the given item, or any element from the collection using :func:`element_type_from_collection`.
 
     Examples:
