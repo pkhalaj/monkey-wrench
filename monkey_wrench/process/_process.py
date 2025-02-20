@@ -1,7 +1,7 @@
 """The module providing functionalities for multiprocessing."""
 
 import tempfile
-from multiprocessing import Pool, Process
+from multiprocessing import get_context
 from pathlib import Path
 from typing import Callable, TypeVar
 
@@ -58,11 +58,14 @@ class MultiProcess(Model):
         Returns:
             A list of returned results from the function in the same order as the given arguments (if not a set).
         """
+        ctx = get_context("spawn")
+
         if self.number_of_processes == 1:
             return [function(arg) for arg in arguments]
 
-        with Pool(processes=self.number_of_processes) as pool:
+        with ctx.Pool(processes=self.number_of_processes) as pool:
             results = pool.map(function, arguments)
+
         return results
 
     def run(
@@ -72,14 +75,17 @@ class MultiProcess(Model):
 
         If the function returns anything, it will be thrown away!
         """
+        ctx = get_context("spawn")
         arguments = list(arguments)
         temp_directory = TempDirectory(temp_directory_path=temp_directory_path)
         for index in range(0, len(arguments), self.number_of_processes):
             with temp_directory.context_manager() as tmp_dir:
                 procs = []
                 for arg in arguments[index: index + self.number_of_processes]:
-                    proc = Process(target=_wrap_function_no_return, args=(function, arg, tmp_dir))
+                    proc = ctx.Process(target=_wrap_function_no_return, args=(function, arg, tmp_dir))
                     procs.append(proc)
                     proc.start()
                 for proc in procs:
                     proc.join()
+                for proc in procs:
+                    proc.close()
