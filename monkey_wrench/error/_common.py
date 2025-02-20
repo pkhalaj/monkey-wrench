@@ -30,7 +30,7 @@ def __make_better_error_message(exception: Any) -> str:
     return f"{msg} -- `{inp}` of type <{type(inp).__name__}> is invalid for assignment to `{loc}`."
 
 
-def pretty_error_logs(func: Callable[[Any], ReturnType]) -> Callable[[Any], ReturnType]:
+def pretty_error_logs(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
     """Decorator to catch and log prettier error messages when running in the task runner mode."""
 
     @wraps(func)
