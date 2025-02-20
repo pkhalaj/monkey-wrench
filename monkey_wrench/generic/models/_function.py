@@ -1,7 +1,7 @@
 import importlib
 from functools import lru_cache
 from types import FunctionType
-from typing import Callable, Generic, TypeVar
+from typing import Callable, Generic, TypeVar, cast
 
 from pydantic import field_validator
 
@@ -79,7 +79,7 @@ class Function(Model, Generic[InputType, ReturnType]):
 
     @classmethod
     def __call__(cls, arg: InputType) -> ReturnType:
-        return cls.__imported_function(arg)
+        return cast(ReturnType, cls.__imported_function(arg))
 
 
 TransformFunction = Function[InputType, ReturnType] | Callable[[InputType], ReturnType]
