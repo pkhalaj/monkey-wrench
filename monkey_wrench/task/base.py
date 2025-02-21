@@ -6,7 +6,7 @@ from typing import Any, Callable
 from uuid import uuid4
 
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, InstanceOf
 
 from monkey_wrench.generic import Model
 
@@ -34,11 +34,11 @@ class TaskBase(BaseModel, extra="forbid", arbitrary_types_allowed=True):
     specifications: type[Specifications]
 
     @staticmethod
-    def log(func: Callable) -> Callable:
+    def log(func: Callable[..., dict[str, Any]]) -> Callable[..., dict[str, Any]]:
         """Decorator to log the details of the given task as well as the returned result."""
 
         @wraps(func)
-        def wrapper(self) -> dict[str, Any] | None:
+        def wrapper(self: InstanceOf[TaskBase]) -> dict[str, Any] | None:
             """Wrapper function to perform tha logging first and the task afterward."""
             # The ID helps us to quickly find all log messages corresponding to a single task.
             log_id = uuid4()
