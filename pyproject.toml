@@ -87,9 +87,8 @@ select = ["A", "B", "D", "E", "W", "F", "I", "N", "PT", "S", "TID", "C90", "Q", 
 [tool.ruff.lint.pep8-naming]
 classmethod-decorators = [
     "classmethod",
-    "validator",
     "field_validator",
-    "pydantic.validator"
+    "model_validator",
 ]
 
 [tool.ruff.lint.pydocstyle]

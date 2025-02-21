@@ -73,9 +73,10 @@ class Function(Model, Generic[InputType, ReturnType]):
     __imported_function: Callable[[InputType], ReturnType]
 
     @field_validator("path", mode="after")
-    def validate_function_path(cls, path: str) -> None:
+    def validate_function_path(cls, path: str) -> str:
         """Check that function has been successfully imported."""
         cls.__imported_function = _import_monkey_wrench_function(path)
+        return path
 
     @classmethod
     def __call__(cls, arg: InputType) -> ReturnType:

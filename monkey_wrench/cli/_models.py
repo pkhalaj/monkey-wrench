@@ -1,5 +1,5 @@
 import sys
-from typing import ClassVar, Self
+from typing import Any, ClassVar
 
 from pydantic import model_validator
 from pydantic_core import PydanticCustomError
@@ -20,8 +20,14 @@ class CommandLineArguments(Model):
     task_file_path: ClassVar[ExistingFilePath]
     """The path to the task file, which must be an existing valid YAML file."""
 
-    @model_validator(mode="after")
-    def validate_number_of_inputs(self) -> Self:
+    @model_validator(mode="before")
+    def validate_task_filepath_existence(cls, data: Any) -> Any:
+        """Check that the task file exists and assign it to the class variable."""
+        CommandLineArguments.task_file_path = ExistingInputFile(input_filepath=sys.argv[1]).input_filepath
+        return data
+
+    @model_validator(mode="before")
+    def validate_number_of_inputs(cls, data: Any) -> Any:
         """Ensure that the number of input arguments is correct."""
         if len(sys.argv) != 2:
             raise PydanticCustomError(
@@ -29,10 +35,4 @@ class CommandLineArguments(Model):
                 "Expected a single command-line argument, but received {n_args} arguments.",
                 dict(n_args=len(sys.argv) - 1),
             )
-        return self
-
-    @model_validator(mode="after")
-    def validate_task_filepath_existence(self) -> Self:
-        """Check that the task file exists and assign it to the class variable."""
-        CommandLineArguments.task_file_path = ExistingInputFile(input_filepath=sys.argv[1]).input_filepath
-        return self
+        return data
