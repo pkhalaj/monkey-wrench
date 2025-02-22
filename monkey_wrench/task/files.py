@@ -1,5 +1,5 @@
 """Module to define Pydantic models for tasks related to product files."""
-from typing import Any, Literal, TypeVar, Union
+from typing import Any, Literal, TypeVar
 
 from pydantic import Field, NonNegativeInt, model_validator
 from typing_extensions import Annotated
@@ -125,6 +125,6 @@ class FetchFiles(FilesTaskBase):
 
 
 FilesTask = Annotated[
-    Union[FetchFiles, VerifyFiles],
+    FetchFiles | VerifyFiles,
     Field(discriminator="action")
 ]

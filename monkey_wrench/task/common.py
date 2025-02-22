@@ -1,6 +1,6 @@
 """The module which defines a function to read the tasks from a file."""
 
-from typing import Generator, Union
+from typing import Generator
 
 import yaml
 from pydantic import BaseModel, Field, validate_call
@@ -10,7 +10,7 @@ from monkey_wrench.input_output import ExistingFilePath
 from monkey_wrench.task.files import FilesTask
 from monkey_wrench.task.ids import IdsTask
 
-Task = Annotated[Union[FilesTask, IdsTask], Field(discriminator="context")]
+Task = Annotated[FilesTask | IdsTask, Field(discriminator="context")]
 
 
 class _AnyTask(BaseModel):

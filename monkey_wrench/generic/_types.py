@@ -1,10 +1,10 @@
-from typing import Any, Self, TypeVar, Union
+from typing import Any, Self, TypeVar
 
 from pydantic import BaseModel, ConfigDict
 
 ElementType = TypeVar("ElementType")
 
-ListSetTuple = Union[list[ElementType], set[ElementType], tuple[ElementType, ...]]
+ListSetTuple = list[ElementType] | set[ElementType] | tuple[ElementType, ...]
 """Generic type alias for the union of homogenous lists, sets, and tuples, i.e. classic iterables.
 
 Warning:
