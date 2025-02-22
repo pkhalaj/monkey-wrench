@@ -266,7 +266,7 @@ class DirectoryVisitor(ParentDirectory, Pattern):
     visitor_writer: Writer | None = None
     """If given, it will be used to write the list of visited files to a text file."""
 
-    visitor_callback: TransformFunction[Path, Any] | None = None
+    visitor_callback: TransformFunction[Any] | None = None
     """A function that will be called every time a match is found for a file. Defaults to ``None``."""
 
     reverse: bool = False
@@ -281,7 +281,7 @@ class DirectoryVisitor(ParentDirectory, Pattern):
     Defaults to ``True``.
     """
 
-    post_visit_transform_function: TransformFunction[Path, ReturnType] | None = None
+    post_visit_transform_function: TransformFunction[ReturnType] | None = None
     """The transform function that will be applied on filepaths after visiting them.
 
     Defaults to ``None``, which means no transformation is applied.
@@ -352,7 +352,7 @@ class FilesIntegrityValidator(MultiProcess):
     marked as corrupted.
     """
 
-    filepath_transform_function: TransformFunction[Path, ReturnType] | None = None
+    filepath_transform_function: TransformFunction[ReturnType] | None = None
     """A function to transform the file paths into other types of objects before comparing them against the reference.
 
     This can be e.g. a :func:`~monkey_wrench.date_time.DateTimeParser.parse` function to make datetime objects out of
@@ -360,7 +360,7 @@ class FilesIntegrityValidator(MultiProcess):
     as they are.
     """
 
-    reference_transform_function: TransformFunction[InputType, ReturnType] | None = None
+    reference_transform_function: TransformFunction[ReturnType] | None = None
     """A function to transform the reference items into other types of objects before using them for comparison.
 
     This can be e.g. :func:`~monkey_wrench.date_time.SeviriIDParser.parse()` to make datetime objects out of SEVIRI

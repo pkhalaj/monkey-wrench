@@ -1,18 +1,15 @@
 import importlib
 from functools import lru_cache
 from types import FunctionType
-from typing import Callable, Generic, TypeVar, cast
+from typing import Annotated, Callable, TypeVar
 
-from pydantic import field_validator
+from pydantic import BeforeValidator, validate_call
 
-from monkey_wrench.generic._types import Model
-
-InputType = TypeVar("InputType")
 ReturnType = TypeVar("ReturnType")
 
 
 @lru_cache(maxsize=1024)
-def _import_monkey_wrench_function(function_path: str) -> Callable[[InputType], ReturnType]:
+def _import_monkey_wrench_function(function_path: str) -> Callable[..., ReturnType]:
     """Import a function (dynamically) from **Monkey Wrench** using its (string) identifier in the namespace.
 
     Warning:
@@ -60,28 +57,17 @@ def _import_monkey_wrench_function(function_path: str) -> Callable[[InputType], 
     return obj
 
 
-class Function(Model, Generic[InputType, ReturnType]):
-    """Pydantic model for a dynamically imported function from **Monkey Wrench**.
-
-    Note:
-        The function must accept a single argument. However, it can accept as many keyword arguments as desired.
-    """
-
-    path: str
-    """The fully qualified namespace path to the function excluding the leading ``monkey_wrench.``."""
-
-    __imported_function: Callable[[InputType], ReturnType]
-
-    @field_validator("path", mode="after")
-    def validate_function_path(cls, path: str) -> str:
-        """Check that function has been successfully imported."""
-        cls.__imported_function = _import_monkey_wrench_function(path)
-        return path
-
-    @classmethod
-    def __call__(cls, arg: InputType) -> ReturnType:
-        return cast(ReturnType, cls.__imported_function(arg))
+@validate_call
+def validate_function_path(path: str) -> Callable[..., ReturnType]:
+    return _import_monkey_wrench_function(path)
 
 
-TransformFunction = Function[InputType, ReturnType] | Callable[[InputType], ReturnType]
+Function = Annotated[Callable[..., ReturnType], BeforeValidator(validate_function_path)]
+"""Type annotation and Pydantic validator to dynamically import a function from **Monkey Wrench**, given its path.
+
+Note:
+    The path must be a fully qualified namespace path to the function excluding the leading ``monkey_wrench.``.
+"""
+
+TransformFunction = Function[ReturnType] | Callable[..., ReturnType]
 """Type annotation for a function that transforms items, e.g. before writing to or after reading from a file."""
