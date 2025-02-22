@@ -1,5 +1,5 @@
 """Module to define Pydantic models for tasks related to product files."""
-from typing import Literal, Self, TypeVar, Union
+from typing import Any, Literal, TypeVar, Union
 
 from pydantic import Field, NonNegativeInt, model_validator
 from typing_extensions import Annotated
@@ -29,21 +29,21 @@ class VerifyFilesSpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrity
     """
 
     @model_validator(mode="before")
-    def validate_verbose(self) -> Self:
+    def validate_verbose(cls, data: Any) -> Any:
         """Convert the verbose to a list of field names."""
-        match self.get("verbose", False):
+        match data.get("verbose", False):
             case True:
-                self["verbose"] = ["files", "reference", "corrupted", "missing"]
+                data["verbose"] = ["files", "reference", "corrupted", "missing"]
             case False:
-                self["verbose"] = []
-        return self
+                data["verbose"] = []
+        return data
 
     @model_validator(mode="before")
-    def validate_filepath_transform_function(self) -> Self:
+    def validate_filepath_transform_function(cls, data: Any) -> Any:
         """Ensure that the filepath transform function is set to a default value if it is not given explicitly."""
-        if not self.get("filepath_transform_function", None):
-            self["filepath_transform_function"] = FilePathParser.parse
-        return self
+        if not data.get("filepath_transform_function"):
+            data["filepath_transform_function"] = FilePathParser.parse
+        return data
 
 
 class FetchFilesSpecifications(

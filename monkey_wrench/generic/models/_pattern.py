@@ -1,4 +1,4 @@
-from typing import Any, Callable, Iterable, TypeVar, assert_never
+from typing import Any, Callable, Iterable, TypeVar, assert_never, cast
 
 from pydantic import validate_call
 
@@ -35,7 +35,10 @@ class StringTransformation[OriginalType, TransformedType](Model):
             self, items: ListSetTuple[OriginalType] | OriginalType
     ) -> ListSetTuple[TransformedType] | ListSetTuple[OriginalType] | OriginalType | TransformedType:
         """Transform a single or multiple items (of any type)."""
-        return apply_to_single_or_collection(self._transform_item, items)
+        return cast(
+            ListSetTuple[TransformedType] | ListSetTuple[OriginalType] | OriginalType | TransformedType,
+            apply_to_single_or_collection(self._transform_item, items)
+        )
 
     @validate_call
     def _trim_item(self, item: OriginalType) -> str:
@@ -46,7 +49,10 @@ class StringTransformation[OriginalType, TransformedType](Model):
     @validate_call
     def trim_items(self, items: ListSetTuple[OriginalType] | OriginalType) -> ListSetTuple[str] | str:
         """Trim a single or multiple items. The items can be of any type and will be first coerced into strings."""
-        return apply_to_single_or_collection(self._trim_item, items)
+        return cast(
+            ListSetTuple[str],
+            apply_to_single_or_collection(self._trim_item, items)
+        )
 
 
 class Pattern(Model):

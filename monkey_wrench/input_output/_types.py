@@ -2,7 +2,7 @@ import os
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, Literal, Self, TypeVar
+from typing import Any, Generator, Literal, TypeVar
 
 from pydantic import AfterValidator, DirectoryPath, FilePath, NewPath, model_validator
 from typing_extensions import Annotated
@@ -88,13 +88,13 @@ class TempDirectory(Model):
     """
 
     @model_validator(mode="before")
-    def validate_temporary_directory(self) -> Self:
+    def validate_temporary_directory(cls, data: Any) -> Any:
         """Return the path to the top-level temporary directory according to the priority rules."""
         # The following is the default temporary directory that will be used by the OS anyway.
         # Therefore, we suppress Ruff linter rule S108.
-        if not self.get("temp_directory_path", None):
-            self["temp_directory_path"] = Path(os.environ.get("TMPDIR", "/tmp/"))  # noqa: S108
-        return self
+        if not data.get("temp_directory_path"):
+            data["temp_directory_path"] = Path(os.environ.get("TMPDIR", "/tmp/"))  # noqa: S108
+        return data
 
     @contextmanager
     def context_manager(self) -> Generator[Path, None, None]:

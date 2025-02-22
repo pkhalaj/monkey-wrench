@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+.wy-nav-content {
+    padding: .5em 1.5em;
+}
+
+code, pre {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.highlight {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.sig-param::before {
+    content: "\a\20\20\20\20\20\20\20\20\20\20\20\20\20\20\20\20";
+    white-space: pre;
+}
+
+.sig-param:last-of-type::after {
+    content: "\a";
+    white-space: pre;
+}
+
+dl.class > dt:first-of-type {
+    display: block !important;
+}
+
+.py.function > dt {
+    width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'JetBrains Mono', monospace;
+}
