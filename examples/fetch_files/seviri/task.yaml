@@ -1,8 +1,49 @@
 context: files
 action: fetch
 specifications:
-  start_datetime: [2022, 1, 1]
-  end_datetime: [2024, 1, 1]
-  input_filename: <replace-with-full-path-and-filename-of-the-text-file-in-which-product-ids-are-stored>
-  output_directory: <replace-with-directory-where-the-files-are-to-be-stored>
-  number_of_processes: 2
+  start_datetime: "2019-01-01T00:00:00+00:00"
+  end_datetime: "2021-01-01T00:00:00+00:00"
+  fsspec_cache: filecache
+  radius_of_influence: 20000
+  remove_file_if_exists: true
+  number_of_processes: 4
+  input_filepath: <replace_with_the_full_path_of_the_text_file_in_which_product_ids_are_stored>
+  parent_directory_path: <replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_stored>
+  temp_directory_path: <replace_with_the_directory_path_where_the_temp_files_are_to_be_stored>
+  output_filename_generator: "input_output.seviri.input_filename_from_product_id"
+  channel_names:
+    - "VIS006"
+    - "VIS008"
+    - "IR_016"
+    - "IR_039"
+    - "WV_062"
+    - "WV_073"
+    - "IR_087"
+    - "IR_097"
+    - "IR_108"
+    - "IR_120"
+    - "IR_134"
+    - "HRV"
+  dataset_save_options:
+    writer: cf
+    include_lonlats: false
+  area:
+    CHIMP_NORDIC_4:
+      description: "CHIMP region of interest over the nordic countries"
+      projection:
+        proj: "stere"
+        lat_0: 90
+        lat_ts: 60
+        lon_0: 14
+        x_0: 0
+        y_0: 0
+        datum: "WGS84"
+        no_defs: None
+        type: "crs"
+      shape:
+        height: 564
+        width: 452
+      area_extent:
+        lower_left_xy: [ -745322.8983833211, -3996217.269197446 ]
+        upper_right_xy: [ 1062901.0232376591, -1747948.2287755085 ]
+        units: "m"
