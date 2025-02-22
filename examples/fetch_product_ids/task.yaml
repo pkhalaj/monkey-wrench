@@ -1,8 +1,8 @@
 context: ids
 action: fetch
 specifications:
-  start_datetime: [2015, 6, 1]
-  end_datetime: [2015, 8, 1]
+  start_datetime: "2019-01-01T00:00:00+00:00"
+  end_datetime: "2021-01-01T00:00:00+00:00"
   batch_interval:
     days: 30
-  output_filename: ./seviri_product_ids.txt
+  output_filepath: <replace_with_the_full_path_of_the_text_file_in_which_product_ids_are_to_be_stored>
