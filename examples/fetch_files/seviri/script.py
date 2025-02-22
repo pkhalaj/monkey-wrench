@@ -56,17 +56,17 @@ resampler = Resampler(
     area=area,
 )
 
-product_ids = List(
-    Reader(input_filepath=input_filepath).read(),
-    SeviriIDParser
-).query(
-    datetime_period
-)
-
-for product_id in product_ids:
-    resampler.create_datetime_directory(SeviriIDParser.parse(product_id))
-
 if __name__ == "__main__":
+    product_ids = List(
+        Reader(input_filepath=input_filepath).read(),
+        SeviriIDParser
+    ).query(
+        datetime_period
+    )
+
+    for product_id in product_ids:
+        resampler.create_datetime_directory(SeviriIDParser.parse(product_id))
+
     MultiProcess(number_of_processes=4).run(
         resampler.resample,
         product_ids.to_python_list(),
