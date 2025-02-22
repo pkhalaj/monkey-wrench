@@ -31,7 +31,7 @@ def test_Resampler(temp_dir, fs_file):
     scene.resample = mock.MagicMock(return_value=resampled_scene)
 
     with mock.patch("monkey_wrench.input_output.seviri._models.Scene", return_value=scene) as scene_class:
-        resampler = Resampler(parent_directory=temp_dir, area=get_area_definition())
+        resampler = Resampler(parent_directory_path=temp_dir, area=get_area_definition())
         resampler.resample(product_id)
 
         scene.load.assert_called_once_with(resampler.channel_names)
