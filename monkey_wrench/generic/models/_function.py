@@ -49,10 +49,10 @@ def _import_monkey_wrench_function(function_path: str) -> Callable[..., ReturnTy
         for part in function_path.split("."):
             obj = getattr(obj, part)
     except Exception as e:
-        raise ImportError(f"Failed to dynamically import `monkey_wrench.{function_path}`") from e
+        raise ValueError(f"Failed to dynamically import `monkey_wrench.{function_path}`") from e
 
     if not isinstance(obj, FunctionType):
-        raise TypeError(f"{function_path} is not a function!")
+        raise ValueError(f"{function_path} exists and has been successfully imported, but it is not a function!")
 
     return obj
 

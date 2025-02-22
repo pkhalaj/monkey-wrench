@@ -63,7 +63,7 @@ def test_Function_raise_leading_trailing(function, invalid_item):
     f"{base}\b"
 ])
 def test_Function_raise_import_fail(function, path):
-    with pytest.raises(ImportError, match="import"):
+    with pytest.raises(ValidationError, match="import"):
         function(func=path)
 
 
@@ -72,7 +72,7 @@ def test_Function_raise_import_fail(function, path):
     f"{part1}.seviri.Resampler"
 ])
 def test_Function_raise_not_function(function, path):
-    with pytest.raises(TypeError, match="function"):
+    with pytest.raises(ValidationError, match="function"):
         function(func=path)
 
 
