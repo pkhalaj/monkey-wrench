@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 ElementType = TypeVar("ElementType")
 
 ListSetTuple = list[ElementType] | set[ElementType] | tuple[ElementType, ...]
-"""Generic type alias for the union of homogenous lists, sets, and tuples, i.e. classic iterables.
+"""Generic type alias for the union of homogeneous lists, sets, and tuples, i.e. classic iterables..
 
 Warning:
     Strings and dictionaries have been intentionally left out, although they are also iterables!
@@ -54,7 +54,7 @@ class Model(BaseModel):
         Warning:
             The new instance will be validated against all field and model validators before being returned. This is
             true even for the fields which have not been updated via ``kwargs``. As a result, if validators for fields
-            have side effects, it is important to ensure that the side effects do not unintentially get repeated!
+            have side effects, it is important to ensure that the side effects do not unintentionally get repeated!d!
             Look at the example below for such an unintentional side effect!
 
         Example:
