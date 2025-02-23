@@ -59,7 +59,7 @@ class Query(ABC, LogMixin):
 
         The arguments are the same as :class:`~monkey_wrench.date_time.DatetimeRangeInBatches`.
         If ``expected_total_count`` is given, it will be compared with ``total_retrieved_count`` and if they are not
-        equal a warning will be logged. It defaults to ``None`` which means no comparison is made.
+        equal, a warning will be logged. It defaults to ``None`` which means no comparison is made.
 
         Yields:
             The result of queries, in the form of 2-tuples in which the first element is the retrieved items from the

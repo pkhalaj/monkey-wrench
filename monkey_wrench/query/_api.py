@@ -151,7 +151,7 @@ class EumetsatQuery(Query):
             output_file_format: str = "netcdf4",
             sleep_time: PositiveInt = 10
     ) -> list[Path | None]:
-        """Fetch all products of a search results and write product files to disk.
+        """Fetch all products from search results and write product files to disk.
 
         Args:
             search_results:
