@@ -211,7 +211,7 @@ class List(Query):
         """Partition the list, where the batches are of size ``k`` or less.
 
         Note:
-            The partition is given for all items that are in ``[index_start, index_end]`` (boht inclusive).
+            The partition is given for all items that are in ``[index_start, index_end]`` (both inclusive).
 
         Note:
             This is similar to :func:`~List.generate_k_sized_batches_by_index`, but there are differences. First, this

@@ -197,7 +197,7 @@ class EumetsatQuery(Query):
             chain:
                 Chain to apply for customization of the output file.
             output_directory:
-                 The directory to save the file in.ort EumetsatAPI
+                 The directory to save the file in.
             sleep_time:
                 Sleep time, in seconds, between requests.
 

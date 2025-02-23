@@ -1,4 +1,4 @@
-**Monkey wrench** gathers the tools to run `CHIMP`_, fetch and process its input files, analyse and visualise its
+**Monkey wrench** gathers the tools to run `CHIMP`_, fetch and process its input files, analyze and visualize its
 output, and much more! It is an attempt to avoid *reinventing the wheel* by consolidating all Python scripts and
 codes that we use alongside CHIMP.
 
@@ -12,7 +12,7 @@ In particular, you can:
 * Perform post-processing of CHIMP output as well as some visualization utilities
 * Use it as a task runner
 
-N.B. **Monkey Wrench** is a work in progress and under active development. As a result, the API and the scheme of task (YAML) files might and will change!
+N.B. **Monkey Wrench** is a work in progress and under active development. As a result, the API and the scheme of task (YAML) files will change!
 
 
 **License & Disclaimer**
