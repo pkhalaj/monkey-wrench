@@ -50,6 +50,17 @@ def test_pattern_exist(kwargs, res):
     assert pattern.match_function is match_function
 
 
+@pytest.mark.parametrize(("sub_strings", "expected"), [
+    (None, []),
+    ("test", ["test"]),
+    (["test1", "test2"], ["test1", "test2"]),
+    (("test1", "test2"), ["test1", "test2"])
+])
+def test_pattern_sub_strings_list(sub_strings, expected):
+    pattern = Pattern(sub_strings=sub_strings)
+    assert pattern.sub_strings_list == expected
+
+
 # ======================================================
 ### Tests for Trim()
 
