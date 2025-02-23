@@ -164,7 +164,7 @@ Paths
     Keys:
       input_directory   # must point to an existing directory
       output_directory  # must point to an existing directory
-      intput_filename   # must point to an existing file
+      input_filename    # must point to an existing file
       output_filename   # must be a new path as overwriting an existing file is not allowed!
 
     Values:

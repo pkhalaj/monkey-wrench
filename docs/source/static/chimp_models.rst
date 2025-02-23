@@ -62,4 +62,4 @@ Results
 
 The results are written as ``NetCDF4`` datasets to the provided output directory.
 Currently the only retrieved variable is ``dbz_mean``. Since CHIMP retrievals are probabilistic, the ``_mean``
-suffix is added to the variable name highlight that it is the expected value of the retrieved posterior distribution.
+suffix is added to the variable name to highlight that it is the expected value of the retrieved posterior distribution.

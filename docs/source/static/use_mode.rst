@@ -3,7 +3,7 @@ Use mode
 
 You can use Monkey Wrench in two modes:
 
-* As a python package which can be easily imported and used in python codes/scripts.
+* As a Python package which can be easily imported and used in Python codes/scripts.
 
 * As a standalone executable, essentially serving as a task manager which reads and runs task from YAML files.
 
