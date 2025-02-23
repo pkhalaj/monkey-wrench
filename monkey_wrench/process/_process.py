@@ -73,7 +73,7 @@ class MultiProcess(Model):
     ) -> None:
         """Similar to :func:`run_with_results`, but does not return anything.
 
-        If the function returns anything, it will be thrown away!
+        If the function returns anything, it will be discarded!
         """
         ctx = get_context("spawn")
         arguments = list(arguments)
