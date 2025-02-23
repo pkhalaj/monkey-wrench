@@ -24,7 +24,7 @@ class VerifyFilesSpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrity
 
     verbose: list[IntegrityValidatorReturnFieldName] | bool = False
     """Determines whether the given fields should be reported verbosely, i.e. the actual items will be dumped to the std
-    output instead of only the number of items (for the non-verbose mode). It can be a list field names or a single
+    output instead of only the number of items (for the non-verbose mode). It can be a list of field names or a single
     boolean value to change the behaviour for all fields at once.
     """
 

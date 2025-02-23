@@ -96,8 +96,10 @@ class ChimpRetrieve(ChimpTaskBase):
             Pattern(sub_strings=last_retrieved_snapshot)
         )
 
-        DirectoryVisitor(parent_directory_path=self.specifications.temp_directory_path,
-                         visitor_callback=Path.unlink).visit()
+        DirectoryVisitor(
+            parent_directory_path=self.specifications.temp_directory_path,
+            visitor_callback=Path.unlink
+        ).visit()
 
 
 ChimpTask = ChimpRetrieve
