@@ -19,7 +19,7 @@ def __make_better_error_message(exception: Mapping[str, Any]) -> str:
     Returns:
         A string containing the error message with an enhanced format.
     """
-    inp, loc, msg = str(exception["input"]), str(exception["loc"]), str(exception["msg"])
+    inp, loc, msg = str(exception["input"]), exception["loc"], str(exception["msg"])
     msg = msg.lower() if msg else ""
 
     if not loc:

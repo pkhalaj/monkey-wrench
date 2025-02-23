@@ -151,7 +151,7 @@ class EumetsatQuery(Query):
             output_file_format: str = "netcdf4",
             sleep_time: PositiveInt = 10
     ) -> list[Path | None]:
-        """Fetch all products of a search results and write product files to disk.
+        """Fetch all products from search results and write product files to disk.
 
         Args:
             search_results:
@@ -197,7 +197,7 @@ class EumetsatQuery(Query):
             chain:
                 Chain to apply for customization of the output file.
             output_directory:
-                 The directory to save the file in.ort EumetsatAPI
+                 The directory to save the file in.
             sleep_time:
                 Sleep time, in seconds, between requests.
 

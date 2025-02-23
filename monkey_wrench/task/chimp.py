@@ -85,7 +85,7 @@ class ChimpRetrieve(ChimpTaskBase):
         last_retrieved_snapshot = str(output_filename_from_datetime(FilePathParser.parse(batch[-1])))
 
         datetime_directory = DateTimeDirectory(
-            parent_directory=self.specifications.output_directory
+            parent_directory_path=self.specifications.output_directory
         ).create_datetime_directory(
             FilePathParser.parse(input_filepaths[-1])
         )
@@ -96,8 +96,10 @@ class ChimpRetrieve(ChimpTaskBase):
             Pattern(sub_strings=last_retrieved_snapshot)
         )
 
-        DirectoryVisitor(parent_directory=self.specifications.temp_directory_path,
-                         visitor_callback=Path.unlink).visit()
+        DirectoryVisitor(
+            parent_directory_path=self.specifications.temp_directory_path,
+            visitor_callback=Path.unlink
+        ).visit()
 
 
 ChimpTask = ChimpRetrieve

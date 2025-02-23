@@ -16,7 +16,7 @@ _______________________________________
     git clone https://github.com/pkhalaj/monkey-wrench.git
 
 
-2- All the requirements for running CHIMP is in `chimp.yaml`_. The file provides a conda environment with the same
+2- All the requirements for running CHIMP are in `chimp.yaml`_. The file provides a conda environment with the same
 name (excluding the :samp:`.yaml` extension). To install and activate the available conda environment, run:
 
 .. code-block:: bash

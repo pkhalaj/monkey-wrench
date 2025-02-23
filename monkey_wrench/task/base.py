@@ -39,7 +39,7 @@ class TaskBase(BaseModel, extra="forbid", arbitrary_types_allowed=True):
 
         @wraps(func)
         def wrapper(self: InstanceOf[TaskBase]) -> dict[str, Any] | None:
-            """Wrapper function to perform tha logging first and the task afterward."""
+            """Wrapper function to perform the logging first and the task afterward."""
             # The ID helps us to quickly find all log messages corresponding to a single task.
             log_id = uuid4()
             logger.info(

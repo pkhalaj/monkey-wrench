@@ -52,7 +52,7 @@ class RemoteSeviriFile(FsSpecCache):
 class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    output_filename_generator: Function[str, Path] | Callable[[str], Path] = input_filename_from_product_id
+    output_filename_generator: Function[Path] | Callable[[str], Path] = input_filename_from_product_id
     """The function using which an output filename will be generated from the given input filename (SEVIRI native file).
 
     The generated filename is used to store the resampled file. The generated output filename will be prepended with

@@ -19,7 +19,7 @@ class StringTransformation[OriginalType, TransformedType](Model):
     Defaults to ``True``.
     """
 
-    transform_function: TransformFunction[OriginalType, TransformedType] | None = None
+    transform_function: TransformFunction[TransformedType] | None = None
     """If given, each item will be transformed according to the function.
 
     Defaults to ``None``, which means no transformation is performed and items will be treated as they are.

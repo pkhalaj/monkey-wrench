@@ -3,7 +3,7 @@ Use mode
 
 You can use Monkey Wrench in two modes:
 
-* As a python package which can be easily imported and used in python codes/scripts.
+* As a Python package which can be easily imported and used in Python codes/scripts.
 
 * As a standalone executable, essentially serving as a task manager which reads and runs task from YAML files.
 
@@ -18,31 +18,31 @@ choose a use mode that you deem fit.
 Package mode
 ------------
 
-As an example, to obtain all product IDs for SEVIRI native data between ``2015/06/01`` (inclusive) and ``2015/08/01``
+As an example, to obtain all product IDs for SEVIRI native data between ``2019/01/01`` (inclusive) and ``2021/01/01``
 (exclusive) and save them in :file:`seviri_product_ids.txt`, you can do the following in a Python script
 
 .. code-block:: python
 
-    from datetime import datetime, timedelta
+    from datetime import timedelta
     from pathlib import Path
 
-    from monkey_wrench.io_utils import write_items_to_txt_file_in_batches
-    from monkey_wrench.query_utils import EumetsatAPI, EumetsatCollection
+    from monkey_wrench.date_time import DateTimeRangeInBatches
+    from monkey_wrench.input_output import Writer
+    from monkey_wrench.query import EumetsatQuery
 
-    filename = Path("seviri_product_ids.txt")
+    output_filepath = Path("<replace_with_the_full_path_of_the_text_file_in_which_product_ids_are_to_be_stored>")
 
-    api = EumetsatAPI(
-        collection=EumetsatCollection.seviri,
-        log_context="Example [Fetch Product IDs]"
-    )
-
-    product_batches = api.query_in_batches(
-        start_datetime=datetime(2015, 6, 1),
-        end_datetime=datetime(2015, 8, 1),
+    writer = Writer(output_filepath=output_filepath)
+    datetime_range_in_batches = DateTimeRangeInBatches(
+        start_datetime="2019-01-01T00:00:00+00:00",
+        end_datetime="2021-01-01T00:00:00+00:00",
         batch_interval=timedelta(days=30)
     )
 
-    write_items_to_txt_file_in_batches(product_batches, filename)
+    if __name__ == "__main__":
+        product_batches = EumetsatQuery().query_in_batches(datetime_range_in_batches)
+        number_of_items = writer.write_in_batches(product_batches)
+        print("number of items successfully fetched and written to the file: ", number_of_items)
 
 
 The above example is available in `script.py`_.
@@ -58,11 +58,11 @@ with the following content and an arbitrary valid filename, e.g. ``task.yaml``
     context: ids
     action: fetch
     specifications:
-        start_datetime: [2015, 6, 1]
-        end_datetime: [2015, 8, 1]
-        batch_interval:
-            days: 30
-        output_filename: seviri_product_ids.txt
+    start_datetime: "2019-01-01T00:00:00+00:00"
+    end_datetime: "2021-01-01T00:00:00+00:00"
+    batch_interval:
+        days: 30
+    output_filepath: <replace_with_the_full_path_of_the_text_file_in_which_product_ids_are_to_be_stored>
 
 
 Then run the task via

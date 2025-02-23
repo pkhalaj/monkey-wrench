@@ -1,5 +1,5 @@
 """Module to define Pydantic models for tasks related to product files."""
-from typing import Any, Literal, TypeVar, Union
+from typing import Any, Literal, TypeVar
 
 from pydantic import Field, NonNegativeInt, model_validator
 from typing_extensions import Annotated
@@ -24,7 +24,7 @@ class VerifyFilesSpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrity
 
     verbose: list[IntegrityValidatorReturnFieldName] | bool = False
     """Determines whether the given fields should be reported verbosely, i.e. the actual items will be dumped to the std
-    output instead of only the number of items (for the non-verbose mode). It can be a list field names or a single
+    output instead of only the number of items (for the non-verbose mode). It can be a list of field names or a single
     boolean value to change the behaviour for all fields at once.
     """
 
@@ -125,6 +125,6 @@ class FetchFiles(FilesTaskBase):
 
 
 FilesTask = Annotated[
-    Union[FetchFiles, VerifyFiles],
+    FetchFiles | VerifyFiles,
     Field(discriminator="action")
 ]
