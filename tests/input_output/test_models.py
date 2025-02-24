@@ -276,7 +276,7 @@ def test_DateTimeDirectory_remove(temp_dir):
 def test_TempDirectory():
     default_temp_path = tempfile.gettempdir()
     here_path = os.path.abspath(".")
-    with TempDirectory(temp_directory_path=".").context_manager() as tmp:
+    with TempDirectory(temp_directory_path=".").temp_dir_context_manager() as tmp:
         assert str(tmp).startswith(here_path)
         with tempfile.TemporaryDirectory() as tmpdir:
             assert tmpdir.startswith(here_path)
@@ -292,7 +292,7 @@ def test_TempDirectory_default(temp_dir, tmpdir_factory, expected):
     os.makedirs(tmp_directory, exist_ok=True)
 
     with EnvironmentVariables(**{"TMPDIR": tmpdir_factory(str(tmp_directory))}):
-        with TempDirectory().context_manager() as tmp:
+        with TempDirectory().temp_dir_context_manager() as tmp:
             assert str(tmp).startswith("/tmp")
             assert ("/another_temp_dir/" in str(tmp)) is expected
 
