@@ -313,7 +313,7 @@ def optional_modules_mocked():
 def make_dummy_datetime_files(datetime_objs: list[datetime], parent: Path) -> list[Path]:
     files = []
     for datetime_obj in datetime_objs:
-        dir_path = DateTimeDirectory(parent_directory_path=parent).create_datetime_directory(datetime_obj)
+        dir_path = DateTimeDirectory(parent_output_directory_path=parent).create_datetime_directory(datetime_obj)
         filename = seviri.input_filename_from_datetime(datetime_obj)
         files.append(make_dummy_file(dir_path / filename))
     return files

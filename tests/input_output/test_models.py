@@ -43,7 +43,7 @@ def test_DirectoryVisitor(temp_dir, reverse, pattern, recursive):
     datetime_objects, _ = _make_dummy_datetime_files(temp_dir, reverse)
     top_level_files, _, _ = make_dummy_files(temp_dir, prefix="top_level_files_2022.nc")
     files = DirectoryVisitor(
-        parent_directory_path=temp_dir,
+        parent_input_directory_path=temp_dir,
         reverse=reverse,
         recursive=recursive,
         sub_strings=pattern,
@@ -68,7 +68,7 @@ def test_DirectoryVisitor(temp_dir, reverse, pattern, recursive):
 def test_DirectoryVisitor_callback(temp_dir):
     buff = []
     _, dummy_files = _make_dummy_datetime_files(temp_dir)
-    files = DirectoryVisitor(parent_directory_path=temp_dir, visitor_callback=lambda x: buff.append(x)).visit()
+    files = DirectoryVisitor(parent_input_directory_path=temp_dir, visitor_callback=lambda x: buff.append(x)).visit()
 
     assert set(files) == set(buff)
     assert set(dummy_files) == set(buff)
@@ -105,8 +105,8 @@ def test_copy_files_between_directories(temp_dir, pattern):
     dest_directory = _make_dummy_files_for_copy(temp_dir, pattern)
     input_output.copy_files_between_directories(temp_dir, dest_directory, pattern=Pattern(sub_strings=pattern))
 
-    assert 4 == len(DirectoryVisitor(parent_directory_path=dest_directory).visit())
-    assert 3 == len(DirectoryVisitor(parent_directory_path=dest_directory, sub_strings=pattern).visit())
+    assert 4 == len(DirectoryVisitor(parent_input_directory_path=dest_directory).visit())
+    assert 3 == len(DirectoryVisitor(parent_input_directory_path=dest_directory, sub_strings=pattern).visit())
 
 
 def _make_dummy_files_for_copy(temp_dir, pattern):
@@ -151,7 +151,7 @@ def test_compare_files_against_reference(dummy_and_reference_files_for_compariso
     assert file_size_validator.verify_files(collected_files) == expected_
 
     file_size_validator = FilesIntegrityValidator(
-        **(file_size_validator.model_dump() | {"reference": DirectoryVisitor(parent_directory_path=temp_dir)})
+        **(file_size_validator.model_dump() | {"reference": DirectoryVisitor(parent_input_directory_path=temp_dir)})
     )
     assert [bool(i) for i in file_size_validator.verify_files(collected_files)] == [False, False]
 
@@ -169,7 +169,7 @@ def test_compare_files_against_reference_transform(temp_dir):
 @pytest.fixture
 def dummy_and_reference_files_for_comparison(temp_dir):
     reference_items, expected_missing, expected_corrupted = make_dummy_files(temp_dir, number_of_files_to_remove=3)
-    collected_files = DirectoryVisitor(parent_directory_path=temp_dir).visit()
+    collected_files = DirectoryVisitor(parent_input_directory_path=temp_dir).visit()
     items = dict(
         nominal_file_size=1000,
         file_size_relative_tolerance=0.05,
@@ -249,7 +249,7 @@ def seviri_product_ids_file(path, idx):
 def test_DateTimeDirectory(temp_dir, kwargs):
     datetime_obj = datetime(2022, 3, 12)
     datetime_directory = DateTimeDirectory(
-        parent_directory_path=temp_dir,
+        parent_output_directory_path=temp_dir,
         datetime_format_string=kwargs["format_string"]
     )
     dir_path = datetime_directory.create_datetime_directory(datetime_obj)
@@ -263,7 +263,7 @@ def test_DateTimeDirectory_remove(temp_dir):
     with mock.patch("monkey_wrench.input_output._models.Path.unlink") as unlink, \
             mock.patch("monkey_wrench.input_output._models.Path.exists", return_value=True) as exists:
         DateTimeDirectory(
-            parent_directory_path=temp_dir,
+            parent_output_directory_path=temp_dir,
             reset_child_datetime_directory=True
         ).create_datetime_directory(datetime(2022, 3, 12))
         exists.assert_called()

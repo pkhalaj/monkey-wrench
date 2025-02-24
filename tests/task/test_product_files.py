@@ -62,7 +62,7 @@ def test_verify_files_success(temp_dir, verbose):
                 start_datetime=start_datetime.isoformat(),
                 end_datetime=end_datetime.isoformat(),
                 reference=str(product_ids_filename),
-                parent_directory_path=str(data_directory),
+                parent_input_directory_path=str(data_directory),
                 nominal_file_size=nominal_size,
                 file_size_relative_tolerance=tolerance,
                 verbose=verbose,
@@ -120,7 +120,7 @@ def test_fetch_files(get_token_or_skip, temp_dir):
                 start_datetime=start_datetime.isoformat(),
                 end_datetime=end_datetime.isoformat(),
                 input_filepath=str(product_ids_filename),
-                parent_directory_path=str(parent_directory),
+                parent_output_directory_path=str(parent_directory),
                 number_of_processes=2,
                 temp_directory_path=str(temp_dir),
             )
@@ -130,5 +130,5 @@ def test_fetch_files(get_token_or_skip, temp_dir):
     for task in read_tasks_from_file(task_filename):
         task.perform()
 
-    paths = DirectoryVisitor(parent_directory_path=parent_directory).visit()
+    paths = DirectoryVisitor(parent_input_directory_path=parent_directory).visit()
     assert {str(p.stem) for p in paths} == {"seviri_20230101_01_57", "seviri_20230101_02_12"}
