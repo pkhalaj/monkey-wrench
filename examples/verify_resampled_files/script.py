@@ -22,7 +22,7 @@ files_validator = FilesIntegrityValidator(
 
 if __name__ == "__main__":
     files = List(
-        DirectoryVisitor(parent_directory_path=parent_directory_path).visit(),
+        DirectoryVisitor(parent_input_directory_path=parent_directory_path).visit(),
         FilePathParser
     ).query(
         datetime_period

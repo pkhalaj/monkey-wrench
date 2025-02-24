@@ -10,7 +10,9 @@ from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import List
 
 input_filepath = Path("<replace_with_the_full_path_of_the_text_file_in_which_product_ids_are_stored>")
-parent_directory_path = Path("<replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_stored>")
+parent_output_directory_path = Path(
+    "<replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_stored>"
+)
 temp_directory_path = Path("<replace_with_the_directory_path_where_the_temp_files_are_to_be_stored>")
 
 datetime_period = DateTimePeriod(
@@ -52,7 +54,7 @@ resampler = Resampler(
         writer="cf",
         include_lonlats=False
     ),
-    parent_directory_path=parent_directory_path,
+    parent_output_directory_path=parent_output_directory_path,
     output_filename_generator=input_filename_from_product_id,
     area=area,
 )
