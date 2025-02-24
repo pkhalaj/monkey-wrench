@@ -19,7 +19,7 @@ class FilesTaskBase(TaskBase):
     context: Literal[Context.product_files]
 
 
-class VerifyFilesSpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrityValidator, Reader):
+class VerifyFilesSpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrityValidator):
     """Pydantic model for the specifications of a verification task."""
 
     verbose: list[IntegrityValidatorReturnFieldName] | bool = False

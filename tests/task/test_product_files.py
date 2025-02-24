@@ -63,7 +63,6 @@ def test_verify_files_success(temp_dir, verbose):
                 end_datetime=end_datetime.isoformat(),
                 reference=str(product_ids_filename),
                 parent_directory_path=str(data_directory),
-                input_filepath=str(product_ids_filename),
                 nominal_file_size=nominal_size,
                 file_size_relative_tolerance=tolerance,
                 verbose=verbose,
