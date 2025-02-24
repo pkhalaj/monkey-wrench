@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from pathlib import Path
 
 from satpy.readers.seviri_base import CHANNEL_NAMES
@@ -13,8 +14,8 @@ parent_directory_path = Path("<replace_with_the_path_of_the_top_level_directory_
 temp_directory_path = Path("<replace_with_the_directory_path_where_the_temp_files_are_to_be_stored>")
 
 datetime_period = DateTimePeriod(
-    start_datetime="2019-01-01T00:00:00+00:00",
-    end_datetime="2021-01-01T00:00:00+00:00"
+    start_datetime=datetime(2019, 1, 1, tzinfo=UTC),
+    end_datetime=datetime(2021, 1, 1, tzinfo=UTC)
 )
 
 area = dict(
