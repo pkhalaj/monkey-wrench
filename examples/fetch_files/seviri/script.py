@@ -16,8 +16,8 @@ parent_output_directory_path = Path(
 temp_directory_path = Path("<replace_with_the_directory_path_where_the_temp_files_are_to_be_stored>")
 
 datetime_period = DateTimePeriod(
-    start_datetime=datetime(2019, 1, 1, tzinfo=UTC),
-    end_datetime=datetime(2021, 1, 1, tzinfo=UTC)
+    start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
+    end_datetime=datetime(2024, 1, 1, tzinfo=UTC)
 )
 
 area = dict(

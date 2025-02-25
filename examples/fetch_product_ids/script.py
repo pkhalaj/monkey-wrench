@@ -9,8 +9,8 @@ output_filepath = Path("<replace_with_the_full_path_of_the_text_file_in_which_pr
 
 writer = Writer(output_filepath=output_filepath)
 datetime_range_in_batches = DateTimeRangeInBatches(
-    start_datetime=datetime(2019, 1, 1, tzinfo=UTC),
-    end_datetime=datetime(2021, 1, 1, tzinfo=UTC),
+    start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
+    end_datetime=datetime(2024, 1, 1, tzinfo=UTC),
     batch_interval=timedelta(days=30)
 )
 
