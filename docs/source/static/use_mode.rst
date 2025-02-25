@@ -18,12 +18,12 @@ choose a use mode that you deem fit.
 Package mode
 ------------
 
-As an example, to obtain all product IDs for SEVIRI native data between ``2019/01/01`` (inclusive) and ``2021/01/01``
+As an example, to obtain all product IDs for SEVIRI native data between ``2022/01/01`` (inclusive) and ``2024/01/01``
 (exclusive) and save them in :file:`seviri_product_ids.txt`, you can do the following in a Python script
 
 .. code-block:: python
 
-    from datetime import timedelta
+    from datetime import UTC, datetime, timedelta
     from pathlib import Path
 
     from monkey_wrench.date_time import DateTimeRangeInBatches
@@ -34,8 +34,8 @@ As an example, to obtain all product IDs for SEVIRI native data between ``2019/0
 
     writer = Writer(output_filepath=output_filepath)
     datetime_range_in_batches = DateTimeRangeInBatches(
-        start_datetime="2019-01-01T00:00:00+00:00",
-        end_datetime="2021-01-01T00:00:00+00:00",
+        start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
+        end_datetime=datetime(2024, 1, 1, tzinfo=UTC),
         batch_interval=timedelta(days=30)
     )
 
@@ -58,8 +58,8 @@ with the following content and an arbitrary valid filename, e.g. ``task.yaml``
     context: ids
     action: fetch
     specifications:
-    start_datetime: "2019-01-01T00:00:00+00:00"
-    end_datetime: "2021-01-01T00:00:00+00:00"
+    start_datetime: "2022-01-01T00:00:00+00:00"
+    end_datetime: "2024-01-01T00:00:00+00:00"
     batch_interval:
         days: 30
     output_filepath: <replace_with_the_full_path_of_the_text_file_in_which_product_ids_are_to_be_stored>
