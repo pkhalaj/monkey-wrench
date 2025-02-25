@@ -60,14 +60,22 @@ class ModelFile(Model):
     model_filepath: ExistingFilePath
 
 
-class ParentDirectory(Model):
-    """Pydantic model for the top-level directory where the child directories reside. The directory must exist.
+class ParentInputDirectory(Model):
+    """Pydantic model for the top-level directory where the child (input) directories reside. The directory must exist.
 
     Example:
         A directory which includes all SEVIRI files that have to be reprocessed using CHIMP.
     """
+    parent_input_directory_path: ExistingDirectoryPath
 
-    parent_directory_path: ExistingDirectoryPath
+
+class ParentOutputDirectory(Model):
+    """Pydantic model for the top-level directory where the child (output) directories reside. The directory must exist.
+
+    Example:
+        A directory which the output of CHIMP will be saved.
+    """
+    parent_output_directory_path: ExistingDirectoryPath
 
 
 class ExistingInputDirectory(Model):
@@ -75,7 +83,7 @@ class ExistingInputDirectory(Model):
 
     Note:
         This model is to be solely used for a flat structure. If you have a hierarchical tree structure, use
-        :obj:`~monkey_wrench.input_output._models.ParentDirectory` instead to be more clear about the directory
+        :obj:`~monkey_wrench.input_output._models.ParentInputDirectory` instead to be more clear about the directory
         structure.
     """
     input_directory: ExistingDirectoryPath
@@ -86,7 +94,7 @@ class ExistingOutputDirectory(Model):
 
     Note:
         This model is to be solely used for a flat structure. If you have a hierarchical tree structure, use
-        :obj:`~monkey_wrench.input_output._models.ParentDirectory` instead to be more clear about the directory
+        :obj:`~monkey_wrench.input_output._models.ParentOutputDirectory` instead to be more clear about the directory
         structure.
     """
     output_directory: ExistingDirectoryPath
@@ -260,7 +268,7 @@ class Reader(ExistingInputFile):
         return items
 
 
-class DirectoryVisitor(ParentDirectory, Pattern):
+class DirectoryVisitor(ParentInputDirectory, Pattern):
     """Pydantic model for visiting files in a directory tree."""
 
     visitor_writer: Writer | None = None
@@ -294,13 +302,13 @@ class DirectoryVisitor(ParentDirectory, Pattern):
         files_list = []
 
         if self.recursive:
-            for root, _, files in os.walk(self.parent_directory_path):
+            for root, _, files in os.walk(self.parent_input_directory_path):
                 for file in files:
                     if self.pattern.exists_in(file):
                         files_list.append(Path(root, file))
         else:
-            for item in os.listdir(self.parent_directory_path):
-                if (file := Path(self.parent_directory_path, item)).is_file():
+            for item in os.listdir(self.parent_input_directory_path):
+                if (file := Path(self.parent_input_directory_path, item)).is_file():
                     if self.pattern.exists_in(item):
                         files_list.append(file)
 
@@ -445,7 +453,7 @@ class FilesIntegrityValidator(MultiProcess):
         return self.find_missing_files(filepaths, reference), self.find_corrupted_files(filepaths)
 
 
-class DateTimeDirectory(ParentDirectory):
+class DateTimeDirectory(ParentOutputDirectory):
     """Pydantic model for datetime directories needed to store products and the input/output of CHIMP."""
 
     datetime_format_string: str = "%Y/%m/%d"
@@ -470,7 +478,7 @@ class DateTimeDirectory(ParentDirectory):
         Example:
             >>> path = DateTimeDirectory(
             ...  datetime_format_string="%Y/%m/%d",
-            ...  parent_directory_path=Path.home()
+            ...  parent_output_directory_path=Path.home()
             ... ).get_datetime_directory(
             ...  datetime(2022, 3, 12)
             ... )
@@ -478,7 +486,7 @@ class DateTimeDirectory(ParentDirectory):
             >>> expected_path == path
             True
         """
-        dir_path = self.parent_directory_path / Path(datetime_object.strftime(self.datetime_format_string))
+        dir_path = self.parent_output_directory_path / Path(datetime_object.strftime(self.datetime_format_string))
         return dir_path
 
     def create_datetime_directory(self, datetime_object: datetime) -> Path:
@@ -494,7 +502,7 @@ class DateTimeDirectory(ParentDirectory):
         Example:
             >>> path = DateTimeDirectory(
             ...  datetime_format_string="%Y/%m/%d",
-            ...  parent_directory_path=Path.home()
+            ...  parent_output_directory_path=Path.home()
             ... ).create_datetime_directory(
             ...  datetime(2022, 3, 12)
             ... )

@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from monkey_wrench.date_time import DateTimeRangeInBatches
@@ -9,8 +9,8 @@ output_filepath = Path("<replace_with_the_full_path_of_the_text_file_in_which_pr
 
 writer = Writer(output_filepath=output_filepath)
 datetime_range_in_batches = DateTimeRangeInBatches(
-    start_datetime="2019-01-01T00:00:00+00:00",
-    end_datetime="2021-01-01T00:00:00+00:00",
+    start_datetime=datetime(2019, 1, 1, tzinfo=UTC),
+    end_datetime=datetime(2021, 1, 1, tzinfo=UTC),
     batch_interval=timedelta(days=30)
 )
 

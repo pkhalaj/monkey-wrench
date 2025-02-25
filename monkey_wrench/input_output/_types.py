@@ -97,7 +97,7 @@ class TempDirectory(Model):
         return data
 
     @contextmanager
-    def context_manager(self) -> Generator[Path, None, None]:
+    def temp_dir_context_manager(self) -> Generator[Path, None, None]:
         """Context manager to create a temporary directory and also set the global temporary directory to the same path.
 
         Note:

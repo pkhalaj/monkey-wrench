@@ -79,7 +79,7 @@ class MultiProcess(Model):
         arguments = list(arguments)
         temp_directory = TempDirectory(temp_directory_path=temp_directory_path)
         for index in range(0, len(arguments), self.number_of_processes):
-            with temp_directory.context_manager() as tmp_dir:
+            with temp_directory.temp_dir_context_manager() as tmp_dir:
                 procs = []
                 for arg in arguments[index: index + self.number_of_processes]:
                     proc = ctx.Process(target=_wrap_function_no_return, args=(function, arg, tmp_dir))
