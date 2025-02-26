@@ -7,10 +7,14 @@ from pydantic import BaseModel, Field, validate_call
 from typing_extensions import Annotated
 
 from monkey_wrench.input_output import ExistingFilePath
+from monkey_wrench.task.chimp import ChimpTask
 from monkey_wrench.task.files import FilesTask
 from monkey_wrench.task.ids import IdsTask
 
-Task = Annotated[FilesTask | IdsTask, Field(discriminator="context")]
+Task = Annotated[
+    ChimpTask | FilesTask | IdsTask,
+    Field(discriminator="context")
+]
 
 
 class _AnyTask(BaseModel):
