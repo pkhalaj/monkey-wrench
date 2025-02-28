@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from monkey_wrench.date_time import DateTimePeriod, DateTimeRangeInBatches, SeviriIDParser
+from monkey_wrench.date_time import DateTimePeriodStrict, DateTimeRangeInBatches, SeviriIDParser
 from monkey_wrench.geometry import BoundingBox, Polygon, Vertex
 from monkey_wrench.query import EumetsatAPI, EumetsatCollection, EumetsatQuery
 from tests.utils import EnvironmentVariables
@@ -28,7 +28,7 @@ def search_results(api):
         Vertex(14.0, 62.0),
         Vertex(14.0, 64.0),
     ])
-    return api.query(DateTimePeriod(start_datetime=start, end_datetime=end), polygon=geometry)
+    return api.query(DateTimePeriodStrict(start_datetime=start, end_datetime=end), polygon=geometry)
 
 
 # ======================================================
@@ -51,7 +51,7 @@ def test_EumetsatAPI_get_token(get_token_or_skip):
 ### Tests for EumetsatQuery.query()
 
 def test_EumetsatQuery_query(get_token_or_skip):
-    datetime_period = DateTimePeriod(
+    datetime_period = DateTimePeriodStrict(
         start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
         end_datetime=datetime(2022, 1, 2, tzinfo=UTC)
     )

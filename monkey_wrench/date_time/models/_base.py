@@ -78,6 +78,10 @@ class DateTimePeriod(StartDateTime, EndDateTime):
 class DateTimePeriodStrict(DateTimePeriod):
     """Same as :obj:`DateTimePeriod` but does not allow fields to have ``None`` values."""
 
+    @property
+    def datetime_period(self) -> "DateTimePeriodStrict":
+        return DateTimePeriodStrict(start_datetime=self.start_datetime, end_datetime=self.end_datetime)
+
     @model_validator(mode="after")
     def validate_datetime_instances(self) -> Self:  # noqa: N804
         """Ensure that datetime instances are not ``None``."""

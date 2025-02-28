@@ -4,10 +4,10 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Generator
 
-from monkey_wrench.date_time.models._base import DateTimePeriod, TimeInterval
+from monkey_wrench.date_time.models._base import DateTimePeriodStrict, TimeInterval
 
 
-class DateTimeRange(DateTimePeriod):
+class DateTimeRange(DateTimePeriodStrict):
     """Pydantic model for datetime ranges.
 
     Note:
@@ -104,8 +104,6 @@ class DateTimeRange(DateTimePeriod):
         Yields:
             A generator of datetime instances.
         """
-        self.assert_datetime_instances_are_not_none()
-
         start = deepcopy(self.start_datetime)
         end = deepcopy(self.end_datetime)
         step = deepcopy(self.interval)

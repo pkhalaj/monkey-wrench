@@ -3,10 +3,10 @@
 from copy import deepcopy
 from typing import Generator
 
-from monkey_wrench.date_time.models._base import DateTimePeriod, TimeInterval
+from monkey_wrench.date_time.models._base import DateTimePeriodStrict, TimeInterval
 
 
-class DateTimeRangeInBatches(DateTimePeriod):
+class DateTimeRangeInBatches(DateTimePeriodStrict):
     """Pydantic model for a datetime range in batches.
 
     Note:
@@ -112,7 +112,7 @@ class DateTimeRangeInBatches(DateTimePeriod):
             batch_interval=self.batch_interval
         )
 
-    def __iter__(self) -> Generator[DateTimePeriod, None, None]:
+    def __iter__(self) -> Generator[DateTimePeriodStrict, None, None]:
         """Divide the specified datetime range into smaller batches, i.e. 2-tuples of start and end datetime instances.
 
         Yields:
@@ -125,7 +125,7 @@ class DateTimeRangeInBatches(DateTimePeriod):
         _batch_interval = deepcopy(self.batch_interval)
 
         if start == end:
-            yield DateTimePeriod(start_datetime=start, end_datetime=end)
+            yield DateTimePeriodStrict(start_datetime=start, end_datetime=end)
             return
 
         # `negative_interval` serves the same purpose as in `datetime_range()`.
@@ -135,7 +135,7 @@ class DateTimeRangeInBatches(DateTimePeriod):
             return None
 
         while negative_interval ^ ((next_start := start + _batch_interval) <= end):
-            yield DateTimePeriod(start_datetime=min(start, next_start), end_datetime=max(start, next_start))
+            yield DateTimePeriodStrict(start_datetime=min(start, next_start), end_datetime=max(start, next_start))
             start = next_start
 
         # The original datetime range might not necessarily be divisible by `batch_interval`. For example, with `365`
@@ -143,4 +143,4 @@ class DateTimeRangeInBatches(DateTimePeriod):
         # Moreover, the `end_datetime` is inclusive.
         # Therefore, we still need the following to fetch the remainder of the datetime range as the final batch.
         if start != end:
-            yield DateTimePeriod(start_datetime=min(start, end), end_datetime=max(start, end))
+            yield DateTimePeriodStrict(start_datetime=min(start, end), end_datetime=max(start, end))

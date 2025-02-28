@@ -12,7 +12,7 @@ from loguru import logger
 from pydantic import ConfigDict, PositiveInt, validate_call
 
 from monkey_wrench.date_time import (
-    DateTimePeriod,
+    DateTimePeriodStrict,
     DateTimeRangeInBatches,
     assert_start_precedes_end,
     floor_datetime_minutes_to_specific_snapshots,
@@ -53,7 +53,7 @@ class EumetsatQuery(Query):
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def query(
             self,
-            datetime_period: DateTimePeriod,
+            datetime_period: DateTimePeriodStrict,
             polygon: Polygon | None = None,
     ) -> SearchResults:
         """Query product IDs in a single batch.
@@ -83,7 +83,6 @@ class EumetsatQuery(Query):
             ValueError:
                 Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
         """
-        datetime_period.assert_datetime_instances_are_not_none()
         assert_start_precedes_end(*datetime_period.as_tuple())
         floored_end_datetime = floor_datetime_minutes_to_specific_snapshots(
             datetime_period.end_datetime, self.__collection.value.snapshot_minutes
