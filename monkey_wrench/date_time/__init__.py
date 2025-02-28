@@ -12,6 +12,7 @@ from ._types import Day, Hour, Minute, Minutes, Month, Year
 from .models import (
     AwarePastDateTime,
     DateTimePeriod,
+    DateTimePeriodStrict,
     DateTimeRange,
     DateTimeRangeInBatches,
     EndDateTime,
@@ -25,6 +26,7 @@ __all__ = [
     "DateTimeParser",
     "DateTimeParserBase",
     "DateTimePeriod",
+    "DateTimePeriodStrict",
     "DateTimeRange",
     "DateTimeRangeInBatches",
     "Day",

@@ -83,6 +83,7 @@ class EumetsatQuery(Query):
             ValueError:
                 Refer to :func:`~monkey_wrench.date_time.assert_start_time_is_before_end_time`.
         """
+        datetime_period.assert_datetime_instances_are_not_none()
         assert_start_precedes_end(*datetime_period.as_tuple())
         floored_end_datetime = floor_datetime_minutes_to_specific_snapshots(
             datetime_period.end_datetime, self.__collection.value.snapshot_minutes

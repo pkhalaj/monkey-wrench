@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from monkey_wrench.date_time import AwarePastDateTime, DateTimePeriod, TimeDeltaDict, TimeInterval
+from monkey_wrench.date_time import AwarePastDateTime, DateTimePeriod, DateTimePeriodStrict, TimeDeltaDict, TimeInterval
 from monkey_wrench.generic import Model
 
 from .const import end_datetime, start_datetime
@@ -76,10 +76,16 @@ def test_PastDateTime_raise(dt):
 
 
 # ======================================================
-### Tests for DateTimePeriod()
+### Tests for
+#               DateTimePeriod()
+#               DateTimePeriodStrict()
 
-def test_DateTimePeriod():
-    datetime_period = DateTimePeriod(start_datetime=end_datetime, end_datetime=start_datetime)
+@pytest.mark.parametrize("cls", [
+    DateTimePeriod,
+    DateTimePeriodStrict
+])
+def test_DateTimePeriod(cls):
+    datetime_period = cls(start_datetime=end_datetime, end_datetime=start_datetime)
     assert datetime_period.span == start_datetime - end_datetime
     assert datetime_period.as_tuple() == (end_datetime, start_datetime)
     assert datetime_period.as_tuple(sort=True) == (start_datetime, end_datetime)
@@ -99,6 +105,16 @@ def test_DateTimePeriod_assert_datetime_instances_are_not_None(datetime_period):
     DateTimePeriod(start_datetime=start_datetime),
     DateTimePeriod(end_datetime=end_datetime)
 ])
-def test_DateTimePeriod_assert_both_datetime_instances_are_None(datetime_period):
+def test_DateTimePeriod_assert_both_or_neither_datetime_instances_are_none(datetime_period):
     with pytest.raises(ValueError, match="Both"):
         datetime_period.assert_both_or_neither_datetime_instances_are_none()
+
+
+@pytest.mark.parametrize("datetime_period", [
+    dict(start_datetime=start_datetime),
+    dict(end_datetime=end_datetime),
+    dict()
+])
+def test_DateTimePeriodStrict(datetime_period):
+    with pytest.raises(ValidationError, match="must not be `None`"):
+        DateTimePeriodStrict(**datetime_period)

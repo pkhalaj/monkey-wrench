@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import AfterValidator, AwareDatetime, Field
+from pydantic import AfterValidator, AwareDatetime, Field, model_validator
 from typing_extensions import Annotated
 
 from monkey_wrench.date_time._common import assert_datetime_has_past
@@ -73,3 +73,13 @@ class DateTimePeriod(StartDateTime, EndDateTime):
             "The start and the end datetime must not be `None`.",
             silent=False
         )
+
+
+class DateTimePeriodStrict(DateTimePeriod):
+    """Same as :obj:`DateTimePeriod` but does not allow fields to have ``None`` values."""
+
+    @model_validator(mode="after")
+    def validate_datetime_instances(self) -> Self:  # noqa: N804
+        """Ensure that datetime instances are not ``None``."""
+        self.assert_datetime_instances_are_not_none()
+        return self

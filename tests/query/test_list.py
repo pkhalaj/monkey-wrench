@@ -28,6 +28,9 @@ elements = [input_filename_from_datetime(i) for i in datetime_range]
     ((2015, 7, 31, 22, 10), (2015, 7, 31, 22, 17), [0, 2, 3, 4, 8]),
     ((2023, 7, 31, 22, 10), (2023, 7, 31, 22, 17), []),
     ((2021, 7, 31, 22, 11), (2021, 7, 31, 22, 11), []),
+    ((2015, 7, 31, 23, 13), None, [1, 7]),
+    (None, (2015, 7, 31, 22, 17), [0, 2, 3, 4, 6, 8]),
+    (None, None, [0, 1, 2, 3, 4, 5, 6, 7, 8])
 ])
 def test_List_query(start_datetime, end_datetime, reference_indices):
     for _ in range(10):
@@ -46,8 +49,8 @@ def test_List_query(start_datetime, end_datetime, reference_indices):
         expected = get_items_from_shuffled_list_by_original_indices((indices, items), reference_indices)
 
         datetime_period = DateTimePeriod(
-            start_datetime=datetime(*start_datetime, tzinfo=UTC),
-            end_datetime=datetime(*end_datetime, tzinfo=UTC)
+            start_datetime=datetime(*start_datetime, tzinfo=UTC) if start_datetime else None,
+            end_datetime=datetime(*end_datetime, tzinfo=UTC) if end_datetime else None
         )
         assert lq.query(datetime_period) == expected
         assert expected == [items[i] for i in lq.query_indices(datetime_period)]
