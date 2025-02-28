@@ -118,6 +118,8 @@ class DateTimeRangeInBatches(DateTimePeriod):
         Yields:
             A generator of batches, where each batch is a 2-tuple of the start and end datetime instances.
         """
+        self.assert_datetime_instances_are_not_none()
+
         start = deepcopy(self.start_datetime)
         end = deepcopy(self.end_datetime)
         _batch_interval = deepcopy(self.batch_interval)

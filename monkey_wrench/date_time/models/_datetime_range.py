@@ -104,6 +104,8 @@ class DateTimeRange(DateTimePeriod):
         Yields:
             A generator of datetime instances.
         """
+        self.assert_datetime_instances_are_not_none()
+
         start = deepcopy(self.start_datetime)
         end = deepcopy(self.end_datetime)
         step = deepcopy(self.interval)

@@ -83,3 +83,22 @@ def test_DateTimePeriod():
     assert datetime_period.span == start_datetime - end_datetime
     assert datetime_period.as_tuple() == (end_datetime, start_datetime)
     assert datetime_period.as_tuple(sort=True) == (start_datetime, end_datetime)
+
+
+@pytest.mark.parametrize("datetime_period", [
+    DateTimePeriod(start_datetime=start_datetime),
+    DateTimePeriod(end_datetime=end_datetime),
+    DateTimePeriod()
+])
+def test_DateTimePeriod_assert_datetime_instances_are_not_None(datetime_period):
+    with pytest.raises(ValueError, match="must not be `None`"):
+        datetime_period.assert_datetime_instances_are_not_none()
+
+
+@pytest.mark.parametrize("datetime_period", [
+    DateTimePeriod(start_datetime=start_datetime),
+    DateTimePeriod(end_datetime=end_datetime)
+])
+def test_DateTimePeriod_assert_both_datetime_instances_are_None(datetime_period):
+    with pytest.raises(ValueError, match="Both"):
+        datetime_period.assert_both_or_neither_datetime_instances_are_none()
