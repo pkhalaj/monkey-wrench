@@ -2,7 +2,7 @@ from collections import Counter
 
 import pytest
 
-from monkey_wrench.date_time import DateTimePeriod, DateTimeRange, DateTimeRangeInBatches
+from monkey_wrench.date_time import DateTimePeriod, DateTimePeriodStrict, DateTimeRange, DateTimeRangeInBatches
 from tests.utils import intervals_equal
 
 from .const import end_datetime, interval, quotient, remainder, start_datetime
@@ -37,8 +37,9 @@ def test_DateTimeRangeInBatches(batches, first_batch, last_batch):
     (start_datetime, end_datetime, -1, []),
     (end_datetime, start_datetime, +1, []),
 
-    (end_datetime, end_datetime, -1, [DateTimePeriod(start_datetime=end_datetime, end_datetime=end_datetime)]),
-    (start_datetime, start_datetime, +1, [DateTimePeriod(start_datetime=start_datetime, end_datetime=start_datetime)])
+    (end_datetime, end_datetime, -1, [DateTimePeriodStrict(start_datetime=end_datetime, end_datetime=end_datetime)]),
+    (start_datetime, start_datetime, +1,
+     [DateTimePeriodStrict(start_datetime=start_datetime, end_datetime=start_datetime)])
 ])
 def test_DateTimeRangeInBatches_empty_or_single(start_datetime, end_datetime, temporal_sign, result):
     assert result == list(

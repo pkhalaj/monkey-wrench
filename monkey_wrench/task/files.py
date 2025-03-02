@@ -4,7 +4,7 @@ from typing import Any, Literal, TypeVar
 from pydantic import Field, NonNegativeInt, model_validator
 from typing_extensions import Annotated
 
-from monkey_wrench.date_time import DateTimePeriod, FilePathParser, SeviriIDParser
+from monkey_wrench.date_time import DateTimePeriodStrict, FilePathParser, SeviriIDParser
 from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader, TempDirectory
 from monkey_wrench.input_output.seviri import Resampler
 from monkey_wrench.process import MultiProcess
@@ -19,7 +19,7 @@ class FilesTaskBase(TaskBase):
     context: Literal[Context.product_files]
 
 
-class VerifyFilesSpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrityValidator):
+class VerifyFilesSpecifications(DateTimePeriodStrict, DirectoryVisitor, FilesIntegrityValidator):
     """Pydantic model for the specifications of a verification task."""
 
     verbose: list[IntegrityValidatorReturnFieldName] | bool = False
@@ -47,7 +47,7 @@ class VerifyFilesSpecifications(DateTimePeriod, DirectoryVisitor, FilesIntegrity
 
 
 class FetchFilesSpecifications(
-    DateTimePeriod,
+    DateTimePeriodStrict,
     MultiProcess,
     Resampler,
     Reader,

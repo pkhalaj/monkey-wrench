@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, Generator, Self
+from typing import Any, Generator, Self, assert_never
 
 import numpy as np
 from pydantic import PositiveInt, validate_call
@@ -118,12 +118,19 @@ class List(Query):
     @validate_call
     def __get_indices(self, datetime_period: DateTimePeriod) -> np.array:
         """Similar to :func:`~List.query_indices`, but returns the numpy indices instead."""
-        start, end = datetime_period.as_tuple()
-        if end > start:
-            idx = np.where((self.__items_parsed >= start) & (self.__items_parsed < end))
-        else:
-            idx = np.where((self.__items_parsed <= start) & (self.__items_parsed > end))
-
+        match datetime_period.as_tuple():
+            case None, None:
+                idx = np.where(self.__items_parsed)
+            case None, end:
+                idx = np.where(self.__items_parsed < end)
+            case start, None:
+                idx = np.where(self.__items_parsed >= start)
+            case start, end if end > start:
+                idx = np.where((self.__items_parsed >= start) & (self.__items_parsed < end))
+            case start, end if start >= end:
+                idx = np.where((self.__items_parsed <= start) & (self.__items_parsed > end))
+            case invalid:
+                assert_never(invalid)
         return idx[0]
 
     @validate_call

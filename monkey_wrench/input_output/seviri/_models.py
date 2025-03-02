@@ -2,6 +2,8 @@
 
 import os
 import tempfile
+import warnings
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable
 from uuid import uuid4
@@ -22,6 +24,19 @@ from monkey_wrench.query import EumetsatAPI
 
 DEFAULT_CHANNEL_NAMES = list(CHANNEL_NAMES.values())
 """Names of SEVIRI channels."""
+
+
+@contextmanager
+def catch_warnings():
+    warning_messages = [
+        "invalid value encountered in cos*",
+        "invalid value encountered in sin*",
+        "divide by zero encountered in divide*"
+    ]
+    with warnings.catch_warnings():
+        for message in warning_messages:
+            warnings.filterwarnings("ignore", category=RuntimeWarning, message=message)
+        yield
 
 
 class RemoteSeviriFile(FsSpecCache):
@@ -95,5 +110,6 @@ class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
             scene = Scene([fs_file], "seviri_l1b_native")
             scene.load(self.channel_names)
             resampled_scene = scene.resample(self.area, radius_of_influence=self.radius_of_influence)
-            resampled_scene.save_datasets(filename=str(output_filename), **self.dataset_save_options)
+            with catch_warnings():
+                resampled_scene.save_datasets(filename=str(output_filename), **self.dataset_save_options)
             logger.info(f"Resampling SEVIRI native file `{log_id}` is complete.")
