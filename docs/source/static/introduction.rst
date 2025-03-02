@@ -3,7 +3,7 @@ Introduction
 
 **Monkey Wrench** provides tools to run pre-trained neural network (NN) models for
 precipitation intensity using satellite data, based on the **Chalmers/CSU Integrated
-Multi-Satellite Precipitation Retrieval Program**, also referred to as CHIMP for short.
+Multi-Satellite Precipitation Retrieval Program**, also referred to as `CHIMP`_ for short.
 CHIMP is a general framework for training, evaluating, and running NN-based retrievals of physical
 properties from remote-sensing observations. However, the focus of **Monkey Wrench**
 has so far been NN-based retrievals of precipitation intensity using satellite data,
