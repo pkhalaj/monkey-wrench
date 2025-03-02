@@ -39,7 +39,7 @@ The following is the content of a task file which obtains all product IDs for SE
 Specifications depend on the context and the action as explained below.
 
 Examples
-----------
+--------
 
 Product IDs
 +++++++++++
@@ -100,7 +100,7 @@ Verify that files exist according to the expected product IDs, given datetime ra
       verbose: <optional>
 
 CHIMP Retrieval
-++++++++++++++
++++++++++++++++
 
 Process SEVIRI files with CHIMP model to retrieve cloud parameters
 
@@ -209,8 +209,8 @@ Paths
       model_filepath                # must point to an existing model file
 
     Description:
-      A string which can be interpreted as a valid path. It can point to either relative or absolute paths. Internally,
-      it will be parsed into an absolute path for consistency.
+      A string which can be interpreted as a valid path. It can point to either relative or absolute paths.
+      Internally, it will be parsed into an absolute path for consistency.
 
     Python type:
       pathlib.Path
@@ -256,12 +256,13 @@ Pattern
 
     Values:
       sub_strings:
-        A single literal string or a list of literal strings used to filter filenames. This is optional, and if absent from the task file, no filtering will be performed on the filenames.
+        A single literal string or a list of literal strings used to filter filenames. This is optional,
+        and if absent from the task file, no filtering will be performed on the filenames.
         The pattern does not support wildcards or regex, only literals.
       case_sensitive:
         A boolean indicating whether the pattern should be case-sensitive or not.
       match_all:
-        A boolean indicating whether all the sub_strings should be present in the filename or any one of them.
+        A boolean indicating whether all or any of the sub_strings should be present in the filename.
 
     Default:
       pattern: null
@@ -332,7 +333,7 @@ Numbers
 
 
 Device Selection
-+++++++++++++++
+++++++++++++++++
 
 .. code-block:: yaml
 
@@ -357,7 +358,7 @@ Device Selection
 
 
 Verbose Options
-++++++++++++++
++++++++++++++++
 
 .. code-block:: yaml
 
@@ -399,7 +400,7 @@ or
 
 
 Function References
-++++++++++++++++++
++++++++++++++++++++
 
 .. code-block:: yaml
 
@@ -422,7 +423,7 @@ Function References
 
 
 Cache Options
-++++++++++++
++++++++++++++
 
 .. code-block:: yaml
 
@@ -453,7 +454,7 @@ Example
 
 
 Channel Configuration
-++++++++++++++++++++
++++++++++++++++++++++
 
 .. code-block:: yaml
 
@@ -486,7 +487,7 @@ Channel Configuration
 
 
 Dataset Save Options
-+++++++++++++++++++
+++++++++++++++++++++
 
 .. code-block:: yaml
 
@@ -509,7 +510,7 @@ Dataset Save Options
 
 
 Area Definitions
-+++++++++++++++
+++++++++++++++++
 
 .. code-block:: yaml
 
@@ -553,7 +554,7 @@ Example
 
 
 Remove File Options
-++++++++++++++++++
++++++++++++++++++++
 
 .. code-block:: yaml
 
