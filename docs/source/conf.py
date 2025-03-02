@@ -121,6 +121,7 @@ all_members = {
     ("Pattern", "<class 'monkey_wrench.generic.models._pattern.{name}'>"): False,
     ("StringTransformation", "<class 'monkey_wrench.generic.models._pattern.{name}'>"): False,
     ("DateTimePeriodStrict", "<class 'monkey_wrench.date_time.models._base.{name}'>"): False,
+    ("Writer", "<class 'monkey_wrench.input_output._models.{name}'>"): False,
 }
 
 
@@ -174,4 +175,4 @@ root_doc = "index"
 
 output_dir = os.path.join(".")
 module_dir = os.path.abspath("../../monkey_wrench")
-apidoc.main(["-e", "-q", "-f", "-M", "-H", "API Reference", "-o", output_dir, module_dir])
+apidoc.main(["-e", "-q", "-f", "-P", "-M", "-H", "API Reference", "-o", output_dir, module_dir])
