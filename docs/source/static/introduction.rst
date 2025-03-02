@@ -1,25 +1,25 @@
 Introduction
--------------
+------------
 
-**Monkey Wrench** gathers the tools to run pre-trained neural network (NN) models for
+**Monkey Wrench** provides tools to run pre-trained neural network (NN) models for
 precipitation intensity using satellite data, based on the **Chalmers/CSU Integrated
 Multi-Satellite Precipitation Retrieval Program**, also referred to as `CHIMP`_ for short.
-CHIMP, is a general framework for training, evaluating and running NN based retrievals of physical
+CHIMP is a general framework for training, evaluating, and running NN-based retrievals of physical
 properties from remote-sensing observations. However, the focus of **Monkey Wrench**
-has so far been NN based retrievals of precipitation intensity using satellite data,
+has so far been NN-based retrievals of precipitation intensity using satellite data,
 and CHIMP will be used here synonymously with such already pre-trained models.
 
 In particular, **Monkey Wrench** includes utilities to fetch and process CHIMP input files,
 analyze and visualize its output, and much more! It is an attempt to avoid
-*reinventing the wheel* by consolidating all Python scripts and codes that we use
+*reinventing the wheel* by consolidating all Python scripts and code that we use
 at `SMHI`_ alongside CHIMP.
 
-Example use cases of **Monkey wrench**:
+Example use cases of **Monkey Wrench**:
 
 * Querying and fetching SEVIRI data from the EUMETSAT API via either single queries or batches
 * Resampling fetched files from the API
 * Using the provided CHIMP extensions to allow for reading files which are not natively supported by CHIMP
-* Perform queries on local files, datetime objects, and conversion between filenames and datetime stamps
+* Performing queries on local files, datetime objects, and conversion between filenames and datetime stamps
 * Running CHIMP for different groups of input files in a queue
 * Performing post-processing of CHIMP output as well as some visualization utilities
 * Running tasks from YAML files, alleviating the need for coding
