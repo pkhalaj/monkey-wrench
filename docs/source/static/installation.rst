@@ -1,23 +1,23 @@
 Prerequisites and installation
-===============================
+==============================
 
 Miniforge
 ---------
-The hard requirement of using Monkey Wrench is being able to make a ``conda`` environment. As a result, install `mamba`_
-via the `Miniforge`_ GitHub.
+Using Monkey Wrench requires a working ``conda`` environment. One can install `mamba`_
+through `Miniforge`_.
 
 Installation of CHIMP and Monkey Wrench
-_______________________________________
+---------------------------------------
 
-1- Clone the repository
+1. Clone the repository
 
 .. code-block:: bash
 
     git clone https://github.com/pkhalaj/monkey-wrench.git
 
 
-2- All the requirements for running CHIMP are in `chimp.yaml`_. The file provides a conda environment with the same
-name (excluding the :samp:`.yaml` extension). To install and activate the available conda environment, run:
+2. All the requirements for running CHIMP are in `chimp.yaml`_. The file provides a conda environment with the same
+   name (excluding the :samp:`.yaml` extension). To install and activate the available conda environment, run:
 
 .. code-block:: bash
 
@@ -25,14 +25,14 @@ name (excluding the :samp:`.yaml` extension). To install and activate the availa
     mamba activate chimp
 
 
-3- install the package via
+3. Install the package via:
 
 .. code-block:: bash
 
     pip install monkey-wrench
 
 
-To install dependencies for development (e.g. tests and documentation)
+To install dependencies for development (e.g., tests and documentation):
 
 .. code-block:: bash
 
@@ -67,19 +67,19 @@ You can also inspect and download the models manually from
 See :doc:`CHIMP models and results <chimp_models>`, if you need to know more about the models.
 
 API credentials
--------------------
+---------------
 
-1- Visit `API key management`_ to obtain credentials to access the EUMETSAT API.
+1. Visit `API key management`_ to obtain credentials to access the EUMETSAT API.
 
-2- Set environment variables for API credentials so that they can be picked up by Monkey Wrench via
+2. Set environment variables for API credentials so that they can be picked up by Monkey Wrench:
 
 .. code-block:: bash
 
     export EUMETSAT_API_LOGIN=<login>
     export EUMETSAT_API_PASSWORD=<password>
 
-You need to replace ``<login>`` and ``<password>`` with your actual credentials and this needs to be done in every new
-shell instance.
+You need to replace ``<login>`` and ``<password>`` with your actual credentials. Note that this needs to be done in every new
+shell instance unless added to your shell profile.
 
 
 .. _API key management: https://api.eumetsat.int/api-key
