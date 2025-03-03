@@ -16,13 +16,13 @@ at `SMHI`_ alongside CHIMP.
 
 Example use cases of **Monkey Wrench**:
 
-* Querying and fetching SEVIRI data from the EUMETSAT API via either single queries or batches
-* Resampling fetched files from the API
-* Using the provided CHIMP extensions to allow for reading files which are not natively supported by CHIMP
-* Performing queries on local files, datetime objects, and conversion between filenames and datetime stamps
-* Running CHIMP for different groups of input files in a queue
-* Performing post-processing of CHIMP output as well as some visualization utilities
-* Running tasks from YAML files, alleviating the need for coding
+- |checked| Querying and fetching SEVIRI data from the EUMETSAT API via either single queries or batches
+- |checked| Resampling fetched files from the API
+- |checked| Using the provided CHIMP extensions to allow for reading files which are not natively supported by CHIMP
+- |checked| Performing queries on local files, datetime objects, and conversion between filenames and datetime stamps
+- |checked| Running CHIMP for different groups of input files in a queue
+- |checked| Running tasks from YAML files, alleviating the need for coding
+- |unchecked| Performing post-processing of CHIMP output as well as some visualization utilities
 
 .. note::
   **Monkey Wrench** has been developed at the Swedish Meteorological and
@@ -46,3 +46,6 @@ Example use cases of **Monkey Wrench**:
 .. _eumdac: https://gitlab.eumetsat.int/eumetlab/data-services/eumdac
 .. _SMHI: https://www.smhi.se
 .. _MSB: https://www.msb.se
+.. |checked| unicode:: U+2611
+.. |unchecked| unicode:: U+2610
+
