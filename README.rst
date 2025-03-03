@@ -1,4 +1,4 @@
-**Monkey wrench** provides tools to run `CHIMP`_, fetch and process its input files, analyze and visualize its
+**Monkey Wrench** provides tools to run `CHIMP`_, fetch and process its input files, analyze and visualize its
 output, and much more! It is an attempt to avoid *reinventing the wheel* by consolidating all Python scripts and
 codes that we use alongside CHIMP.
 
