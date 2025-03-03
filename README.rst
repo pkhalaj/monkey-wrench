@@ -9,8 +9,8 @@ In particular, you can:
 - |checked| Using the provided CHIMP extensions to allow for reading files which are not natively supported by CHIMP
 - |checked| Performing queries on local files, datetime objects, and conversion between filenames and datetime stamps
 - |checked| Running CHIMP for different groups of input files in a queue
-- |unchecked| Performing post-processing of CHIMP output as well as some visualization utilities
 - |checked| Running tasks from YAML files, alleviating the need for coding
+- |unchecked| Performing post-processing of CHIMP output as well as some visualization utilities
 
 N.B. **Monkey Wrench** is a work in progress and under active development. As a result, the API and the scheme of task (YAML) files might and will change!
 
