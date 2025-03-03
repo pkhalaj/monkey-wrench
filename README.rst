@@ -4,13 +4,13 @@ codes that we use alongside CHIMP.
 
 In particular, you can:
 
-* Querying and fetching SEVIRI data from the EUMETSAT API via either single queries or batches
-* Resampling fetched files from the API
-* Using the provided CHIMP extensions to allow for reading files which are not natively supported by CHIMP
-* Performing queries on local files, datetime objects, and conversion between filenames and datetime stamps
-* Running CHIMP for different groups of input files in a queue
-* Performing post-processing of CHIMP output as well as some visualization utilities
-* Running tasks from YAML files, alleviating the need for coding
+- |checked| Querying and fetching SEVIRI data from the EUMETSAT API via either single queries or batches
+- |checked| Resampling fetched files from the API
+- |checked| Using the provided CHIMP extensions to allow for reading files which are not natively supported by CHIMP
+- |checked| Performing queries on local files, datetime objects, and conversion between filenames and datetime stamps
+- |checked| Running CHIMP for different groups of input files in a queue
+- |unchecked| Performing post-processing of CHIMP output as well as some visualization utilities
+- |checked| Running tasks from YAML files, alleviating the need for coding
 
 N.B. **Monkey Wrench** is a work in progress and under active development. As a result, the API and the scheme of task (YAML) files might and will change!
 
@@ -20,3 +20,5 @@ N.B. **Monkey Wrench** is a work in progress and under active development. As a 
 
 .. _CHIMP: https://github.com/simonpf/chimp
 .. _GNU General Public License Version 3: https://www.gnu.org/licenses/gpl-3.0.html
+.. |checked| unicode:: U+2611
+.. |unchecked| unicode:: U+2610
