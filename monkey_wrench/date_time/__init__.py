@@ -7,7 +7,7 @@ from ._common import (
     floor_datetime_minutes_to_specific_snapshots,
     number_of_days_in_month,
 )
-from ._parser import DateTimeParser, DateTimeParserBase, FilePathParser, SeviriIDParser
+from ._parser import ChimpFilePathParser, DateTimeParser, DateTimeParserBase, SeviriIDParser
 from ._types import Day, Hour, Minute, Minutes, Month, Year
 from .models import (
     AwarePastDateTime,
@@ -23,6 +23,7 @@ from .models import (
 
 __all__ = [
     "AwarePastDateTime",
+    "ChimpFilePathParser",
     "DateTimeParser",
     "DateTimeParserBase",
     "DateTimePeriod",
@@ -31,7 +32,6 @@ __all__ = [
     "DateTimeRangeInBatches",
     "Day",
     "EndDateTime",
-    "FilePathParser",
     "Hour",
     "Minute",
     "Minutes",

@@ -4,7 +4,7 @@ from typing import Any, Literal, TypeVar
 from pydantic import Field, NonNegativeInt, model_validator
 from typing_extensions import Annotated
 
-from monkey_wrench.date_time import DateTimePeriodStrict, FilePathParser, SeviriIDParser
+from monkey_wrench.date_time import ChimpFilePathParser, DateTimePeriodStrict, SeviriIDParser
 from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader, TempDirectory
 from monkey_wrench.input_output.seviri import Resampler
 from monkey_wrench.process import MultiProcess
@@ -42,7 +42,7 @@ class VerifyFilesSpecifications(DateTimePeriodStrict, DirectoryVisitor, FilesInt
     def validate_filepath_transform_function(cls, data: Any) -> Any:
         """Ensure that the filepath transform function is set to a default value if it is not given explicitly."""
         if not data.get("filepath_transform_function"):
-            data["filepath_transform_function"] = FilePathParser.parse
+            data["filepath_transform_function"] = ChimpFilePathParser.parse
         return data
 
 
@@ -77,7 +77,7 @@ class VerifyFiles(FilesTaskBase):
         """Verify the product files using the reference."""
         files = List(
             self.specifications.visit(),
-            FilePathParser
+            ChimpFilePathParser
         ).query(
             self.specifications.datetime_period
         ).to_python_list()

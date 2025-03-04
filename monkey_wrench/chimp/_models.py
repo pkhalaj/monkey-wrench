@@ -2,7 +2,7 @@ from typing import Callable, Literal
 
 from pydantic import FilePath, NonNegativeInt, PositiveInt
 
-from monkey_wrench.date_time import DateTimePeriod, FilePathParser
+from monkey_wrench.date_time import ChimpFilePathParser, DateTimePeriod
 from monkey_wrench.generic import Pattern
 from monkey_wrench.input_output import (
     DateTimeDirectory,
@@ -33,7 +33,7 @@ class ChimpRetrieval(
         """Perform CHIMP retrievals in batches."""
         files = self.visit()
         with seviri_extension_context() as chimp_cli:
-            lst = List(files, FilePathParser)
+            lst = List(files, ChimpFilePathParser)
             indices = lst.query_indices(self.datetime_period)
 
             batches = lst.generate_k_sized_batches_by_index(
@@ -79,7 +79,7 @@ class ChimpRetrieval(
                 verbose=self.verbose
             )
 
-            last_snapshot = FilePathParser.parse(batch[-1])
+            last_snapshot = ChimpFilePathParser.parse(batch[-1])
             datetime_directory = self.create_datetime_directory(last_snapshot)
 
             copy_files_between_directories(
