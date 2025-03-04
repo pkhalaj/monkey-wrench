@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from monkey_wrench.date_time import ChimpFilePathParser, DateTimeParserBase, SeviriIDParser
+from monkey_wrench.date_time import ChimpFilePathParser, DateTimeParserBase, HritFilePathParser, SeviriIDParser
 
 # ======================================================
 ### Tests for DateTimeParserBase()
@@ -105,7 +105,7 @@ def test_SeviriIDParser_parse_raise(seviri_id):
 
 
 # ======================================================
-### Tests for FilePathParser()
+### Tests for ChimpFilePathParser()
 
 @pytest.mark.parametrize("filename", [
     "/home/user/dir/some_prefix_20150731_22_12.extension",
@@ -135,3 +135,24 @@ def test_FilePathParser_parse_raise(filename):
     for func in [Path, lambda x: x]:
         with pytest.raises(ValueError, match="into a valid datetime object"):
             ChimpFilePathParser.parse(func(filename))
+
+
+# ======================================================
+### Tests for HritFilePathParser()
+
+@pytest.mark.parametrize("path", [
+    "/home/user/dir",
+    ""
+])
+@pytest.mark.parametrize("filename", [
+    "H-000-MSG3__-MSG3________-WV_073___-000007___-201507312212-__",
+    "201507312212-__",
+    "prefx201507312212-__",
+])
+def test_HritFilePathParser_parse(path, filename):
+    for func in [Path, lambda x: x]:
+        datetime_obj = HritFilePathParser.parse(func(path + filename))
+        assert datetime(2015, 7, 31, 22, 12, tzinfo=UTC) == datetime_obj
+
+    with pytest.raises(ValueError, match="into a valid datetime object"):
+        ChimpFilePathParser.parse(func(path + filename + "-"))
