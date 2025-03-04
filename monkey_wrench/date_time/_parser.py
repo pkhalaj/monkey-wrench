@@ -132,8 +132,8 @@ class SeviriIDParser(DateTimeParserBase):
         return DateTimeParserBase.parse_by_regex(seviri_product_id, SeviriIDParser.regex)
 
 
-class FilePathParser(DateTimeParserBase):
-    """Static parser class for file paths."""
+class ChimpFilePathParser(DateTimeParserBase):
+    """Static parser class for CHIMP-compiliant input and output file paths."""
 
     regex = r"[0-9A-Za-z]+_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})_([0-9]{2})"
 
@@ -151,23 +151,23 @@ class FilePathParser(DateTimeParserBase):
 
         Examples:
             >>> # Input is an absolute path of type `Path`.
-            >>> FilePathParser.parse(Path("/home/user/dir/seviri_20150731_22_12.extension"))
+            >>> ChimpFilePathParser.parse(Path("/home/user/dir/seviri_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `Path`.
-            >>> FilePathParser.parse(Path("chimp_20150731_22_12.extension"))
+            >>> ChimpFilePathParser.parse(Path("chimp_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is an absolute path of type `str`.
-            >>> FilePathParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
+            >>> ChimpFilePathParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `str` and does not have an extension.
-            >>> FilePathParser.parse("seviri_20150731_22_12")
+            >>> ChimpFilePathParser.parse("seviri_20150731_22_12")
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `str` and its extension is numeric, i.e. `72`.
-            >>> FilePathParser.parse("p_20150731_22_1272")
+            >>> ChimpFilePathParser.parse("p_20150731_22_1272")
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is invalid (missing prefix). The following will raise an exception!
@@ -179,7 +179,7 @@ class FilePathParser(DateTimeParserBase):
         if isinstance(filepath, str):
             filepath = Path(filepath)
 
-        return DateTimeParserBase.parse_by_regex(str(filepath.stem), FilePathParser.regex)
+        return DateTimeParserBase.parse_by_regex(str(filepath.stem), ChimpFilePathParser.regex)
 
 
-DateTimeParser = SeviriIDParser | FilePathParser
+DateTimeParser = SeviriIDParser | ChimpFilePathParser

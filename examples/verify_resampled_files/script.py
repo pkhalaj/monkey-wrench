@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
-from monkey_wrench.date_time import DateTimePeriod, FilePathParser, SeviriIDParser
+from monkey_wrench.date_time import ChimpFilePathParser, DateTimePeriod, SeviriIDParser
 from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator
 from monkey_wrench.query import List
 
@@ -17,13 +17,13 @@ files_validator = FilesIntegrityValidator(
     nominal_file_size="<replace_with_nominal_size_of_a_single_file_in_bytes_as_an_integer>",
     file_size_relative_tolerance=0.01,
     number_of_processes=20,
-    filepath_transform_function=FilePathParser.parse
+    filepath_transform_function=ChimpFilePathParser.parse
 )
 
 if __name__ == "__main__":
     files = List(
         DirectoryVisitor(parent_input_directory_path=parent_directory_path).visit(),
-        FilePathParser
+        ChimpFilePathParser
     ).query(
         datetime_period
     ).to_python_list()
