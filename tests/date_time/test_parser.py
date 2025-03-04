@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from monkey_wrench.date_time import DateTimeParserBase, FilePathParser, SeviriIDParser
+from monkey_wrench.date_time import ChimpFilePathParser, DateTimeParserBase, SeviriIDParser
 
 # ======================================================
 ### Tests for DateTimeParserBase()
@@ -116,7 +116,7 @@ def test_SeviriIDParser_parse_raise(seviri_id):
 ])
 def test_FilePathParser_parse(filename):
     for func in [Path, lambda x: x]:
-        datetime_obj = FilePathParser.parse(func(filename))
+        datetime_obj = ChimpFilePathParser.parse(func(filename))
         assert datetime(2015, 7, 31, 22, 12, tzinfo=UTC) == datetime_obj
 
 
@@ -134,4 +134,4 @@ def test_FilePathParser_parse(filename):
 def test_FilePathParser_parse_raise(filename):
     for func in [Path, lambda x: x]:
         with pytest.raises(ValueError, match="into a valid datetime object"):
-            FilePathParser.parse(func(filename))
+            ChimpFilePathParser.parse(func(filename))
