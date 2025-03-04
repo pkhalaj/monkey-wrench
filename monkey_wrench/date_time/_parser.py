@@ -182,4 +182,42 @@ class ChimpFilePathParser(DateTimeParserBase):
         return DateTimeParserBase.parse_by_regex(str(filepath.stem), ChimpFilePathParser.regex)
 
 
-DateTimeParser = SeviriIDParser | ChimpFilePathParser
+class HritFilePathParser(DateTimeParserBase):
+    """Static parser class for HRIT file paths."""
+
+    @staticmethod
+    @validate_call
+    def parse(filepath: Path | str) -> datetime:
+        """Parse the given filepath into a datetime object.
+
+        Args:
+            filepath:
+                The HRIT filepath to parse. It can be either an absolute path or a relative path
+                (e.g. just the base name). For the parsing to be successful, the ``filepath`` must have the following
+                format: ``<optional_path><optional_prefix><YYYYmmDDHHMM>-__``. See the examples below.
+
+        Examples:
+            >>> # Input is an absolute path of type `Path`.
+            >>> HritFilePathParser.parse(
+            ...  Path("/home/user/dir/H-000-MSG3__-MSG3________-WV_073___-000008___-202503041900-__")
+            ... )
+            datetime.datetime(2025, 3, 4, 19, 0, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+
+            >>> # Input is a relative path of type `Path`.
+            >>> HritFilePathParser.parse(Path("H-000-MSG3__-MSG3________-WV_073___-000008___-202503041900-__"))
+            datetime.datetime(2025, 3, 4, 19, 0, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+
+            >>> # Input is a relative path of type `str` without a prefix.
+            >>> HritFilePathParser.parse(Path("202503041900-__"))
+            datetime.datetime(2025, 3, 4, 19, 0, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+
+            >>> # Input is invalid as it misses the mandatory trailing `-__`. The following will raise an exception!
+            >>> # HritFilePathParser.parse(Path("202503041900"))
+        """
+        if isinstance(filepath, str):
+            filepath = Path(filepath)
+
+        return DateTimeParserBase.parse_by_format_string(str(filepath.stem)[-15:-3], "%Y%m%d%H%M")
+
+
+DateTimeParser = SeviriIDParser | ChimpFilePathParser | HritFilePathParser
