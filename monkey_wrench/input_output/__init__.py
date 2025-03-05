@@ -1,6 +1,6 @@
 """The package providing utilities for input and output operations."""
 
-from . import seviri
+from . import hrit, seviri
 from ._common import copy_files_between_directories, copy_single_file_to_directory
 from ._models import (
     DatasetSaveOptions,
@@ -58,5 +58,6 @@ __all__ = [
     "Writer",
     "copy_files_between_directories",
     "copy_single_file_to_directory",
+    "hrit",
     "seviri"
 ]

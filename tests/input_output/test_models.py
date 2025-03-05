@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 
 from monkey_wrench import input_output
-from monkey_wrench.date_time import DateTimeRange, FilePathParser, SeviriIDParser
+from monkey_wrench.date_time import ChimpFilePathParser, DateTimeRange, SeviriIDParser
 from monkey_wrench.generic import Pattern, StringTransformation
 from monkey_wrench.input_output import (
     DateTimeDirectory,
@@ -160,7 +160,7 @@ def test_compare_files_against_reference_transform(temp_dir):
     datetime_objs, collected_files = _make_dummy_datetime_files(temp_dir)
 
     missing, _ = FilesIntegrityValidator(
-        reference=datetime_objs, filepath_transform_function=FilePathParser.parse
+        reference=datetime_objs, filepath_transform_function=ChimpFilePathParser.parse
     ).verify_files(collected_files)
 
     assert missing == set()
