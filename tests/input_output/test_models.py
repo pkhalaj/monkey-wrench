@@ -1,5 +1,6 @@
 import os
 import tempfile
+from collections import Counter
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest import mock
@@ -14,6 +15,7 @@ from monkey_wrench.input_output import (
     DirectoryVisitor,
     FilesIntegrityValidator,
     FsSpecCache,
+    Items,
     Reader,
     TempDirectory,
     Writer,
@@ -24,6 +26,53 @@ start_datetime = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
 end_datetime = datetime(2022, 1, 4, tzinfo=UTC)
 batch_interval = timedelta(hours=1)
 number_of_days = (end_datetime - start_datetime).days
+
+
+# ======================================================
+### Tests for Items()
+
+@pytest.mark.parametrize(("items", "func", "expected"), [
+    (None, None, None),
+    (None, lambda x: x * 2, None),
+    ([], None, []),
+    ([], lambda x: x * 2, []),
+    (["a", "b", "c"], None, ["a", "b", "c"]),
+    (["a", "b", "c"], lambda x: x * 2, ["aa", "bb", "cc"]),
+])
+def test_Items_list(items, func, expected):
+    _items = Items(items=items, item_transform_function=func)
+    assert _items.items == items
+    assert _items.transformed_items == expected
+
+
+@pytest.mark.parametrize(("items", "func", "expected"), [
+    ([], None, []),
+    ([], lambda x: x * 2, []),
+    (["a", "b", "c"], None, ["a", "b", "c"]),
+    (["a", "b", "c"], lambda x: x * 2, ["aa", "bb", "cc"]),
+])
+def test_Items_reader(temp_dir, items, func, expected):
+    filename = temp_dir / "output.txt"
+    Writer(output_filepath=filename).write(items)
+    reader = Reader(input_filepath=filename)
+
+    _items = Items(items=reader, item_transform_function=func)
+    assert _items.items == items
+    assert _items.transformed_items == expected
+
+
+@pytest.mark.parametrize(("items", "func", "expected"), [
+    ([], None, []),
+    ([], lambda x: x * 2, []),
+    (["a", "b", "c"], None, ["a", "b", "c"]),
+    (["a", "b", "c"], lambda x: x / "2", ["a/2", "b/2", "c/2"]),
+])
+def test_Items_directory(temp_dir, items, func, expected):
+    files, _, _ = make_dummy_files(temp_dir, filenames=items)
+    visitor = DirectoryVisitor(parent_input_directory_path=temp_dir)
+    _items = Items(items=visitor, item_transform_function=func)
+    assert Counter(_items.items) == Counter(files)
+    assert _items.transformed_items == [temp_dir / e for e in expected]
 
 
 # ======================================================
