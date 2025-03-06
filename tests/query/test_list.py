@@ -23,6 +23,10 @@ elements = [input_filename_from_datetime(i) for i in datetime_range]
 # ======================================================
 ### Tests for List.query()
 
+@pytest.mark.parametrize("parser", [
+    ChimpFilePathParser,
+    ChimpFilePathParser.parse
+])
 @pytest.mark.parametrize(("start_datetime", "end_datetime", "reference_indices"), [
     ((2021, 1, 1), (2021, 12, 31), [7]),
     ((2015, 7, 31, 22, 10), (2015, 7, 31, 22, 17), [0, 2, 3, 4, 8]),
@@ -32,7 +36,7 @@ elements = [input_filename_from_datetime(i) for i in datetime_range]
     (None, (2015, 7, 31, 22, 17), [0, 2, 3, 4, 6, 8]),
     (None, None, [0, 1, 2, 3, 4, 5, 6, 7, 8])
 ])
-def test_List_query(start_datetime, end_datetime, reference_indices):
+def test_List_query(parser, start_datetime, end_datetime, reference_indices):
     for _ in range(10):
         indices, items = shuffle_list([
             "seviri_20150731_22_16.nc",
@@ -45,7 +49,7 @@ def test_List_query(start_datetime, end_datetime, reference_indices):
             "seviri_20210731_22_11.nc",
             "seviri_20150731_22_16.nc",
         ])
-        lq = List(items, ChimpFilePathParser)
+        lq = List(items, parser)
         expected = get_items_from_shuffled_list_by_original_indices((indices, items), reference_indices)
 
         datetime_period = DateTimePeriod(
@@ -60,6 +64,17 @@ def test_List_query(start_datetime, end_datetime, reference_indices):
 # ======================================================
 ### Tests for List()
 
+def test_List_none_datetime_parser():
+    dt = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
+    assert List([dt]).to_python_list() == [dt]
+
+
+def test_List_custom_datetime_parser():
+    dt = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
+    assert List(["a"], lambda _: dt).to_python_list() == ["a"]
+    assert List(["a"], lambda _: dt).parsed_items == [dt]
+
+
 def test_List_parse_raise():
     with pytest.raises(ValueError, match="a valid datetime object"):
         List(["20150731_22_12", "wrong_format"], ChimpFilePathParser)
@@ -68,6 +83,11 @@ def test_List_parse_raise():
 def test_List_empty_raise():
     with pytest.raises(ValueError, match="List is empty"):
         List([], ChimpFilePathParser)
+
+
+def test_List_none_datetime_parser_raise():
+    with pytest.raises(ValueError, match="non-datetime"):
+        List(["a"], None)
 
 
 @pytest.mark.parametrize("log_context", ["test1", ""])
