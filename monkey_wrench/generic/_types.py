@@ -1,6 +1,7 @@
-from typing import Any, Self, TypeVar
+from pathlib import Path
+from typing import Annotated, Any, Self, TypeVar
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AfterValidator, BaseModel, ConfigDict
 
 ElementType = TypeVar("ElementType")
 
@@ -10,6 +11,19 @@ ListSetTuple = list[ElementType] | set[ElementType] | tuple[ElementType, ...]
 Warning:
     Strings and dictionaries have been intentionally left out, although they are also iterables!
 """
+
+T = TypeVar("T")
+
+
+def _validate_path(item: T) -> Path:
+    try:
+        return Path(item)
+    except Exception as exc:
+        raise ValueError(f"{item} cannot be converted to a valid path!") from exc
+
+
+PathLikeType = Annotated[Path | T, AfterValidator(_validate_path)]
+"""Type annotation and Pydantic validator to convert to a path object."""
 
 
 class Model(BaseModel):
