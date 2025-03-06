@@ -1,13 +1,11 @@
 import re
-from abc import abstractmethod
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Generator, Never
 from zoneinfo import ZoneInfo
 
 from pydantic import validate_call
 
-from monkey_wrench.generic import ListSetTuple, apply_to_single_or_collection
+from monkey_wrench.generic import ListSetTuple, PathLikeType, apply_to_single_or_collection
 
 
 class DateTimeParserBase:
@@ -104,14 +102,13 @@ class DateTimeParserBase:
         return apply_to_single_or_collection(cls.parse, items)
 
     @staticmethod
-    @abstractmethod
-    def parse(item: Any) -> datetime:
-        """Parse the given item into a datetime object.
+    def parse(item: Any) -> Any:
+        """Return the given item as is.
 
         Warning:
-            This is an abstract static method and needs to be implemented for each derived class.
+            Oerride this static method for each derived class.
         """
-        raise NotImplementedError()
+        return item
 
 
 class SeviriIDParser(DateTimeParserBase):
@@ -139,7 +136,7 @@ class ChimpFilePathParser(DateTimeParserBase):
 
     @staticmethod
     @validate_call
-    def parse(filepath: Path | str) -> datetime:
+    def parse(filepath: PathLikeType) -> datetime:
         """Parse the given filepath into a datetime object.
 
         Args:
@@ -150,6 +147,8 @@ class ChimpFilePathParser(DateTimeParserBase):
                 mandatory but can be anything except for an empty string. See the examples below.
 
         Examples:
+            >>> from pathlib import Path
+            >>>
             >>> # Input is an absolute path of type `Path`.
             >>> ChimpFilePathParser.parse(Path("/home/user/dir/seviri_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
@@ -176,9 +175,6 @@ class ChimpFilePathParser(DateTimeParserBase):
             >>> # Input is invalid (empty prefix). The following will raise an exception!
             >>> # FilePathParser.parse("_20150731_22_12")
         """
-        if isinstance(filepath, str):
-            filepath = Path(filepath)
-
         return DateTimeParserBase.parse_by_regex(str(filepath.stem), ChimpFilePathParser.regex)
 
 
@@ -187,7 +183,7 @@ class HritFilePathParser(DateTimeParserBase):
 
     @staticmethod
     @validate_call
-    def parse(filepath: Path | str) -> datetime:
+    def parse(filepath: PathLikeType) -> datetime:
         """Parse the given filepath into a datetime object.
 
         Args:
@@ -197,6 +193,8 @@ class HritFilePathParser(DateTimeParserBase):
                 format: ``<optional_path><optional_prefix><YYYYmmDDHHMM>-__``. See the examples below.
 
         Examples:
+            >>> from pathlib import Path
+            >>>
             >>> # Input is an absolute path of type `Path`.
             >>> HritFilePathParser.parse(
             ...  Path("/home/user/dir/H-000-MSG3__-MSG3________-WV_073___-000008___-202503041900-__")
@@ -214,9 +212,6 @@ class HritFilePathParser(DateTimeParserBase):
             >>> # Input is invalid as it misses the mandatory trailing `-__`. The following will raise an exception!
             >>> # HritFilePathParser.parse(Path("202503041900"))
         """
-        if isinstance(filepath, str):
-            filepath = Path(filepath)
-
         return DateTimeParserBase.parse_by_format_string(str(filepath.stem)[-15:-3], "%Y%m%d%H%M")
 
 

@@ -8,9 +8,14 @@ from monkey_wrench.date_time import ChimpFilePathParser, DateTimeParserBase, Hri
 # ======================================================
 ### Tests for DateTimeParserBase()
 
-def test_DateTimeParserBase_parse_raise():
-    with pytest.raises(NotImplementedError):
-        DateTimeParserBase.parse(None)
+@pytest.mark.parametrize("inp", [
+    datetime(2000, 1, 1, tzinfo=UTC),
+    None,
+    "2022",
+    2022
+])
+def test_DateTimeParserBase_parse(inp):
+    assert DateTimeParserBase.parse(inp) == inp
 
 
 @pytest.mark.parametrize(("datetime_string", "datetime_tuple"), [
