@@ -61,9 +61,15 @@ def test_verify_files_success(temp_dir, verbose):
             specifications=dict(
                 start_datetime=start_datetime.isoformat(),
                 end_datetime=end_datetime.isoformat(),
-                reference=str(product_ids_filename),
-                parent_input_directory_path=str(data_directory),
+                reference=dict(
+                    input_filepath=str(product_ids_filename),
+                    post_reading_transformation=dict(
+                        transform_function="date_time.SeviriIDParser.parse"
+                    )
+                ),
+                filepaths=dict(parent_input_directory_path=str(data_directory)),
                 nominal_file_size=nominal_size,
+                filepath_transform_function="date_time.ChimpFilePathParser.parse",
                 file_size_relative_tolerance=tolerance,
                 verbose=verbose,
             ))
