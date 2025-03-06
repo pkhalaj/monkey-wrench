@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Generator, Literal, TypeVar
 
 from loguru import logger
-from pydantic import FilePath, NonNegativeFloat, NonNegativeInt, validate_call
+from pydantic import FilePath, NonNegativeFloat, NonNegativeInt, field_validator, validate_call
 
 from monkey_wrench.generic import ListSetTuple, Model, Pattern, StringTransformation, TransformFunction
 from monkey_wrench.input_output._types import (
@@ -335,6 +335,50 @@ class DirectoryVisitor(ParentInputDirectory, Pattern):
             return [self.post_visit_transform_function(f) for f in files_list]
 
         return files_list
+
+
+class Items(Model):
+    """Pydantic model for a collection of items."""
+
+    item_transform_function: TransformFunction[ReturnType] | None = None
+    """A function to transform the items into other types of objects.
+
+    This can be e.g. a :func:`~monkey_wrench.date_time.DateTimeParser.parse()` function to make datetime objects out of
+    file paths. Defaults to ``None`` which means no transformation is performed on the items and they will be used as
+    they are.
+    """
+
+    items: ListSetTuple[InputType] | Reader | DirectoryVisitor | None = None
+    """The items in any of the given forms.
+
+    It can be a list/set/tuple of items, or a file reader using which the items can be read, or a directory visitor
+    which can collect e.g. filepaths.
+
+    Note:
+        :func:`~Items.item_transform_function` will be applied after
+        :func:`DirectoryVisitor.post_visit_transform_function` or :func:`Reader.post_reading_transformation`.
+    """
+
+    @field_validator("items", mode="before")
+    def validate_items(cls, value: Any) -> Any:
+        """Return the items as read from file, collected from directory, or simply as they are."""
+        match value:
+            case Reader():
+                return value.read()
+            case DirectoryVisitor():
+                return value.visit()
+            case _:
+                return value
+
+    @property
+    def transformed_items(self) -> list[InputType] | list[ReturnType] | None:
+        """Get items after applying the transformation function."""
+        if isinstance(self.items, list):
+            if func := self.item_transform_function:
+                return [func(i) for i in self.items]
+            else:
+                return self.items
+        return None
 
 
 class FilesIntegrityValidator(MultiProcess):
