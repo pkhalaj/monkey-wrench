@@ -1,10 +1,13 @@
 from copy import deepcopy
+from datetime import datetime
+from types import FunctionType
 from typing import Any, Generator, Self, assert_never
 
 import numpy as np
 from pydantic import PositiveInt, validate_call
 
-from monkey_wrench.date_time import DateTimeParser, DateTimePeriod
+from monkey_wrench.date_time import DateTimeParserBase, DateTimePeriod
+from monkey_wrench.generic import TransformFunction, collection_element_type
 from monkey_wrench.query._base import Query
 
 
@@ -21,7 +24,7 @@ class List(Query):
     def __init__(
             self,
             items: list,
-            datetime_parser: DateTimeParser,
+            datetime_parser: TransformFunction | type[DateTimeParserBase] | None = None,
             log_context: str = "List"
     ) -> None:
         """Make an instance of the class.
@@ -30,8 +33,9 @@ class List(Query):
             items:
                 The complete list of items to query.
             datetime_parser:
-                A class of type :class:`~monkey_wrench.date_time.DateTimeParser` to enable parsing items into
-                datetime objects.
+                A function such as :func:`~monkey_wrench.date_time.DateTimeParser.parse` or a class of type
+                :class:`~monkey_wrench.date_time.DateTimeParser` to parse items into datetime
+                objects. Defaults to ``None`` which means it is assumed that the list items are datetime objects.
             log_context:
                 A string that will be used in log messages to determine the context. Defaults to an empty string.
         """
@@ -40,8 +44,14 @@ class List(Query):
         if len(items) == 0:
             raise ValueError("List is empty and there are no items to query!")
 
+        if datetime_parser is None:
+            datetime_parser = DateTimeParserBase
+
+        if not isinstance(datetime_parser, FunctionType):
+            datetime_parser = datetime_parser.parse
+
         try:
-            self.__parser_vectorized = np.vectorize(datetime_parser.parse)
+            self.__parser_vectorized = np.vectorize(datetime_parser)
             self._items_vector = np.array(items)
             self.__items_parsed = self.__parser_vectorized(self._items_vector)
         except ValueError as e:
@@ -49,6 +59,9 @@ class List(Query):
                 raise ValueError("Could not parse items using the provided datetime parser.") from None
             else:
                 raise e
+
+        if collection_element_type(self.__items_parsed.tolist()) is not datetime:
+            raise ValueError("The provided datetime parser yields non-datetime objects!") from None
 
     def __iter__(self) -> Generator:
         """Implement iteration over the items in the ``List`` object."""
