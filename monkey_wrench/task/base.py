@@ -6,8 +6,7 @@ from typing import Any, Callable
 from uuid import uuid4
 
 from loguru import logger
-from pydantic import BaseModel, InstanceOf
-from pydantic.v1 import PositiveInt
+from pydantic import BaseModel, InstanceOf, PositiveInt
 
 from monkey_wrench.generic import Model
 
