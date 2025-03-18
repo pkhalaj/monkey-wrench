@@ -4,11 +4,11 @@ from pathlib import Path
 from typing import Any, Generator, Literal, TypeVar
 
 from loguru import logger
-from pydantic import FilePath, NonNegativeFloat, NonNegativeInt, validate_call
+from pydantic import AfterValidator, NonNegativeFloat, NonNegativeInt, validate_call
+from typing_extensions import Annotated
 
 from monkey_wrench.generic import ListSetTuple, Model, Pattern, StringTransformation, TransformFunction
 from monkey_wrench.input_output._types import (
-    AbsolutePath,
     ExistingDirectoryPath,
     ExistingFilePath,
     NewFilePath,
@@ -17,6 +17,7 @@ from monkey_wrench.input_output._types import (
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import Batches
 
+ElementType = TypeVar("ElementType")
 InputType = TypeVar("InputType")
 ReturnType = TypeVar("ReturnType")
 OtherReturnType = TypeVar("OtherReturnType")
@@ -337,14 +338,34 @@ class DirectoryVisitor(ParentInputDirectory, Pattern):
         return files_list
 
 
+@validate_call
+def validate_items(value: ListSetTuple | Reader | DirectoryVisitor) -> ListSetTuple:
+    """Return the items as read from a file, collected from a directory, or simply as they are."""
+    match value:
+        case Reader():
+            return value.read()
+        case DirectoryVisitor():
+            return value.visit()
+        case _:
+            return value
+
+
+Items = Annotated[ListSetTuple | Reader | DirectoryVisitor, AfterValidator(validate_items)]
+"""Type annotation and Pydantic validator for a collection of items in any of the following forms.
+
+It can simply be a list/set/tuple of items, or a file reader using which the items can be read, or a directory visitor
+which can collect e.g. filepaths.
+"""
+
+
 class FilesIntegrityValidator(MultiProcess):
-    """Pydantic model to verify files integrity by checking their size and comparing their list against a reference.
+    """Pydantic model to verify files integrity by checking their size as well as comparing them against a reference.
 
     Note:
         This class does two main verifications, namely checking for corrupted and missing files as follows
 
             1- Checking that the file sizes are within some threshold from a nominal file size.
-            2- Checking the list of filepaths against a reference list.
+            2- Checking filepaths against a reference collection.
     """
 
     nominal_file_size: NonNegativeInt | None = None
@@ -368,86 +389,52 @@ class FilesIntegrityValidator(MultiProcess):
     as they are.
     """
 
-    reference_transform_function: TransformFunction[ReturnType] | None = None
-    """A function to transform the reference items into other types of objects before using them for comparison.
+    filepaths: Items
+    """The file paths to perform the validation on."""
 
-    This can be e.g. :func:`~monkey_wrench.date_time.SeviriIDParser.parse()` to make datetime objects out of SEVIRI
-    product IDs. Defaults to ``None`` which means no transformation is performed on the reference items and they will be
-    used as they are.
-    """
-
-    reference: ListSetTuple[InputType] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
+    reference: Items | None = None
     """Reference items to compare against, used in finding the missing files.
-
-    It can be a list/set/tuple of items, or a filepath from which the reference items can be read, or a directory
-    visitor which can collect the reference files.
 
     Defaults to ``None`` which means the search for missing files will not be performed.
     """
-
-    @staticmethod
-    def get_reference_items(
-            reference: ListSetTuple[InputType] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
-    ) -> ListSetTuple[InputType] | None:
-        """Return the reference items."""
-        match reference:
-            case None:
-                return None
-            case Path():
-                return Reader(input_filepath=reference).read()
-            case DirectoryVisitor():
-                return reference.visit()
-            case _:
-                return reference
-
-    def __get_reference_items(
-            self, reference: ListSetTuple[InputType] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
-    ) -> Any:
-        if reference is None:
-            reference = self.reference
-        reference = FilesIntegrityValidator.get_reference_items(reference)
-
-        if reference is None:
-            return None
-
-        if self.reference_transform_function is None:
-            return set(reference)
-
-        return {self.reference_transform_function(r) for r in reference}
 
     def file_is_corrupted(self, file_size: NonNegativeInt) -> bool:
         return abs(1 - file_size / self.nominal_file_size) > self.file_size_relative_tolerance
 
     @validate_call
-    def find_corrupted_files(self, filepaths: ListSetTuple[Path]) -> set[Path] | None:
-        if self.nominal_file_size is None:
+    def find_corrupted_files(self, filepaths: Items | None = None) -> set[Path] | None:
+        if filepaths is None:
+            filepaths = self.filepaths
+
+        if None in [filepaths, self.nominal_file_size]:
             return None
 
         file_sizes = self.run_with_results(os.path.getsize, filepaths)
         return {fp for fp, fs in zip(filepaths, file_sizes, strict=True) if self.file_is_corrupted(fs)}
 
     @validate_call
-    def transform_files(self, filepaths: ListSetTuple[Path]) -> set[Path] | None:
-        if self.filepath_transform_function is None:
-            return set(filepaths)
-        return {self.filepath_transform_function(f) for f in filepaths}
-
-    @validate_call
     def find_missing_files(
-            self,
-            filepaths: ListSetTuple[Path],
-            reference: ListSetTuple[InputType] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
+            self, filepaths: Items | None = None, reference: Items | None = None
     ) -> set[Path] | None:
-        reference = self.__get_reference_items(reference)
+        if filepaths is None:
+            filepaths = self.filepaths
+
         if reference is None:
+            reference = self.reference
+
+        if None in [reference, filepaths]:
             return None
-        return reference - self.transform_files(filepaths)
+
+        if self.filepath_transform_function is not None:
+            filepaths = {self.filepath_transform_function(f) for f in filepaths}
+        else:
+            filepaths = set(filepaths)
+
+        return set(reference) - filepaths
 
     @validate_call
     def verify_files(
-            self,
-            filepaths: ListSetTuple[Path],
-            reference: ListSetTuple[InputType] | AbsolutePath[FilePath] | DirectoryVisitor | None = None
+            self, filepaths: Items | None = None, reference: Items | None = None
     ) -> tuple[set[InputType] | set[ReturnType] | None, set[Path] | None]:
         """Check for missing and corrupted files."""
         return self.find_missing_files(filepaths, reference), self.find_corrupted_files(filepaths)

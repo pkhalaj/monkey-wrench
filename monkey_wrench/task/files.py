@@ -4,8 +4,9 @@ from typing import Any, Literal, TypeVar
 from pydantic import Field, NonNegativeInt, model_validator
 from typing_extensions import Annotated
 
-from monkey_wrench.date_time import DateTimePeriodStrict, FilePathParser, SeviriIDParser
-from monkey_wrench.input_output import DirectoryVisitor, FilesIntegrityValidator, Reader, TempDirectory
+from monkey_wrench.date_time import DateTimePeriodStrict, SeviriIDParser
+from monkey_wrench.generic import TransformFunction
+from monkey_wrench.input_output import FilesIntegrityValidator, Reader, TempDirectory
 from monkey_wrench.input_output.seviri import Resampler
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import List
@@ -19,8 +20,10 @@ class FilesTaskBase(TaskBase):
     context: Literal[Context.product_files]
 
 
-class VerifyFilesSpecifications(DateTimePeriodStrict, DirectoryVisitor, FilesIntegrityValidator):
+class VerifyFilesSpecifications(DateTimePeriodStrict, FilesIntegrityValidator):
     """Pydantic model for the specifications of a verification task."""
+
+    filepath_transform_function: TransformFunction
 
     verbose: list[IntegrityValidatorReturnFieldName] | bool = False
     """Determines whether the given fields should be reported verbosely, i.e. the actual items will be dumped to the std
@@ -36,13 +39,6 @@ class VerifyFilesSpecifications(DateTimePeriodStrict, DirectoryVisitor, FilesInt
                 data["verbose"] = ["files", "reference", "corrupted", "missing"]
             case False:
                 data["verbose"] = []
-        return data
-
-    @model_validator(mode="before")
-    def validate_filepath_transform_function(cls, data: Any) -> Any:
-        """Ensure that the filepath transform function is set to a default value if it is not given explicitly."""
-        if not data.get("filepath_transform_function"):
-            data["filepath_transform_function"] = FilePathParser.parse
         return data
 
 
@@ -76,15 +72,14 @@ class VerifyFiles(FilesTaskBase):
     def perform(self) -> dict[str, NonNegativeInt]:
         """Verify the product files using the reference."""
         files = List(
-            self.specifications.visit(),
-            FilePathParser
+            self.specifications.filepaths,
+            self.specifications.filepath_transform_function
         ).query(
             self.specifications.datetime_period
         ).to_python_list()
 
         reference = List(
-            self.specifications.get_reference_items(self.specifications.reference),
-            SeviriIDParser
+            self.specifications.reference,
         ).query(
             self.specifications.datetime_period
         ).parsed_items.tolist()

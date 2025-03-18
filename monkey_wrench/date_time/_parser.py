@@ -1,13 +1,11 @@
 import re
-from abc import abstractmethod
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Generator, Never
 from zoneinfo import ZoneInfo
 
 from pydantic import validate_call
 
-from monkey_wrench.generic import ListSetTuple, apply_to_single_or_collection
+from monkey_wrench.generic import ListSetTuple, PathLikeType, apply_to_single_or_collection
 
 
 class DateTimeParserBase:
@@ -104,14 +102,13 @@ class DateTimeParserBase:
         return apply_to_single_or_collection(cls.parse, items)
 
     @staticmethod
-    @abstractmethod
-    def parse(item: Any) -> datetime:
-        """Parse the given item into a datetime object.
+    def parse(item: Any) -> Any:
+        """Return the given item as is.
 
         Warning:
-            This is an abstract static method and needs to be implemented for each derived class.
+            Oerride this static method for each derived class.
         """
-        raise NotImplementedError()
+        return item
 
 
 class SeviriIDParser(DateTimeParserBase):
@@ -132,14 +129,14 @@ class SeviriIDParser(DateTimeParserBase):
         return DateTimeParserBase.parse_by_regex(seviri_product_id, SeviriIDParser.regex)
 
 
-class FilePathParser(DateTimeParserBase):
-    """Static parser class for file paths."""
+class ChimpFilePathParser(DateTimeParserBase):
+    """Static parser class for CHIMP-compiliant input and output file paths."""
 
     regex = r"[0-9A-Za-z]+_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})_([0-9]{2})"
 
     @staticmethod
     @validate_call
-    def parse(filepath: Path | str) -> datetime:
+    def parse(filepath: PathLikeType) -> datetime:
         """Parse the given filepath into a datetime object.
 
         Args:
@@ -150,24 +147,26 @@ class FilePathParser(DateTimeParserBase):
                 mandatory but can be anything except for an empty string. See the examples below.
 
         Examples:
+            >>> from pathlib import Path
+            >>>
             >>> # Input is an absolute path of type `Path`.
-            >>> FilePathParser.parse(Path("/home/user/dir/seviri_20150731_22_12.extension"))
+            >>> ChimpFilePathParser.parse(Path("/home/user/dir/seviri_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `Path`.
-            >>> FilePathParser.parse(Path("chimp_20150731_22_12.extension"))
+            >>> ChimpFilePathParser.parse(Path("chimp_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is an absolute path of type `str`.
-            >>> FilePathParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
+            >>> ChimpFilePathParser.parse("/home/user/dir/prefix_20150731_22_12.extension")
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `str` and does not have an extension.
-            >>> FilePathParser.parse("seviri_20150731_22_12")
+            >>> ChimpFilePathParser.parse("seviri_20150731_22_12")
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `str` and its extension is numeric, i.e. `72`.
-            >>> FilePathParser.parse("p_20150731_22_1272")
+            >>> ChimpFilePathParser.parse("p_20150731_22_1272")
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is invalid (missing prefix). The following will raise an exception!
@@ -176,10 +175,44 @@ class FilePathParser(DateTimeParserBase):
             >>> # Input is invalid (empty prefix). The following will raise an exception!
             >>> # FilePathParser.parse("_20150731_22_12")
         """
-        if isinstance(filepath, str):
-            filepath = Path(filepath)
-
-        return DateTimeParserBase.parse_by_regex(str(filepath.stem), FilePathParser.regex)
+        return DateTimeParserBase.parse_by_regex(str(filepath.stem), ChimpFilePathParser.regex)
 
 
-DateTimeParser = SeviriIDParser | FilePathParser
+class HritFilePathParser(DateTimeParserBase):
+    """Static parser class for HRIT file paths."""
+
+    @staticmethod
+    @validate_call
+    def parse(filepath: PathLikeType) -> datetime:
+        """Parse the given filepath into a datetime object.
+
+        Args:
+            filepath:
+                The HRIT filepath to parse. It can be either an absolute path or a relative path
+                (e.g. just the base name). For the parsing to be successful, the ``filepath`` must have the following
+                format: ``<optional_path><optional_prefix><YYYYmmDDHHMM>-__``. See the examples below.
+
+        Examples:
+            >>> from pathlib import Path
+            >>>
+            >>> # Input is an absolute path of type `Path`.
+            >>> HritFilePathParser.parse(
+            ...  Path("/home/user/dir/H-000-MSG3__-MSG3________-WV_073___-000008___-202503041900-__")
+            ... )
+            datetime.datetime(2025, 3, 4, 19, 0, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+
+            >>> # Input is a relative path of type `Path`.
+            >>> HritFilePathParser.parse(Path("H-000-MSG3__-MSG3________-WV_073___-000008___-202503041900-__"))
+            datetime.datetime(2025, 3, 4, 19, 0, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+
+            >>> # Input is a relative path of type `str` without a prefix.
+            >>> HritFilePathParser.parse(Path("202503041900-__"))
+            datetime.datetime(2025, 3, 4, 19, 0, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+
+            >>> # Input is invalid as it misses the mandatory trailing `-__`. The following will raise an exception!
+            >>> # HritFilePathParser.parse(Path("202503041900"))
+        """
+        return DateTimeParserBase.parse_by_format_string(str(filepath.stem)[-15:-3], "%Y%m%d%H%M")
+
+
+DateTimeParser = SeviriIDParser | ChimpFilePathParser | HritFilePathParser
