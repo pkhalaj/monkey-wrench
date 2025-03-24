@@ -36,6 +36,7 @@ def _seviri_extension_factory():
     """Instantiate a class of type ``SEVIRI``, so that it will be available in the CHIMP namespace."""
     import torch
     import xarray as xr
+    from scipy import ndimage
     from chimp.data import InputDataset
     from chimp.data.utils import scale_slices
 
@@ -97,6 +98,30 @@ def _seviri_extension_factory():
                         x_s = np.stack(vs, axis=0)
                 except OSError as e:
                     logger.warning(f"Reading of the input file {input_file} failed. Skipping.\nMore:{e}")
+
+                # Apply augmentations
+                if rotate is not None:
+                    x_s = ndimage.rotate(
+                        x_s, rotate, order=0, reshape=False, axes=(-2, -1), cval=np.nan
+                    )
+                    height = x_s.shape[-2]
+
+                    # In case of a rotation, we may need to cut off some input.
+                    height_out = crop_size[0]
+                    if height > height_out:
+                        start = (height - height_out) // 2
+                        end = start + height_out
+                        x_s = x_s[..., start:end, :]
+
+                    width = x_s.shape[-1]
+                    width_out = crop_size[1]
+                    if width > width_out:
+                        start = (width - width_out) // 2
+                        end = start + width_out
+                        x_s = x_s[..., start:end]
+
+                if flip:
+                    x_s = np.flip(x_s, -2)
 
             return torch.tensor(x_s.copy(), dtype=torch.float32)
 
