@@ -10,5 +10,7 @@ specifications:
   verbose: true
   model_filepath: <replace_with_the_full_path_of_the_chimp_model_file>
   parent_output_directory_path: <replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_stored>
-  parent_input_directory_path: <replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_visited>
+  datetime_format_string: ""  # use an empty string to dump the files at the top-level output directory.
+  items:
+    parent_input_directory_path: <replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_visited>
   temp_directory_path: <replace_with_the_directory_path_where_the_temp_files_are_to_be_stored>

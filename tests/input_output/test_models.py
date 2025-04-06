@@ -7,13 +7,14 @@ from unittest import mock
 import pytest
 
 from monkey_wrench import input_output
-from monkey_wrench.date_time import DateTimeRange, FilePathParser, SeviriIDParser
-from monkey_wrench.generic import Pattern, StringTransformation
+from monkey_wrench.date_time import ChimpFilePathParser, DateTimeRange, SeviriIDParser
+from monkey_wrench.generic import Model, Pattern, StringTransformation
 from monkey_wrench.input_output import (
     DateTimeDirectory,
     DirectoryVisitor,
     FilesIntegrityValidator,
     FsSpecCache,
+    Items,
     Reader,
     TempDirectory,
     Writer,
@@ -24,6 +25,52 @@ start_datetime = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
 end_datetime = datetime(2022, 1, 4, tzinfo=UTC)
 batch_interval = timedelta(hours=1)
 number_of_days = (end_datetime - start_datetime).days
+
+
+# ======================================================
+### Tests for Items()
+
+@pytest.fixture
+def test_model():
+    class Test(Model):
+        items: Items
+
+    return Test
+
+
+@pytest.mark.parametrize(("items", "expected"), [
+    ([], []),
+    (["a", "b", "c"], ["a", "b", "c"])
+])
+def test_Items_list(test_model, items, expected):
+    assert test_model(items=items).items == items
+
+
+@pytest.mark.parametrize(("items", "func", "expected"), [
+    ([], None, []),
+    ([], lambda x: x * 2, []),
+    (["a", "b", "c"], None, ["a", "b", "c"]),
+    (["a", "b", "c"], lambda x: x * 2, ["aa", "bb", "cc"]),
+])
+def test_Items_reader(test_model, temp_dir, items, func, expected):
+    filename = temp_dir / "output.txt"
+    Writer(output_filepath=filename).write(items)
+    reader = Reader(input_filepath=filename, post_reading_transformation=StringTransformation(transform_function=func))
+
+    assert test_model(items=reader).items == expected
+
+
+@pytest.mark.parametrize(("items", "func", "expected"), [
+    ([], None, []),
+    ([], lambda x: x * 2, []),
+    (["a", "b", "c"], None, ["a", "b", "c"]),
+    (["a", "b", "c"], lambda x: x / "2", ["a/2", "b/2", "c/2"]),
+])
+def test_Items_directory(test_model, temp_dir, items, func, expected):
+    files, _, _ = make_dummy_files(temp_dir, filenames=items)
+    visitor = DirectoryVisitor(parent_input_directory_path=temp_dir, post_visit_transform_function=func)
+
+    assert test_model(items=visitor).items == [temp_dir / e for e in expected]
 
 
 # ======================================================
@@ -142,26 +189,32 @@ def test_compare_files_against_reference(dummy_and_reference_files_for_compariso
     collected_files, files_information, temp_dir = dummy_and_reference_files_for_comparison
 
     kwargs = {k: files_information[k] for k in keys}
+    kwargs = dict(filepaths=collected_files) | {
+        k: kwargs.pop(k) for k in
+        {"number_of_processes", "nominal_file_size", "file_size_relative_tolerance", "reference"} if k in kwargs
+    }
 
-    file_size_validator = FilesIntegrityValidator(
-        **{k: kwargs.pop(k) for k in
-           {"number_of_processes", "nominal_file_size", "file_size_relative_tolerance", "reference"} if k in kwargs}
-    )
+    file_size_validator = FilesIntegrityValidator(**kwargs)
     expected_ = tuple(files_information.get(i) for i in expected)
-    assert file_size_validator.verify_files(collected_files) == expected_
+    assert file_size_validator.verify_files() == expected_
 
     file_size_validator = FilesIntegrityValidator(
-        **(file_size_validator.model_dump() | {"reference": DirectoryVisitor(parent_input_directory_path=temp_dir)})
+        **(file_size_validator.model_dump() | {
+            "reference":
+                DirectoryVisitor(parent_input_directory_path=temp_dir)
+        })
     )
-    assert [bool(i) for i in file_size_validator.verify_files(collected_files)] == [False, False]
+    assert [bool(i) for i in file_size_validator.verify_files()] == [False, False]
 
 
 def test_compare_files_against_reference_transform(temp_dir):
     datetime_objs, collected_files = _make_dummy_datetime_files(temp_dir)
 
     missing, _ = FilesIntegrityValidator(
-        reference=datetime_objs, filepath_transform_function=FilePathParser.parse
-    ).verify_files(collected_files)
+        reference=datetime_objs,
+        filepaths=collected_files,
+        filepath_transform_function=ChimpFilePathParser.parse
+    ).verify_files()
 
     assert missing == set()
 

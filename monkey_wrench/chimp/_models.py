@@ -2,11 +2,10 @@ from typing import Callable, Literal
 
 from pydantic import FilePath, NonNegativeInt, PositiveInt
 
-from monkey_wrench.date_time import DateTimePeriod, FilePathParser
+from monkey_wrench.date_time import ChimpFilePathParser
 from monkey_wrench.generic import Pattern
 from monkey_wrench.input_output import (
     DateTimeDirectory,
-    DirectoryVisitor,
     ModelFile,
     TempDirectory,
     copy_files_between_directories,
@@ -17,8 +16,6 @@ from monkey_wrench.query import List
 
 class ChimpRetrieval(
     DateTimeDirectory,
-    DateTimePeriod,
-    DirectoryVisitor,
     ModelFile,
     TempDirectory
 ):
@@ -29,27 +26,13 @@ class ChimpRetrieval(
     tile_size: PositiveInt = 256
     verbose: bool = True
 
-    def run_in_batches(self) -> None:
+    def run_in_batches(self, lst: List) -> None:
         """Perform CHIMP retrievals in batches."""
-        files = self.visit()
         with seviri_extension_context() as chimp_cli:
-            lst = List(files, FilePathParser)
-            indices = lst.query_indices(self.datetime_period)
-
-            batches = lst.generate_k_sized_batches_by_index(
-                self.sequence_length,
-                index_start=indices[0],
-                index_end=indices[-1]
-            )
+            batches = lst.generate_k_sized_batches_by_index(self.sequence_length)
 
             for batch in batches:
                 self.__run_for_single_batch(batch, chimp_cli)
-
-    def run_for_single_batch(self) -> None:
-        """Perform a single CHIMP retrieval for a single batch."""
-        batch = self.visit()
-        with seviri_extension_context() as chimp_cli:
-            self.__run_for_single_batch(batch, chimp_cli)
 
     def __input_filepaths_as_strings(self, batch: list[FilePath]) -> list[str]:
         """Convert paths to strings and ensure each batch includes the same number of items as sequence length."""
@@ -79,7 +62,7 @@ class ChimpRetrieval(
                 verbose=self.verbose
             )
 
-            last_snapshot = FilePathParser.parse(batch[-1])
+            last_snapshot = ChimpFilePathParser.parse(batch[-1])
             datetime_directory = self.create_datetime_directory(last_snapshot)
 
             copy_files_between_directories(

@@ -3,9 +3,14 @@ action: verify
 specifications:
   start_datetime: "2022-01-01T00:00:00+00:00"
   end_datetime: "2024-01-01T00:00:00+00:00"
-  reference: <replace_with_the_full_path_of_the_text_file_in_which_product_ids_are_stored>
+  reference:
+    input_filepath: <replace_with_the_full_path_of_the_text_file_in_which_product_ids_are_stored>
+    post_reading_transformation:
+      transform_function: "date_time.SeviriIDParser.parse"
   number_of_processes: 20
-  parent_input_directory_path: <replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_visited>
+  filepaths:
+    parent_input_directory_path: <replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_visited>
+  filepath_transform_function: "date_time.ChimpFilePathParser.parse"
   nominal_file_size: <replace_with_nominal_size_of_a_single_file_in_bytes_as_an_integer>
   file_size_relative_tolerance: 0.01
   verbose:

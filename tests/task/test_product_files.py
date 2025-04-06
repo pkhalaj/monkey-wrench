@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from monkey_wrench.date_time import FilePathParser, SeviriIDParser
+from monkey_wrench.date_time import ChimpFilePathParser, SeviriIDParser
 from monkey_wrench.generic import apply_to_single_or_collection
 from monkey_wrench.input_output import DirectoryVisitor, Writer
 from monkey_wrench.input_output.seviri import input_filename_from_product_id
@@ -61,9 +61,15 @@ def test_verify_files_success(temp_dir, verbose):
             specifications=dict(
                 start_datetime=start_datetime.isoformat(),
                 end_datetime=end_datetime.isoformat(),
-                reference=str(product_ids_filename),
-                parent_input_directory_path=str(data_directory),
+                reference=dict(
+                    input_filepath=str(product_ids_filename),
+                    post_reading_transformation=dict(
+                        transform_function="date_time.SeviriIDParser.parse"
+                    )
+                ),
+                filepaths=dict(parent_input_directory_path=str(data_directory)),
                 nominal_file_size=nominal_size,
+                filepath_transform_function="date_time.ChimpFilePathParser.parse",
                 file_size_relative_tolerance=tolerance,
                 verbose=verbose,
             ))
@@ -77,7 +83,7 @@ def test_verify_files_success(temp_dir, verbose):
     validated_task = list(read_tasks_from_file(task_filename))[0]
     outs = validated_task.perform()
 
-    missing = apply_to_single_or_collection(FilePathParser.parse, removed)
+    missing = apply_to_single_or_collection(ChimpFilePathParser.parse, removed)
     reference = apply_to_single_or_collection(SeviriIDParser.parse, ids_in_query)
     files = apply_to_single_or_collection(input_filename_from_product_id, ids_in_query)
     files = {data_directory / f for f in files} - set(removed)

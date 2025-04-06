@@ -32,13 +32,15 @@ Warning:
 """
 
 
-def _seviri_extension_factory():
+# The following function embeds a class which makes it too complex.
+# Therefore, we supress Ruff linter rule C901.
+def _seviri_extension_factory():  # noqa: C901
     """Instantiate a class of type ``SEVIRI``, so that it will be available in the CHIMP namespace."""
     import torch
     import xarray as xr
-    from scipy import ndimage
     from chimp.data import InputDataset
     from chimp.data.utils import scale_slices
+    from scipy import ndimage
 
     class SEVIRI(InputDataset):
         """A derivative class of ``chimp.data.InputDataset`` enabling reading from SEVIRI resampled files."""

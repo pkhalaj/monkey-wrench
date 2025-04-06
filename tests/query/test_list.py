@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from pydantic import ValidationError
 
-from monkey_wrench.date_time import DateTimePeriod, DateTimeRange, DateTimeRangeInBatches, FilePathParser
+from monkey_wrench.date_time import ChimpFilePathParser, DateTimePeriod, DateTimeRange, DateTimeRangeInBatches
 from monkey_wrench.input_output.seviri import input_filename_from_datetime
 from monkey_wrench.query import List
 from tests.utils import (
@@ -23,6 +23,10 @@ elements = [input_filename_from_datetime(i) for i in datetime_range]
 # ======================================================
 ### Tests for List.query()
 
+@pytest.mark.parametrize("parser", [
+    ChimpFilePathParser,
+    ChimpFilePathParser.parse
+])
 @pytest.mark.parametrize(("start_datetime", "end_datetime", "reference_indices"), [
     ((2021, 1, 1), (2021, 12, 31), [7]),
     ((2015, 7, 31, 22, 10), (2015, 7, 31, 22, 17), [0, 2, 3, 4, 8]),
@@ -32,7 +36,7 @@ elements = [input_filename_from_datetime(i) for i in datetime_range]
     (None, (2015, 7, 31, 22, 17), [0, 2, 3, 4, 6, 8]),
     (None, None, [0, 1, 2, 3, 4, 5, 6, 7, 8])
 ])
-def test_List_query(start_datetime, end_datetime, reference_indices):
+def test_List_query(parser, start_datetime, end_datetime, reference_indices):
     for _ in range(10):
         indices, items = shuffle_list([
             "seviri_20150731_22_16.nc",
@@ -45,7 +49,7 @@ def test_List_query(start_datetime, end_datetime, reference_indices):
             "seviri_20210731_22_11.nc",
             "seviri_20150731_22_16.nc",
         ])
-        lq = List(items, FilePathParser)
+        lq = List(items, parser)
         expected = get_items_from_shuffled_list_by_original_indices((indices, items), reference_indices)
 
         datetime_period = DateTimePeriod(
@@ -60,19 +64,35 @@ def test_List_query(start_datetime, end_datetime, reference_indices):
 # ======================================================
 ### Tests for List()
 
+def test_List_none_datetime_parser():
+    dt = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
+    assert List([dt]).to_python_list() == [dt]
+
+
+def test_List_custom_datetime_parser():
+    dt = datetime(2022, 1, 1, 0, 12, tzinfo=UTC)
+    assert List(["a"], lambda _: dt).to_python_list() == ["a"]
+    assert List(["a"], lambda _: dt).parsed_items == [dt]
+
+
 def test_List_parse_raise():
     with pytest.raises(ValueError, match="a valid datetime object"):
-        List(["20150731_22_12", "wrong_format"], FilePathParser)
+        List(["20150731_22_12", "wrong_format"], ChimpFilePathParser)
 
 
 def test_List_empty_raise():
     with pytest.raises(ValueError, match="List is empty"):
-        List([], FilePathParser)
+        List([], ChimpFilePathParser)
+
+
+def test_List_none_datetime_parser_raise():
+    with pytest.raises(ValueError, match="non-datetime"):
+        List(["a"], None)
 
 
 @pytest.mark.parametrize("log_context", ["test1", ""])
 def test_list_log_context(log_context):
-    lq = List(["prefix_20150731_22_12.extension"], FilePathParser, log_context=log_context)
+    lq = List(["prefix_20150731_22_12.extension"], ChimpFilePathParser, log_context=log_context)
     assert log_context == lq.log_context
 
 
@@ -84,10 +104,10 @@ def test_list_log_context(log_context):
     (1, ["seviri_20150731_22_16.nc"])
 ])
 def test_list_as_list(expected_length, items):
-    lq = List(items, FilePathParser)
+    lq = List(items, ChimpFilePathParser)
     assert items == lq
     assert items == lq.to_python_list()
-    assert lq.parsed_items.tolist() == [FilePathParser.parse(i) for i in items]
+    assert lq.parsed_items.tolist() == [ChimpFilePathParser.parse(i) for i in items]
     assert isinstance(lq.to_python_list(), list)
     assert isinstance(lq.to_python_list()[0], str)
     assert expected_length == List.len(lq)
@@ -101,7 +121,7 @@ def test_list_query_in_batches():
         DateTimeRange(start_datetime=start_datetime, end_datetime=end_datetime, interval=timedelta(minutes=5))
     )
     str_items = ["some_prefix_" + i.strftime("%Y%m%d_%H_%M") for i in items]
-    lq = List(str_items[::-1], FilePathParser)
+    lq = List(str_items[::-1], ChimpFilePathParser)
 
     index = 0
     for batch, _ in lq.query_in_batches(
@@ -126,7 +146,7 @@ def test_list_query_in_batches():
     (12, 12),
 ])
 def test_normalize_index(index, res):
-    lst = List(elements, FilePathParser)
+    lst = List(elements, ChimpFilePathParser)
     assert res == lst.normalize_index(index)
 
 
@@ -138,7 +158,7 @@ def test_normalize_index(index, res):
 ])
 def test_normalize_index_raise(index):
     with pytest.raises(IndexError, match="out of range"):
-        List(elements, FilePathParser).normalize_index(index)
+        List(elements, ChimpFilePathParser).normalize_index(index)
 
 
 # ======================================================
@@ -151,7 +171,7 @@ def test_normalize_index_raise(index):
 ])
 def test_k_sized_batches_raise(k, idx_start, idx_end, err, msg):
     with pytest.raises(err, match=msg):
-        list(List(elements, FilePathParser).generate_k_sized_batches_by_index(k, idx_start, idx_end))
+        list(List(elements, ChimpFilePathParser).generate_k_sized_batches_by_index(k, idx_start, idx_end))
 
 
 @pytest.mark.parametrize(("k", "idx_start", "idx_end"), [
@@ -163,7 +183,7 @@ def test_k_sized_batches_raise(k, idx_start, idx_end, err, msg):
 ])
 def test_k_sized_batches(k, idx_start, idx_end):
     _, available, removed = randomly_remove_from_list(elements, 2)
-    lst = List(sorted(list(available)), FilePathParser)
+    lst = List(sorted(list(available)), ChimpFilePathParser)
 
     batches = list(lst.generate_k_sized_batches_by_index(k, idx_start, idx_end))
     idx_start = lst.normalize_index(idx_start)
@@ -198,7 +218,7 @@ def test_k_sized_batches(k, idx_start, idx_end):
     (2, 10, 15, 3, 0)
 ])
 def test_k_sized_partitions(k, index_start, index_end, quotient, remainder):
-    lst = List(elements, FilePathParser)
+    lst = List(elements, ChimpFilePathParser)
     subs = list(lst.partition_in_k_sized_batches_by_index(k, index_start=index_start, index_end=index_end))
     index_start = lst.normalize_index(index_start)
     index_end = lst.normalize_index(index_end)
