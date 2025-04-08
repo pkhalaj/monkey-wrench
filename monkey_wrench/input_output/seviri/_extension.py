@@ -36,6 +36,7 @@ Warning:
 # Therefore, we supress Ruff linter rule C901.
 def _seviri_extension_factory():  # noqa: C901
     """Instantiate a class of type ``SEVIRI``, so that it will be available in the CHIMP namespace."""
+    import fsspec
     import torch
     import xarray as xr
     from chimp.data import InputDataset
@@ -95,7 +96,7 @@ def _seviri_extension_factory():  # noqa: C901
             if input_file is not None:
                 slices = scale_slices(slices, relative_scale)
                 try:
-                    with xr.open_dataset(input_file) as data:
+                    with xr.open_dataset(fsspec.open(input_file).open()) as data:
                         vs = [data[v][dict(zip(self.spatial_dims, slices, strict=True))].data for v in self.variables]
                         x_s = np.stack(vs, axis=0)
                 except OSError as e:
