@@ -13,15 +13,16 @@ dependencies:
   - dask[version=">=2025.2"]
   - geopandas
   - git-lfs
+  - h5netcdf
   - h5py
   - ipywidgets
   - lightning
   - llvm-openmp
   - netcdf4
-  - h5netcdf
   - protobuf
   - pyspectral
   - satpy
+  - sshfs
   - pip
   - pip:
       - "git+https://github.com/see-geo/pansat@refactoring"

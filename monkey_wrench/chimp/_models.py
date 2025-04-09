@@ -58,8 +58,7 @@ class ChimpRetrieval(
                 device=self.device,
                 sequence_length=self.sequence_length,
                 temporal_overlap=self.temporal_overlap,
-                tile_size=self.tile_size,
-                verbose=self.verbose
+                tile_size=self.tile_size
             )
 
             last_snapshot = ChimpFilePathParser.parse(batch[-1])
