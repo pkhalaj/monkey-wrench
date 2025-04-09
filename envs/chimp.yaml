@@ -18,6 +18,7 @@ dependencies:
   - lightning
   - llvm-openmp
   - netcdf4
+  - h5netcdf
   - protobuf
   - pyspectral
   - satpy
