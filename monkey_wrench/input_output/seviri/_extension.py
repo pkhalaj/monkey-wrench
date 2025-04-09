@@ -139,8 +139,11 @@ def seviri_extension_context() -> Generator[Callable, None, None]:
     """
     from chimp import extensions, processing
 
+    from monkey_wrench.chimp import cli
+
     _original_extension_loader_function = extensions.load
     extensions.load = _seviri_extension_factory
+    processing.cli = cli
 
     try:
         yield processing.cli
