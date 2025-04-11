@@ -1,4 +1,5 @@
 import shutil
+from pathlib import Path
 from typing import TypeVar
 
 from loguru import logger
@@ -16,7 +17,7 @@ def copy_files_between_directories(
         source_directory: AbsolutePath[DirectoryPath],
         destination_directory: AbsolutePath[DirectoryPath],
         pattern: Pattern | None = None,
-) -> None:
+) -> list[Path]:
     """Copy (top-level) files whose names include the pattern from one directory to another.
 
     Warning:
@@ -29,8 +30,11 @@ def copy_files_between_directories(
             The destination directory to copy files to.
         pattern:
             The pattern to filter the files.
+
+    Returns:
+        The list of filepaths that have been copied.
     """
-    DirectoryVisitor(
+    return DirectoryVisitor(
         parent_input_directory_path=source_directory,
         visitor_callback=lambda f: copy_single_file_to_directory(destination_directory, f),
         recursive=False,

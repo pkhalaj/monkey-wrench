@@ -44,5 +44,7 @@ def pretty_error_logs(func: Callable[..., ReturnType]) -> Callable[..., ReturnTy
             for i, e in enumerate(err.errors()):
                 logger.error(f"Validation error {i + 1} -- {__make_better_error_message(e)}")
             return None
+        except ValueError as err:
+            logger.error(err)
 
     return wrapper
