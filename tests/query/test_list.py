@@ -206,6 +206,18 @@ def test_k_sized_batches(k, idx_start, idx_end):
         prev_batch = batch
 
 
+def test_k_sized_batches_insufficient_items():
+    lst = List(sorted(list(elements)), ChimpFilePathParser)
+    batches = list(lst.generate_k_sized_batches_by_index(22, strict=False))
+    assert len(batches[0]) == List.len(lst)
+
+
+def test_k_sized_batches_insufficient_items_raise():
+    lst = List(sorted(list(elements)), ChimpFilePathParser)
+    with pytest.raises(ValueError, match="exceeds"):
+        list(lst.generate_k_sized_batches_by_index(22, strict=True))
+
+
 @pytest.mark.parametrize(("k", "index_start", "index_end", "quotient", "remainder"), [
     (3, 0, -1, 7, 0),
     (1, 0, 20, 21, 0),

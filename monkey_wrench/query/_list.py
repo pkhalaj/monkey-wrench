@@ -166,7 +166,12 @@ class List(Query):
 
     @validate_call
     def generate_k_sized_batches_by_index(
-            self, k: PositiveInt, index_start: int = 0, index_end: int = -1, batches_as_python_lists: bool = True
+            self,
+            k: PositiveInt,
+            index_start: int = 0,
+            index_end: int = -1,
+            batches_as_python_lists: bool = True,
+            strict: bool = True
     ) -> Generator:
         """Generate batches (sub-lists) of size ``k`` and move forward by ``1`` index each time.
 
@@ -194,6 +199,9 @@ class List(Query):
             batches_as_python_lists:
                 A boolean determining whether to return each batch as a Python built-in list or as ``List`` objects.
                 Defaults to ``True``.
+            strict:
+                Whether to raise an exception of the number of lits items is less than the requested batch size.
+                Defaults to ``True``.
 
         Yields:
             A generator that yields batches of size ``k``. Adjacent batches overlap by ``k-2`` items.
@@ -202,19 +210,19 @@ class List(Query):
             ValueError:
                 If ``index_start`` is greater than ``index_end``.
             ValueError:
-                If ``k`` exceeds the size of the list.
+                If ``k`` exceeds the size of the list and ``strict=True``.
             IndexError:
                 If normalized indices exceed the size of the List object. Refer to :func:`~List.normalize_index`.
         """
         n_total = List.len(self)
 
-        if n_total < k:
-            raise ValueError("The batch size exceeds the number of list items.")
-
         index_start = self.normalize_index(index_start)
         index_end = self.normalize_index(index_end)
         if index_start > index_end:
             raise ValueError("`index_start` cannot be greater than `index_end`.")
+
+        if n_total < k and strict:
+            raise ValueError("The requested batch size exceeds the number of available list items.")
 
         index = index_start
         while index <= index_end:
