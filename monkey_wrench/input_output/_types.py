@@ -2,7 +2,7 @@ import os
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Generator, Literal, TypeVar
+from typing import Any, Generator, Literal, Self, TypeVar
 
 from pydantic import AfterValidator, DirectoryPath, FilePath, NewPath, model_validator
 from typing_extensions import Annotated
@@ -71,8 +71,12 @@ This only concerns ASCII (text) files.
 class TempDirectory(Model):
     """Pydantic model for a temporary directory, including a context manager."""
 
-    temp_directory_path: ExistingDirectoryPath
-    """The path to an existing directory, which will be used as the top-level temporary directory.
+    temp_directory_path: ExistingDirectoryPath | NewDirectoryPath
+    """The path to the directory, which will be used as the top-level temporary directory.
+
+    Note:
+        If the directory does not exist, it will be created. Once created, the top-level temporary directory will not be
+        deleted by **Monkey Wrench**.
 
     Note:
         This directory will be used as a parent directory for subsequent (child) temporary directories. As a result, it
@@ -88,13 +92,20 @@ class TempDirectory(Model):
     """
 
     @model_validator(mode="before")
-    def validate_temporary_directory(cls, data: Any) -> Any:
+    def validate_temporary_directory_default_values(cls, data: Any) -> Any:
         """Return the path to the top-level temporary directory according to the priority rules."""
         # The following is the default temporary directory that will be used by the OS anyway.
         # Therefore, we suppress Ruff linter rule S108.
         if not data.get("temp_directory_path"):
             data["temp_directory_path"] = Path(os.environ.get("TMPDIR", "/tmp/"))  # noqa: S108
         return data
+
+    @model_validator(mode="after")
+    def validate_temporary_directory_exists(self) -> Self:  # noqa: N804
+        """Create the temporary directory if it does not exist."""
+        if not self.temp_directory_path.exists():
+            self.temp_directory_path.mkdir(parents=True, exist_ok=True)
+        return self
 
     @contextmanager
     def temp_dir_context_manager(self) -> Generator[Path, None, None]:

@@ -350,6 +350,13 @@ def test_TempDirectory_default(temp_dir, tmpdir_factory, expected):
             assert ("/another_temp_dir/" in str(tmp)) is expected
 
 
+def test_TempDirectory_exists(temp_dir):
+    tmp_directory = Path(temp_dir, "another_temp_dir")
+    with TempDirectory(temp_directory_path=tmp_directory).temp_dir_context_manager() as tmp:
+        assert str(tmp).startswith("/tmp")
+        assert "/another_temp_dir/" in str(tmp)
+
+
 # ======================================================
 ### Tests for FsSpecCache()
 
