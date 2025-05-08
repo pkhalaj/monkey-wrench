@@ -103,8 +103,7 @@ class TempDirectory(Model):
     @model_validator(mode="after")
     def validate_temporary_directory_exists(self) -> Self:  # noqa: N804
         """Create the temporary directory if it does not exist."""
-        if not self.temp_directory_path.exists():
-            self.temp_directory_path.mkdir(parents=True, exist_ok=True)
+        self.temp_directory_path.mkdir(parents=True, exist_ok=True)
         return self
 
     @contextmanager
