@@ -1,4 +1,5 @@
 import os
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Generator, Literal, TypeVar
@@ -501,6 +502,6 @@ class DateTimeDirectory(ParentOutputDirectory):
         """
         dir_path = self.get_datetime_directory(datetime_object)
         if dir_path.exists() and self.reset_child_datetime_directory:
-            dir_path.unlink()
+            shutil.rmtree(dir_path)
         dir_path.mkdir(parents=True, exist_ok=True)
         return dir_path
