@@ -2,7 +2,6 @@ import os
 import tempfile
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from unittest import mock
 
 import pytest
 
@@ -312,15 +311,18 @@ def test_DateTimeDirectory(temp_dir, kwargs):
     assert temp_dir / Path(datetime_obj.strftime(kwargs["format_string"])) == dir_path
 
 
-def test_DateTimeDirectory_remove(temp_dir):
-    with mock.patch("monkey_wrench.input_output._models.Path.unlink") as unlink, \
-            mock.patch("monkey_wrench.input_output._models.Path.exists", return_value=True) as exists:
-        DateTimeDirectory(
-            parent_output_directory_path=temp_dir,
-            reset_child_datetime_directory=True
-        ).create_datetime_directory(datetime(2022, 3, 12))
-        exists.assert_called()
-        unlink.assert_called()
+@pytest.mark.parametrize("create_dir", [True, False])
+def test_DateTimeDirectory_remove(temp_dir, create_dir):
+    if create_dir:
+        Path(temp_dir / "2022/03/12/test").mkdir(parents=True, exist_ok=True)
+
+    DateTimeDirectory(
+        parent_output_directory_path=temp_dir,
+        reset_child_datetime_directory=True
+    ).create_datetime_directory(datetime(2022, 3, 12))
+
+    assert Path(temp_dir / "2022/03/12").exists()
+    assert not Path(temp_dir / "2022/03/12/test").exists()
 
 
 # ======================================================
