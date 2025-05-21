@@ -59,7 +59,7 @@ class Pattern(Model):
     """Pydantic model for finding sub-strings in other strings."""
 
     negate: bool = False
-    """A boolean indicating whether the result of pattern matching should be negated, i.e. one needs a non-match.
+    """A boolean indicating whether the result of pattern matching should be negated, i.e. if one needs a non-match.
 
     In other words, the result of match will be always XORed (^) with this boolean. Defaults to ``False``, which means
     the result will not be negated.
@@ -120,8 +120,14 @@ class Pattern(Model):
             >>> Pattern().check("abcde")
             True
 
+            >>> Pattern(negate=True).check("abcde")
+            False
+
             >>> Pattern(sub_strings="ab").check("abcde")
             True
+
+            >>> Pattern(sub_strings="ab", negate=True).check("abcde")
+            False
 
             >>> Pattern(sub_strings="A", case_sensitive=False).check("abcde")
             True
@@ -134,6 +140,9 @@ class Pattern(Model):
 
             >>> Pattern(sub_strings=["A", "b"], match_all=True, case_sensitive=False).check("abcde")
             True
+
+            >>> Pattern(sub_strings=["A", "b"], match_all=True, case_sensitive=False, negate=True).check("abcde")
+            False
         """
         if self.sub_strings is None:
             return True ^ self.negate
@@ -154,6 +163,9 @@ class Pattern(Model):
         Examples:
             >>> "abcde" | Pattern()
             True
+
+            >>> "abcde" | Pattern(negate=True)
+            False
 
             >>> "abcde" | Pattern(sub_strings=["A", "b"], match_all=True)
             False
