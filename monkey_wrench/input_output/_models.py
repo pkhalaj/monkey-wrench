@@ -306,12 +306,12 @@ class DirectoryVisitor(ParentInputDirectory, Pattern):
         if self.recursive:
             for root, _, files in os.walk(self.parent_input_directory_path):
                 for file in files:
-                    if self.pattern.exists_in(file):
+                    if self.pattern.check(file):
                         files_list.append(Path(root, file))
         else:
             for item in os.listdir(self.parent_input_directory_path):
                 if (file := Path(self.parent_input_directory_path, item)).is_file():
-                    if self.pattern.exists_in(item):
+                    if self.pattern.check(item):
                         files_list.append(file)
 
         return sorted(files_list, reverse=self.reverse)

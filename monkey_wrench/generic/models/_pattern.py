@@ -97,7 +97,7 @@ class Pattern(Model):
         return all if self.match_all else any
 
     @validate_call
-    def exists_in(self, item: Any) -> bool:
+    def check(self, item: Any) -> bool:
         """Check if the pattern exists in the given item.
 
         Args:
@@ -110,22 +110,22 @@ class Pattern(Model):
             in the given item.
 
         Examples:
-            >>> Pattern().exists_in("abcde")
+            >>> Pattern().check("abcde")
             True
 
-            >>> Pattern(sub_strings="ab").exists_in("abcde")
+            >>> Pattern(sub_strings="ab").check("abcde")
             True
 
-            >>> Pattern(sub_strings="A", case_sensitive=False).exists_in("abcde")
+            >>> Pattern(sub_strings="A", case_sensitive=False).check("abcde")
             True
 
-            >>> Pattern(sub_strings=["A", "b"], match_all=False).exists_in("abcde")
+            >>> Pattern(sub_strings=["A", "b"], match_all=False).check("abcde")
             True
 
-            >>> Pattern(sub_strings=["A", "b"], match_all=True).exists_in("abcde")
+            >>> Pattern(sub_strings=["A", "b"], match_all=True).check("abcde")
             False
 
-            >>> Pattern(sub_strings=["A", "b"], match_all=True, case_sensitive=False).exists_in("abcde")
+            >>> Pattern(sub_strings=["A", "b"], match_all=True, case_sensitive=False).check("abcde")
             True
         """
         if self.sub_strings is None:
@@ -142,7 +142,7 @@ class Pattern(Model):
 
     @validate_call
     def __ror__(self, other: str) -> bool:
-        """Syntactic sugar for :func:`exists_in`.
+        """Syntactic sugar for :func:`check`.
 
         Examples:
             >>> "abcde" | Pattern()
@@ -151,4 +151,4 @@ class Pattern(Model):
             >>> "abcde" | Pattern(sub_strings=["A", "b"], match_all=True)
             False
         """
-        return self.exists_in(other)
+        return self.check(other)
