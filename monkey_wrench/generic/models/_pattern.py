@@ -58,10 +58,17 @@ class StringTransformation[OriginalType, TransformedType](Model):
 class Pattern(Model):
     """Pydantic model for finding sub-strings in other strings."""
 
+    negate: bool = False
+    """A boolean indicating whether the result of pattern matching should be negated, i.e. if one needs a non-match.
+
+    In other words, the result of match will be always XORed (^) with this boolean. Defaults to ``False``, which means
+    the result will not be negated.
+    """
+
     sub_strings: str | list[str] | None = None
     """The sub-strings to look for. It can be either a single string, a list of strings, or  ``None.``.
 
-    Defaults to ``None``, which means :func:`exists_in` returns ``True``.
+    Defaults to ``None``, which means :func:`check` returns ``True`` if ``negate`` is also ``False``.
     """
 
     case_sensitive: bool = True
@@ -97,7 +104,7 @@ class Pattern(Model):
         return all if self.match_all else any
 
     @validate_call
-    def exists_in(self, item: Any) -> bool:
+    def check(self, item: Any) -> bool:
         """Check if the pattern exists in the given item.
 
         Args:
@@ -110,26 +117,35 @@ class Pattern(Model):
             in the given item.
 
         Examples:
-            >>> Pattern().exists_in("abcde")
+            >>> Pattern().check("abcde")
             True
 
-            >>> Pattern(sub_strings="ab").exists_in("abcde")
-            True
-
-            >>> Pattern(sub_strings="A", case_sensitive=False).exists_in("abcde")
-            True
-
-            >>> Pattern(sub_strings=["A", "b"], match_all=False).exists_in("abcde")
-            True
-
-            >>> Pattern(sub_strings=["A", "b"], match_all=True).exists_in("abcde")
+            >>> Pattern(negate=True).check("abcde")
             False
 
-            >>> Pattern(sub_strings=["A", "b"], match_all=True, case_sensitive=False).exists_in("abcde")
+            >>> Pattern(sub_strings="ab").check("abcde")
             True
+
+            >>> Pattern(sub_strings="ab", negate=True).check("abcde")
+            False
+
+            >>> Pattern(sub_strings="A", case_sensitive=False).check("abcde")
+            True
+
+            >>> Pattern(sub_strings=["A", "b"], match_all=False).check("abcde")
+            True
+
+            >>> Pattern(sub_strings=["A", "b"], match_all=True).check("abcde")
+            False
+
+            >>> Pattern(sub_strings=["A", "b"], match_all=True, case_sensitive=False).check("abcde")
+            True
+
+            >>> Pattern(sub_strings=["A", "b"], match_all=True, case_sensitive=False, negate=True).check("abcde")
+            False
         """
         if self.sub_strings is None:
-            return True
+            return True ^ self.negate
 
         item = str(item)
         _sub_strings = self.sub_strings_list[:]
@@ -138,17 +154,20 @@ class Pattern(Model):
             item = item.lower()
             _sub_strings = [s.lower() for s in _sub_strings]
 
-        return self.match_function(s in item for s in _sub_strings)
+        return self.match_function(s in item for s in _sub_strings) ^ self.negate
 
     @validate_call
     def __ror__(self, other: str) -> bool:
-        """Syntactic sugar for :func:`exists_in`.
+        """Syntactic sugar for :func:`check`.
 
         Examples:
             >>> "abcde" | Pattern()
             True
 
+            >>> "abcde" | Pattern(negate=True)
+            False
+
             >>> "abcde" | Pattern(sub_strings=["A", "b"], match_all=True)
             False
         """
-        return self.exists_in(other)
+        return self.check(other)
