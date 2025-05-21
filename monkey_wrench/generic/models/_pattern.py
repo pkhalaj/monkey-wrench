@@ -58,10 +58,17 @@ class StringTransformation[OriginalType, TransformedType](Model):
 class Pattern(Model):
     """Pydantic model for finding sub-strings in other strings."""
 
+    negate: bool = False
+    """A boolean indicating whether the result of pattern matching should be negated, i.e. one needs a non-match.
+
+    In other words, the result of match will be always XORed (^) with this boolean. Defaults to ``False``, which means
+    the result will not be negated.
+    """
+
     sub_strings: str | list[str] | None = None
     """The sub-strings to look for. It can be either a single string, a list of strings, or  ``None.``.
 
-    Defaults to ``None``, which means :func:`exists_in` returns ``True``.
+    Defaults to ``None``, which means :func:`check` returns ``True`` if ``negate`` is also ``False``.
     """
 
     case_sensitive: bool = True
@@ -129,7 +136,7 @@ class Pattern(Model):
             True
         """
         if self.sub_strings is None:
-            return True
+            return True ^ self.negate
 
         item = str(item)
         _sub_strings = self.sub_strings_list[:]
@@ -138,7 +145,7 @@ class Pattern(Model):
             item = item.lower()
             _sub_strings = [s.lower() for s in _sub_strings]
 
-        return self.match_function(s in item for s in _sub_strings)
+        return self.match_function(s in item for s in _sub_strings) ^ self.negate
 
     @validate_call
     def __ror__(self, other: str) -> bool:
