@@ -111,6 +111,22 @@ def test_DirectoryVisitor(temp_dir, reverse, pattern, recursive):
             assert top_level_files == set(files)
 
 
+@pytest.mark.parametrize("pattern", [
+    "another_dir", "another_dir/", "another", "dir", "/another", ".nc"
+])
+def test_DirectoryVisitor_pattern_in_path(temp_dir, pattern):
+    os.mkdir(temp_dir / "another_dir")
+    files_expected, _, _ = make_dummy_files(temp_dir / "another_dir", prefix="top_level_files_2022.nc")
+
+    files_visited = DirectoryVisitor(
+        parent_input_directory_path=temp_dir,
+        recursive=True,
+        sub_strings=pattern,
+    ).visit()
+
+    assert set(files_visited) == files_expected
+
+
 def test_DirectoryVisitor_callback(temp_dir):
     buff = []
     _, dummy_files = _make_dummy_datetime_files(temp_dir)
