@@ -83,7 +83,12 @@ class Pattern(Model):
 
     @property
     def pattern(self) -> "Pattern":
-        return Pattern(sub_strings=self.sub_strings, case_sensitive=self.case_sensitive, match_all=self.match_all)
+        return Pattern(
+            sub_strings=self.sub_strings,
+            case_sensitive=self.case_sensitive,
+            match_all=self.match_all,
+            negate=self.negate
+        )
 
     @property
     def sub_strings_list(self) -> list[str]:
