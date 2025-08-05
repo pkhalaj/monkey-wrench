@@ -12,8 +12,8 @@ from fsspec import open_files
 from loguru import logger
 from pydantic import ConfigDict, NonNegativeInt, validate_call
 from satpy import Scene
-from satpy.readers.seviri_base import CHANNEL_NAMES
-from satpy.readers.utils import FSFile
+from satpy.readers.core.seviri import CHANNEL_NAMES
+from satpy.readers.core.utils import FSFile
 
 from monkey_wrench.date_time import SeviriIDParser
 from monkey_wrench.generic import Function
