@@ -14,7 +14,6 @@ def remote_file(path):
     tmp.is_dir = is_dir
     tmp.match = match
     tmp.stem = path.split("/")[-1].split(".")[0]
-    tmp.__str__ = str(path)
     return tmp
 
 
