@@ -29,7 +29,6 @@ from ._types import (
     NewDirectoryPath,
     NewFilePath,
     OpenMode,
-    TempDirectory,
 )
 
 __all__ = [
@@ -53,7 +52,6 @@ __all__ = [
     "ExistingOutputDirectory",
     "OutputFile",
     "Reader",
-    "TempDirectory",
     "OpenMode",
     "ParentInputDirectory",
     "ParentOutputDirectory",

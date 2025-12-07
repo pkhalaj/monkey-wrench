@@ -6,7 +6,7 @@ from typing_extensions import Annotated
 
 from monkey_wrench.date_time import DateTimePeriodStrict, SeviriIDParser
 from monkey_wrench.generic import TransformFunction
-from monkey_wrench.input_output import FilesIntegrityValidator, Reader, TempDirectory
+from monkey_wrench.input_output import FilesIntegrityValidator, Reader
 from monkey_wrench.input_output.seviri import Resampler
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import List
@@ -46,8 +46,7 @@ class FetchFilesSpecifications(
     DateTimePeriodStrict,
     MultiProcess,
     Resampler,
-    Reader,
-    TempDirectory
+    Reader
 ):
     """Pydantic model for the specifications of a fetch task."""
     pass
@@ -114,8 +113,7 @@ class FetchFiles(FilesTaskBase):
 
         self.specifications.run(
             self.specifications.resample,
-            product_ids.to_python_list(),
-            self.specifications.temp_directory_path
+            product_ids.to_python_list()
         )
 
 

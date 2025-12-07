@@ -1,13 +1,8 @@
-import os
-import tempfile
-from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Generator, Literal, Self, TypeVar
+from typing import Literal, TypeVar
 
-from pydantic import AfterValidator, DirectoryPath, FilePath, NewPath, model_validator
+from pydantic import AfterValidator, DirectoryPath, FilePath, NewPath
 from typing_extensions import Annotated
-
-from monkey_wrench.generic import Model
 
 
 def ensure_path_does_not_end_with_slash(path: Path) -> Path:
@@ -66,65 +61,3 @@ OpenMode = Literal["w", "a"]
 
 This only concerns ASCII (text) files.
 """
-
-
-class TempDirectory(Model):
-    """Pydantic model for a temporary directory, including a context manager."""
-
-    temp_directory_path: ExistingDirectoryPath | NewDirectoryPath
-    """The path to the directory, which will be used as the top-level temporary directory.
-
-    Note:
-        If the directory does not exist, it will be created. Once created, the top-level temporary directory will not be
-        deleted by **Monkey Wrench**.
-
-    Note:
-        This directory will be used as a parent directory for subsequent (child) temporary directories. As a result, it
-        will not be removed or cleaned up. However, the child temporary directories will always be removed and
-        cleaned up.
-
-    Note:
-        If it is not set (i.e. it is ``None``), it takes on a value according to the following order of priority:
-
-            1- The value of the ``TMPDIR`` environment variable.
-
-            2- ``/tmp/``.
-    """
-
-    @model_validator(mode="before")
-    def validate_temporary_directory_default_values(cls, data: Any) -> Any:
-        """Return the path to the top-level temporary directory according to the priority rules."""
-        # The following is the default temporary directory that will be used by the OS anyway.
-        # Therefore, we suppress Ruff linter rule S108.
-        if not data.get("temp_directory_path"):
-            data["temp_directory_path"] = Path(os.environ.get("TMPDIR", "/tmp/"))  # noqa: S108
-        return data
-
-    @model_validator(mode="after")
-    def validate_temporary_directory_exists(self) -> Self:  # noqa: N804
-        """Create the temporary directory if it does not exist."""
-        self.temp_directory_path.mkdir(parents=True, exist_ok=True)
-        return self
-
-    @contextmanager
-    def temp_dir_context_manager(self) -> Generator[Path, None, None]:
-        """Context manager to create a temporary directory and also set the global temporary directory to the same path.
-
-        Note:
-            The temporary directory created by this context manager will reside inside
-            :attr:`TempDirectory.temp_directory_path`.
-
-        Note:
-            The reason to set the global temporary directory is to ensure that any other inner functions or context
-            managers that might invoke ``tempfile.TemporaryDirectory()`` also use the given global temporary directory.
-
-        Yields:
-            The full path of the (created) temporary directory.
-        """
-        _default_tempdir = tempfile.gettempdir()
-        try:
-            with tempfile.TemporaryDirectory(dir=self.temp_directory_path) as _dir:
-                tempfile.tempdir = _dir
-                yield Path(_dir)
-        finally:
-            tempfile.tempdir = _default_tempdir

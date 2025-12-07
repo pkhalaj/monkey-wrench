@@ -12,8 +12,8 @@ product_id = "MSG3-SEVI-MSG15-0100-NA-20230413164241.669000000Z-NA"
 
 
 @pytest.fixture
-def fs_file(get_token_or_skip):
-    fs_file = RemoteSeviriFile(fsspec_cache=None).open(product_id)
+def fs_file(temp_dir, get_token_or_skip):
+    fs_file = RemoteSeviriFile(fsspec_cache="filecache").open(product_id, temp_dir)
     return fs_file
 
 

@@ -1,4 +1,7 @@
+import tempfile
+from pathlib import Path
 from typing import Callable, Literal
+from uuid import uuid4
 
 from loguru import logger
 from pydantic import FilePath, NonNegativeInt, PositiveInt
@@ -8,7 +11,6 @@ from monkey_wrench.generic import Pattern
 from monkey_wrench.input_output import (
     DateTimeDirectory,
     ModelFile,
-    TempDirectory,
     copy_files_between_directories,
 )
 from monkey_wrench.input_output.seviri import output_filename_from_datetime, seviri_extension_context
@@ -17,8 +19,7 @@ from monkey_wrench.query import List
 
 class ChimpRetrieval(
     DateTimeDirectory,
-    ModelFile,
-    TempDirectory
+    ModelFile
 ):
     """Pydantic model for CHIMP retrievals."""
     device: Literal["cpu", "cuda"] = "cpu"
@@ -61,7 +62,8 @@ class ChimpRetrieval(
 
     def __run_for_single_batch(self, batch: list[FilePath], retrieve_function: Callable) -> None:
         """Helper function to perform a single CHIMP retrieval for a single batch."""
-        with self.temp_dir_context_manager() as tmp_dir:
+        log_id = uuid4()
+        with tempfile.TemporaryDirectory(prefix=f"chimp_{log_id}_") as tmp_dir:
             input_filepaths = self.__input_filepaths_as_strings(batch)
 
             retrieve_function(
@@ -79,7 +81,7 @@ class ChimpRetrieval(
             datetime_directory = self.create_datetime_directory(last_snapshot)
 
             copied_files = copy_files_between_directories(
-                tmp_dir,
+                Path(tmp_dir),
                 datetime_directory,
                 Pattern(
                     sub_strings=str(output_filename_from_datetime(last_snapshot))

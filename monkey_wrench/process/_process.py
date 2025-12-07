@@ -1,26 +1,14 @@
 """The module providing functionalities for multiprocessing."""
 
-import tempfile
 from multiprocessing import get_context
-from pathlib import Path
 from typing import Callable, TypeVar
 
 from pydantic import NonNegativeInt
 
 from monkey_wrench.generic import ListSetTuple, Model
-from monkey_wrench.input_output._types import TempDirectory
 
 T = TypeVar("T")
 R = TypeVar("R")
-
-
-def _wrap_function_no_return(function: Callable[[T], R], argument: T, temporary_directory_path: Path) -> None:
-    """Wrap the function by setting the global temporary directory.
-
-    The function is to be run in a separate **spawned** (and not forked) process!
-    """
-    tempfile.tempdir = str(temporary_directory_path)
-    function(argument)
 
 
 class MultiProcess(Model):
@@ -68,24 +56,20 @@ class MultiProcess(Model):
 
         return results
 
-    def run(
-            self, function: Callable[[T], R], arguments: ListSetTuple[T], temp_directory_path: Path | None = None
-    ) -> None:
+    def run(self, function: Callable[[T], R], arguments: ListSetTuple[T]) -> None:
         """Similar to :func:`run_with_results`, but does not return anything.
 
         If the function returns anything, it will be discarded!
         """
         ctx = get_context("spawn")
         arguments = list(arguments)
-        temp_directory = TempDirectory(temp_directory_path=temp_directory_path)
         for index in range(0, len(arguments), self.number_of_processes):
-            with temp_directory.temp_dir_context_manager() as tmp_dir:
-                procs = []
-                for arg in arguments[index: index + self.number_of_processes]:
-                    proc = ctx.Process(target=_wrap_function_no_return, args=(function, arg, tmp_dir))
-                    procs.append(proc)
-                    proc.start()
-                for proc in procs:
-                    proc.join()
-                for proc in procs:
-                    proc.close()
+            procs = []
+            for arg in arguments[index: index + self.number_of_processes]:
+                proc = ctx.Process(target=function, args=(arg,))
+                procs.append(proc)
+                proc.start()
+            for proc in procs:
+                proc.join()
+            for proc in procs:
+                proc.close()

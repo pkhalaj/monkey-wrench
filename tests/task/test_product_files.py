@@ -128,7 +128,6 @@ def test_fetch_files(get_token_or_skip, temp_dir):
                 input_filepath=str(product_ids_filename),
                 parent_output_directory_path=str(parent_directory),
                 number_of_processes=2,
-                temp_directory_path=str(temp_dir),
             )
         )
     )

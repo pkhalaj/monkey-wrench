@@ -111,17 +111,13 @@ class FsSpecCache(Model):
     .. _fsspec cache: https://filesystem-spec.readthedocs.io/en/latest/features.html#file-buffering-and-random-access
     """
 
-    fsspec_cache: Literal["filecache", "blockcache"] | None = None
-    """How to buffer, e.g. ``"filecache"``, ``"blockcache"``, or ``None``. Defaults to ``None``.
-
-    Warning:
-        ``None`` might cause too many requests to be sent to the server!
-    """
+    fsspec_cache: Literal["filecache"] = "filecache"
+    """How to buffer, at the moment the only supported option and the default is ``"filecache"``."""
 
     @property
     def fsspec_cache_str(self):
-        """Return the cache string with a leading ``::`` if it is not ``None``. Otherwise, return an empty string."""
-        return f"::{self.fsspec_cache}" if self.fsspec_cache else ""
+        """Return the cache string with a leading ``::``."""
+        return f"::{self.fsspec_cache}"
 
 
 class DatasetSaveOptions(Model):

@@ -41,12 +41,14 @@ def catch_warnings():
 
 class RemoteSeviriFile(FsSpecCache):
     @validate_call
-    def open(self, product_id: str) -> FSFile:
+    def open(self, product_id: str, temporary_directory: Path) -> FSFile:
         """Open SEVIRI native files (``.nat``) remotely, inside a zip archive using the given product ID.
 
         Args:
             product_id:
                 The product ID to open.
+            temporary_directory:
+                The path where the cache will be stored.
 
         Returns:
             A file object of type ``FSFile``, which can be further used by ``satpy``.
@@ -61,7 +63,13 @@ class RemoteSeviriFile(FsSpecCache):
         }
         fstr = f"zip://*.nat{self.fsspec_cache_str}::{EumetsatAPI.seviri_collection_url()}/{product_id}"
         logger.info(f"Opening {fstr}")
-        return [FSFile(f) for f in open_files(fstr, https=https_header)][0]
+        return [
+            FSFile(f) for f in open_files(
+                fstr,
+                https=https_header,
+                filecache={"cache_storage": str(temporary_directory)}
+            )
+        ][0]
 
 
 class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
@@ -94,17 +102,17 @@ class Resampler(Area, DatasetSaveOptions, DateTimeDirectory, RemoteSeviriFile):
             product_id:
                 The product ID to open.
         """
-        with tempfile.TemporaryDirectory():
-            fs_file = self.open(product_id)
+        # The ID helps us to quickly find all log messages corresponding to resampling a single file.
+        # It is useful in the case of multiprocessing.
+        log_id = uuid4()
+
+        with tempfile.TemporaryDirectory(prefix=f"resample_fsspec_{log_id}_") as temporary_directory:
+            fs_file = self.open(product_id, temporary_directory)
             output_directory = self.create_datetime_directory(SeviriIDParser.parse(product_id))
             output_filename = output_directory / self.output_filename_generator(str(fs_file))
 
             if self.remove_file_if_exists and os.path.exists(output_filename):
                 os.remove(output_filename)
-
-            # The ID helps us to quickly find all log messages corresponding to resampling a single file.
-            # It is useful in the case of multiprocessing.
-            log_id = uuid4()
 
             logger.info(f"Resampling SEVIRI native file `{fs_file}` to `{output_filename}` -- ID: `{log_id}`")
             scene = Scene([fs_file], "seviri_l1b_native")
