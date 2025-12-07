@@ -13,7 +13,6 @@ input_filepath = Path("<replace_with_the_full_path_of_the_text_file_in_which_pro
 parent_output_directory_path = Path(
     "<replace_with_the_path_of_the_top_level_directory_where_the_files_are_to_be_stored>"
 )
-temp_directory_path = Path("<replace_with_the_directory_path_where_the_temp_files_are_to_be_stored>")
 
 datetime_period = DateTimePeriod(
     start_datetime=datetime(2022, 1, 1, tzinfo=UTC),
@@ -73,5 +72,4 @@ if __name__ == "__main__":
     MultiProcess(number_of_processes=4).run(
         resampler.resample,
         product_ids.to_python_list(),
-        temp_directory_path,
     )
