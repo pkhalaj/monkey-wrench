@@ -34,6 +34,9 @@ def read_tasks_from_file(filepath: ExistingFilePath) -> Generator[Task, None, No
     Yields:
         A generator yielding the task(s) from the given YAML file.
     """
+    documents = []
     with open(filepath, "r") as f:
         for document in yaml.safe_load_all(f):
-            yield _AnyTask(document=document).document
+            documents.append(document)
+    for document in documents:
+        yield _AnyTask(document=document).document
