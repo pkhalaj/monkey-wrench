@@ -67,7 +67,7 @@ def test_Area(area_factory, temp_dir):
     ),
     (
             lambda _: {},
-            "one item",
+            "be empty",
             ValidationError
     )
 ])

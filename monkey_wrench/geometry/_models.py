@@ -21,8 +21,8 @@ class Area(Model):
             case AreaDefinition():
                 return area
             case dict():
-                if len(area) != 1:
-                    raise ValueError("Area must have exactly one item.")
+                if not area:
+                    raise ValueError("The area dictionary cannot be empty.")
                 yaml_string = yaml.safe_dump(area)
                 return area_config.load_area_from_string(yaml_string)
             case Path():
