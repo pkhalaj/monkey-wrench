@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 
+import yaml
 from pydantic import BaseModel, FilePath, field_validator, validate_call
 from pyresample import AreaDefinition, area_config, load_area
 
@@ -22,9 +23,8 @@ class Area(Model):
             case dict():
                 if len(area) != 1:
                     raise ValueError("Area must have exactly one item.")
-                k = [k for k in area.keys()][0]
-                v = area[k]
-                return area_config._create_area_def_from_dict(k, v)
+                yaml_string = yaml.safe_dump(area)
+                return area_config.load_area_from_string(yaml_string)
             case Path():
                 return load_area(area)
 
