@@ -25,6 +25,6 @@ dependencies:
   - sshfs
   - pip
   - pip:
-      - "git+https://github.com/see-geo/pansat@refactoring"
-      - "git+https://github.com/simonpf/pytorch_retrieve"
-      - "git+https://github.com/simonpf/chimp"
+      - "git+https://github.com/see-geo/pansat@6c9ac2f0969cb4beec966fc848c77be4675997fd"
+      - "git+https://github.com/simonpf/pytorch_retrieve@15a74fa54565beee2514b88f4416fcfbff29de1b"
+      - "git+https://github.com/simonpf/chimp@937f386bc2d250a3681c4e14a2967f405a1fd0c1"
