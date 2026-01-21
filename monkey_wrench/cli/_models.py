@@ -21,12 +21,14 @@ class CommandLineArguments(Model):
     """The path to the task file, which must be an existing valid YAML file."""
 
     @model_validator(mode="before")
+    @classmethod
     def validate_task_filepath_existence(cls, data: Any) -> Any:
         """Check that the task file exists and assign it to the class variable."""
         CommandLineArguments.task_file_path = ExistingInputFile(input_filepath=sys.argv[1]).input_filepath
         return data
 
     @model_validator(mode="before")
+    @classmethod
     def validate_number_of_inputs(cls, data: Any) -> Any:
         """Ensure that the number of input arguments is correct."""
         if len(sys.argv) != 2:
