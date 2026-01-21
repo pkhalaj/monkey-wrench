@@ -14,6 +14,7 @@ class Area(Model):
     """A filepath, a dictionary, or an object of type AreaDefinition which holds the area information for resampling."""
 
     @field_validator("area", mode="after")
+    @classmethod
     def validate_and_load_area(
             cls, area: AbsolutePath[FilePath] | dict[str, Any] | AreaDefinition
     ) -> AreaDefinition | None:

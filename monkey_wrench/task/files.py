@@ -32,6 +32,7 @@ class VerifyFilesSpecifications(DateTimePeriodStrict, FilesIntegrityValidator):
     """
 
     @model_validator(mode="before")
+    @classmethod
     def validate_verbose(cls, data: Any) -> Any:
         """Convert the verbose to a list of field names."""
         match data.get("verbose", False):
