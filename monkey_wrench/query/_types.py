@@ -38,6 +38,8 @@ class EumetsatCollection(Enum):
     avhrr = CollectionMeta(query_string="EO:EUM:DAT:METOP:AVHRRL1")
     mhs = CollectionMeta(query_string="EO:EUM:DAT:METOP:MHSL1")
     seviri = CollectionMeta(query_string="EO:EUM:DAT:MSG:HRSEVIRI", snapshot_minutes=[12, 27, 42, 57])
+    fci_normal_resolution = CollectionMeta(query_string="EO:EUM:DAT:0662", snapshot_minutes=[0, 10, 20, 30, 40, 50])
+    fci_high_resolution = CollectionMeta(query_string="EO:EUM:DAT:0665", snapshot_minutes=[0, 10, 20, 30, 40, 50])
 
 
 class EumetsatAPI:
@@ -92,6 +94,18 @@ class EumetsatAPI:
     def seviri_collection_url() -> HttpUrl:
         """Return the complete URL for the SEVIRI collection."""
         return EumetsatAPI.make_collection_url(EumetsatCollection.seviri)
+
+    @staticmethod
+    @validate_call
+    def fci_normal_collection_url() -> HttpUrl:
+        """Return the complete URL for the FCI (normal resolution) collection."""
+        return EumetsatAPI.make_collection_url(EumetsatCollection.fci_normal_resolution)
+
+    @staticmethod
+    @validate_call
+    def fci_high_collection_url() -> HttpUrl:
+        """Return the complete URL for the FCI (high resolution) collection."""
+        return EumetsatAPI.make_collection_url(EumetsatCollection.fci_high_resolution)
 
     @classmethod
     def get_token(cls) -> AccessToken:
