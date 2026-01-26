@@ -45,6 +45,8 @@ def get_validated_task(path: Path, **kwargs):
 
 
 @pytest.mark.parametrize(("task", "error_message"), [
+    (specification_with(collection="non_existent"), "Invalid collection name"),
+    (specification_with(collection=2), "Input should be"),
     (specification_with(start_datetime=["A"]), "datetime"),
     (specification_with(end_datetime=[1]), "datetime"),
     (specification_with(end_datetime=datetime(2000, 1, 1)), "timezone"),
