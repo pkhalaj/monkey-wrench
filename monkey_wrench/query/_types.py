@@ -5,7 +5,7 @@ from typing import ClassVar, Generator, TypeVar
 
 from eumdac import AccessToken
 from loguru import logger
-from pydantic import HttpUrl, validate_call
+from pydantic import HttpUrl, field_validator, validate_call
 
 from monkey_wrench.date_time import Minutes
 from monkey_wrench.generic import Model
@@ -40,6 +40,27 @@ class EumetsatCollection(Enum):
     seviri = CollectionMeta(query_string="EO:EUM:DAT:MSG:HRSEVIRI", snapshot_minutes=[12, 27, 42, 57])
     fci_normal_resolution = CollectionMeta(query_string="EO:EUM:DAT:0662", snapshot_minutes=[0, 10, 20, 30, 40, 50])
     fci_high_resolution = CollectionMeta(query_string="EO:EUM:DAT:0665", snapshot_minutes=[0, 10, 20, 30, 40, 50])
+
+    @staticmethod
+    def get_all_names() -> list[str]:
+        return [e.name for e in EumetsatCollection]
+
+
+class Collection(Model):
+    """Model to hold the collection information."""
+    collection: EumetsatCollection | str
+
+    @field_validator("collection", mode="after")
+    @classmethod
+    def validate_collection_name(cls, collection: EumetsatCollection | str) -> EumetsatCollection:
+        if isinstance(collection, str):
+            try:
+                return EumetsatCollection[collection]
+            except KeyError:
+                raise ValueError(
+                    f"Invalid collection name: {collection}. Valid names are: {EumetsatCollection.get_all_names()}"
+                ) from None
+        return collection
 
 
 class EumetsatAPI:
