@@ -1,6 +1,6 @@
 """The package providing utilities for input and output operations."""
 
-from . import hrit, seviri
+from . import fci, hrit, seviri
 from ._common import (
     copy_files_between_directories,
     copy_single_file_to_directory,
@@ -64,6 +64,7 @@ __all__ = [
     "copy_files_between_directories",
     "copy_single_file_to_directory",
     "datetime_to_filename",
+    "fci",
     "hrit",
     "output_filename_from_datetime",
     "seviri"
