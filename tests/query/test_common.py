@@ -28,7 +28,7 @@ def test_collection_fail(collection, error_type, error_message):
     ("seviri", "seviri"),
     (EumetsatCollection.seviri, "seviri"),
     ("fci_normal_resolution", "fci_normal_resolution"),
-    (CollectionMeta(query_string="EO:EUM:DAT:METOP:AMSUL1"), "amsu")
+    (CollectionMeta(query_string="EO:EUM:DAT:METOP:AMSUL1", filename_prefix="amsu"), "amsu")
 ])
 def test_collection_success(collection, name):
     c = Collection(collection=collection)

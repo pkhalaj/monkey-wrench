@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
+from monkey_wrench.input_output import output_filename_from_datetime
 from monkey_wrench.input_output.seviri import (
     input_filename_from_datetime,
     input_filename_from_product_id,
-    output_filename_from_datetime,
     output_filename_from_product_id,
 )
 

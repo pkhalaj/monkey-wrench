@@ -1,7 +1,12 @@
 """The package providing utilities for input and output operations."""
 
 from . import hrit, seviri
-from ._common import copy_files_between_directories, copy_single_file_to_directory
+from ._common import (
+    copy_files_between_directories,
+    copy_single_file_to_directory,
+    datetime_to_filename,
+    output_filename_from_datetime,
+)
 from ._models import (
     DatasetSaveOptions,
     DateTimeDirectory,
@@ -58,6 +63,8 @@ __all__ = [
     "Writer",
     "copy_files_between_directories",
     "copy_single_file_to_directory",
+    "datetime_to_filename",
     "hrit",
+    "output_filename_from_datetime",
     "seviri"
 ]

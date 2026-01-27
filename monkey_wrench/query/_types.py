@@ -20,6 +20,13 @@ class CollectionMeta(Model):
         For SEVIRI we have: ``"EO:EUM:DAT:MSG:HRSEVIRI"``.
     """
 
+    filename_prefix: str
+    """The prefix of the generated input filenames.
+
+    Example:
+        For SEVIRI, an input filename is `seviri_20250102_00_12.nc` where the prefix is `seviri`.
+    """
+
     snapshot_minutes: Minutes | None = None
     """The minutes for which we have data in an hour.
 
@@ -34,12 +41,33 @@ class CollectionMeta(Model):
 
 class EumetsatCollection(Enum):
     """Enum class that defines the collections for the EUMETSAT datastore."""
-    amsu = CollectionMeta(query_string="EO:EUM:DAT:METOP:AMSUL1")
-    avhrr = CollectionMeta(query_string="EO:EUM:DAT:METOP:AVHRRL1")
-    mhs = CollectionMeta(query_string="EO:EUM:DAT:METOP:MHSL1")
-    seviri = CollectionMeta(query_string="EO:EUM:DAT:MSG:HRSEVIRI", snapshot_minutes=[12, 27, 42, 57])
-    fci_normal_resolution = CollectionMeta(query_string="EO:EUM:DAT:0662", snapshot_minutes=[0, 10, 20, 30, 40, 50])
-    fci_high_resolution = CollectionMeta(query_string="EO:EUM:DAT:0665", snapshot_minutes=[0, 10, 20, 30, 40, 50])
+    amsu = CollectionMeta(
+        query_string="EO:EUM:DAT:METOP:AMSUL1",
+        filename_prefix="amsu"
+    )
+    avhrr = CollectionMeta(
+        query_string="EO:EUM:DAT:METOP:AVHRRL1",
+        filename_prefix="avhrr"
+    )
+    mhs = CollectionMeta(
+        query_string="EO:EUM:DAT:METOP:MHSL1",
+        filename_prefix="mhs"
+    )
+    seviri = CollectionMeta(
+        query_string="EO:EUM:DAT:MSG:HRSEVIRI",
+        snapshot_minutes=[12, 27, 42, 57],
+        filename_prefix="seviri"
+    )
+    fci_normal_resolution = CollectionMeta(
+        query_string="EO:EUM:DAT:0662",
+        snapshot_minutes=[0, 10, 20, 30, 40, 50],
+        filename_prefix="fci"
+    )
+    fci_high_resolution = CollectionMeta(
+        query_string="EO:EUM:DAT:0665",
+        snapshot_minutes=[0, 10, 20, 30, 40, 50],
+        filename_prefix="fci"
+    )
 
     @staticmethod
     def get_all_names() -> list[str]:
