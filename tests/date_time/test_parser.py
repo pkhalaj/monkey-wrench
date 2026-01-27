@@ -3,7 +3,13 @@ from pathlib import Path
 
 import pytest
 
-from monkey_wrench.date_time import ChimpFilePathParser, DateTimeParserBase, HritFilePathParser, SeviriIDParser
+from monkey_wrench.date_time import (
+    ChimpFilePathParser,
+    DateTimeParserBase,
+    FCIIDParser,
+    HritFilePathParser,
+    SeviriIDParser,
+)
 
 # ======================================================
 ### Tests for DateTimeParserBase()
@@ -77,7 +83,8 @@ def test_DateTimeParserBase_parse_by_format_raise(datetime_string):
 
 @pytest.mark.parametrize(("seviri_id", "expected_datetime_tuple"), [
     ("MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA", (2015, 7, 31, 22, 12)),
-    ("MSG3-SEVI-MSG15-0100-NA-20241120172743.016000000Z-NA", (2024, 11, 20, 17, 27))
+    ("MSG3-SEVI-MSG15-0100-NA-20241120172743.016000000Z-NA", (2024, 11, 20, 17, 27)),
+    ("MSG3-SEVI-MSG15-0100-NA-20250102001243.365000000Z-NA", (2025, 1, 2, 0, 12))
 ])
 def test_SeviriIDParser_parse(seviri_id, expected_datetime_tuple):
     datetime_obj = SeviriIDParser.parse(seviri_id)
@@ -107,6 +114,49 @@ def test_SeviriIDParser_parse_collection():
 def test_SeviriIDParser_parse_raise(seviri_id):
     with pytest.raises(ValueError, match=f"{seviri_id} into a valid datetime object"):
         SeviriIDParser.parse(seviri_id)
+
+
+# ======================================================
+### Tests for FCIIDParser()
+
+@pytest.mark.parametrize(("fci_id", "expected_datetime_tuple"), [
+    (
+            "W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-FDHSI-FD--x-x---x_C_EUMT_20251216091032_IDPFI_OPE_20251216091007_20251216091923_N__O_0056_0000",
+            (2025, 12, 16, 9, 10)
+    ),
+    (
+            "W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-HRFI-FD--x-x---x_C_EUMT_20251230220247_IDPFI_OPE_20251230220007_20251230220928_N__O_0133_0000",
+            (2025, 12, 30, 22, 0)
+    ),
+    (
+            "W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-FDHSI-FD--x-x---x_C_EUMT_20250102000318_IDPFI_OPE_20250102000007_20250102000928_N__O_0001_0000",
+            (2025, 1, 2, 0, 0)
+    )
+])
+def test_FCIIDParser_parse(fci_id, expected_datetime_tuple):
+    datetime_obj = FCIIDParser.parse(fci_id)
+    assert datetime(*expected_datetime_tuple, tzinfo=UTC) == datetime_obj
+
+
+def test_FCIIDParser_parse_collection():
+    fci_ids = [
+        "W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-FDHSI-FD--x-x---x_C_EUMT_20251216091032_IDPFI_OPE_20251216091007_20251216091923_N__O_0056_0000",
+        "W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-HRFI-FD--x-x---x_C_EUMT_20251230220247_IDPFI_OPE_20251230220007_20251230220928_N__O_0133_0000"
+    ]
+    datetime_objects = [
+        datetime(2025, 12, 16, 9, 10, tzinfo=UTC),
+        datetime(2025, 12, 30, 22, 0, tzinfo=UTC),
+    ]
+    assert datetime_objects == FCIIDParser.parse_collection(fci_ids)
+
+
+@pytest.mark.parametrize("fci_id", [
+    "W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-FDHSI-FD--x-x---x_C_EUMT",
+    "_EUMT_20251216091032_IDPFI_OPE_20250016091007_20251216091923_N__O_0056_0000",
+])
+def test_FCIIDParser_parse_raise(fci_id):
+    with pytest.raises(ValueError, match="into a valid datetime object"):
+        FCIIDParser.parse(fci_id)
 
 
 # ======================================================
