@@ -12,8 +12,9 @@ from monkey_wrench.input_output import (
     DateTimeDirectory,
     ModelFile,
     copy_files_between_directories,
+    output_filename_from_datetime,
 )
-from monkey_wrench.input_output.seviri import output_filename_from_datetime, seviri_extension_context
+from monkey_wrench.input_output.seviri import seviri_extension_context
 from monkey_wrench.query import List
 
 
