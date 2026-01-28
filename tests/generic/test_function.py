@@ -69,7 +69,7 @@ def test_Function_raise_import_fail(function, path):
 
 @pytest.mark.parametrize("path", [
     f"{part1}",
-    f"{part1}.seviri.Resampler"
+    f"{part1}.resampler.Resampler"
 ])
 def test_Function_raise_not_function(function, path):
     with pytest.raises(ValidationError, match="function"):

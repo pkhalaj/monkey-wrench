@@ -6,8 +6,9 @@ from typing import ClassVar, Generator, TypeVar
 from eumdac import AccessToken
 from loguru import logger
 from pydantic import HttpUrl, field_validator, validate_call
+from satpy.readers.core.seviri import CHANNEL_NAMES
 
-from monkey_wrench.date_time import Minutes
+from monkey_wrench.date_time import DateTimeParserBase, FCIIDParser, Minutes, SeviriIDParser
 from monkey_wrench.generic import Model
 
 
@@ -26,6 +27,18 @@ class CollectionMeta(Model):
     Example:
         For SEVIRI, an input filename is `seviri_20250102_00_12.nc` where the prefix is `seviri`.
     """
+
+    parser: type[DateTimeParserBase] | None = None
+    """The parser for the collection product IDs."""
+
+    reader: str | None = None
+    """Satpy reader for the product."""
+
+    channel_names: list[str] | None = None
+    """The names of the channels in the product."""
+
+    file_extension: str | None = None
+    """The file extension for the product."""
 
     snapshot_minutes: Minutes | None = None
     """The minutes for which we have data in an hour.
@@ -56,17 +69,33 @@ class EumetsatCollection(Enum):
     seviri = CollectionMeta(
         query_string="EO:EUM:DAT:MSG:HRSEVIRI",
         snapshot_minutes=[12, 27, 42, 57],
-        filename_prefix="seviri"
+        filename_prefix="seviri",
+        parser=SeviriIDParser,
+        reader="seviri_l1b_native",
+        channel_names=list(CHANNEL_NAMES.values()),
+        file_extension=".nat"
     )
     fci_normal_resolution = CollectionMeta(
         query_string="EO:EUM:DAT:0662",
         snapshot_minutes=[0, 10, 20, 30, 40, 50],
-        filename_prefix="fci"
+        filename_prefix="fci",
+        parser=FCIIDParser,
+        reader="fci_l1c_nc",
+        channel_names=[
+            "ir_105", "ir_123", "ir_133", "ir_38",
+            "ir_87", "ir_97", "nir_13", "nir_16",
+            "nir_22", "vis_04", "vis_05", "vis_06",
+            "vis_08", "vis_09", "wv_63", "wv_73"
+        ],
+        file_extension=".nc"
     )
     fci_high_resolution = CollectionMeta(
         query_string="EO:EUM:DAT:0665",
         snapshot_minutes=[0, 10, 20, 30, 40, 50],
-        filename_prefix="fci"
+        filename_prefix="fci",
+        parser=FCIIDParser,
+        reader="fci_l1c_nc",
+        file_extension=".nc"
     )
 
     @staticmethod

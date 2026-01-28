@@ -1,6 +1,6 @@
 """The package providing utilities for input and output operations."""
 
-from . import fci, hrit, seviri
+from . import fci, hrit, resampler, seviri
 from ._common import (
     copy_files_between_directories,
     copy_single_file_to_directory,
@@ -67,5 +67,6 @@ __all__ = [
     "fci",
     "hrit",
     "output_filename_from_datetime",
+    "resampler",
     "seviri"
 ]

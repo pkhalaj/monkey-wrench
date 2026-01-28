@@ -7,7 +7,7 @@ from typing_extensions import Annotated
 from monkey_wrench.date_time import DateTimePeriodStrict, SeviriIDParser
 from monkey_wrench.generic import TransformFunction
 from monkey_wrench.input_output import FilesIntegrityValidator, Reader
-from monkey_wrench.input_output.seviri import Resampler
+from monkey_wrench.input_output.resampler import Resampler
 from monkey_wrench.process import MultiProcess
 from monkey_wrench.query import List
 from monkey_wrench.task.base import Action, Context, TaskBase
