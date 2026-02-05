@@ -13,7 +13,7 @@ dependencies:
   - dask[version=">=2025.2"]
   - geopandas
   - git-lfs
-  - h5netcdf
+  - h5netcdf<1.7
   - h5py
   - ipywidgets
   - lightning
