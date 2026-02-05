@@ -122,7 +122,7 @@ class Resampler(Area, Collection, DatasetSaveOptions, DateTimeDirectory, RemoteF
         with tempfile.TemporaryDirectory(prefix=f"resample_fsspec_{log_id}_") as temporary_directory:
             fs_files = self.open(product_id, Path(temporary_directory), self.collection)
             output_directory = self.create_datetime_directory(self.collection.value.parser.parse(product_id))
-            output_filename = output_directory / self.get_output_filename_generator()(str(fs_files[0]))
+            output_filename = output_directory / self.get_output_filename_generator()(product_id)
 
             if self.remove_file_if_exists and os.path.exists(output_filename):
                 os.remove(output_filename)

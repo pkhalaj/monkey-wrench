@@ -4,7 +4,7 @@ from typing import Any, Literal, TypeVar
 from pydantic import Field, NonNegativeInt, model_validator
 from typing_extensions import Annotated
 
-from monkey_wrench.date_time import DateTimePeriodStrict, SeviriIDParser
+from monkey_wrench.date_time import DateTimePeriodStrict
 from monkey_wrench.generic import TransformFunction
 from monkey_wrench.input_output import FilesIntegrityValidator, Reader
 from monkey_wrench.input_output.resampler import Resampler
@@ -102,15 +102,16 @@ class FetchFiles(FilesTaskBase):
     @TaskBase.log
     def perform(self) -> None:
         """Fetch the product files."""
+        parser = self.specifications.collection.value.parser
         product_ids = List(
             self.specifications.read(),
-            SeviriIDParser
+            parser
         ).query(
             self.specifications.datetime_period
         )
 
         for product_id in product_ids:
-            self.specifications.create_datetime_directory(SeviriIDParser.parse(product_id))
+            self.specifications.create_datetime_directory(parser.parse(product_id))
 
         self.specifications.run(
             self.specifications.resample,
