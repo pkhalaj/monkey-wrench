@@ -1,10 +1,10 @@
 import tempfile
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Callable, Literal, Self
 from uuid import uuid4
 
 from loguru import logger
-from pydantic import FilePath, NonNegativeInt, PositiveInt
+from pydantic import FilePath, NonNegativeInt, PositiveInt, model_validator
 
 from monkey_wrench.date_time import ChimpFilePathParser
 from monkey_wrench.generic import Pattern
@@ -12,12 +12,14 @@ from monkey_wrench.input_output import (
     DateTimeDirectory,
     ModelFile,
     copy_files_between_directories,
+    output_filename_from_datetime,
 )
-from monkey_wrench.input_output.seviri import output_filename_from_datetime, seviri_extension_context
-from monkey_wrench.query import List
+from monkey_wrench.input_output.seviri import seviri_extension_context
+from monkey_wrench.query import Collection, List
 
 
 class ChimpRetrieval(
+    Collection,
     DateTimeDirectory,
     ModelFile
 ):
@@ -38,6 +40,12 @@ class ChimpRetrieval(
         It is not 100% guaranteed that a retrieval can always be performed in the absence of some timestamps. There
         might be edge cases that CHIMP cannot handle.
     """
+
+    @model_validator(mode="after")
+    def validate_collection(self) -> Self:  # noqa: N804
+        if self.collection.name != "seviri":
+            raise ValueError(f"Chimp retrieval is not implemented for `{self.collection.name}`.")
+        return self
 
     def run_in_batches(self, lst: List) -> None:
         """Perform CHIMP retrievals in batches."""

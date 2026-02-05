@@ -86,7 +86,9 @@ def test_days_in_a_month(year, month, number_of_days):
     ([2022, 3, 4, 10, 41], [12, 27, 42, 57], [2022, 3, 4, 10, 27]),
     ([2022, 1, 1, 1, 59], [12, 27, 42, 57], [2022, 1, 1, 1, 57]),
     ([2022, 1, 1, 1, 59], [], [2022, 1, 1, 1, 59]),
-    ([2022, 1, 1, 1, 59], None, [2022, 1, 1, 1, 59])
+    ([2022, 1, 1, 1, 59], None, [2022, 1, 1, 1, 59]),
+    ([2022, 1, 1, 1, 9], [0, 10, 20, 30, 40, 50], [2022, 1, 1, 1, 0]),
+    ([2022, 1, 1, 1, 59], [0, 10, 20, 30, 40, 50], [2022, 1, 1, 1, 50])
 ])
 def test_floor_datetime_minutes(instance, snapshots, res):
     assert datetime(*res) == floor_datetime_minutes_to_specific_snapshots(datetime(*instance), snapshots)

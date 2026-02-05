@@ -3,11 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from monkey_wrench.input_output import output_filename_from_datetime
-from monkey_wrench.input_output.seviri import (
+from monkey_wrench.input_output.fci import (
     input_filename_from_datetime,
     input_filename_from_product_id,
-    output_filename_from_product_id,
 )
 
 # ======================================================
@@ -15,28 +13,26 @@ from monkey_wrench.input_output.seviri import (
 #             input_filename_from_product_id()
 #             output_filename_from_product_id()
 #             input_filename_from_datetime()
-#             output_filename_from_datetime()
 
 sample_products = [
     dict(
-        _product_id="MSG3-SEVI-MSG15-0100-NA-20150731221240.036000000Z-NA",
-        _datetime=datetime(2015, 7, 31, 22, 12),
-        stamp="20150731_22_12.nc"
+        _product_id="W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-HRFI-FD--x-x---x_C_EUMT_"
+                    "20250102230305_IDPFI_OPE_20250102230007_20250102230924_N__O_0139_0000",
+        _datetime=datetime(2025, 1, 2, 23, 0),
+        stamp="20250102_23_00.nc"
     ),
     dict(
-        _product_id="MSG3-SEVI-MSG15-0100-NA-20150617002739.928000000Z-NA",
-        _datetime=datetime(2015, 6, 17, 0, 27),
-        stamp="20150617_00_27.nc"
+        _product_id="W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-FDHSI-FD--x-x---x_C_"
+                    "EUMT_20251231032247_IDPFI_OPE_20251231032007_20251231032928_N__O_0021_0000",
+        _datetime=datetime(2025, 12, 31, 3, 20),
+        stamp="20251231_03_20.nc"
     )
 ]
 
 
 @pytest.mark.parametrize(("prefix", "func"), [
-    ("seviri", input_filename_from_product_id),
-    ("chimp", output_filename_from_product_id),
-
-    ("seviri", input_filename_from_datetime),
-    ("chimp", output_filename_from_datetime)
+    ("fci", input_filename_from_product_id),
+    ("fci", input_filename_from_datetime),
 ])
 def test_generate_chimp_input_output_filename_from_product_id_and_datetime(prefix, func):
     # list of items

@@ -5,9 +5,10 @@ from typing import ClassVar, Generator, TypeVar
 
 from eumdac import AccessToken
 from loguru import logger
-from pydantic import HttpUrl, validate_call
+from pydantic import HttpUrl, field_validator, validate_call
+from satpy.readers.core.seviri import CHANNEL_NAMES
 
-from monkey_wrench.date_time import Minutes
+from monkey_wrench.date_time import DateTimeParserBase, FCIIDParser, Minutes, SeviriIDParser
 from monkey_wrench.generic import Model
 
 
@@ -19,6 +20,25 @@ class CollectionMeta(Model):
     Example:
         For SEVIRI we have: ``"EO:EUM:DAT:MSG:HRSEVIRI"``.
     """
+
+    filename_prefix: str
+    """The prefix of the generated input filenames.
+
+    Example:
+        For SEVIRI, an input filename is `seviri_20250102_00_12.nc` where the prefix is `seviri`.
+    """
+
+    parser: type[DateTimeParserBase] | None = None
+    """The parser for the collection product IDs."""
+
+    reader: str | None = None
+    """Satpy reader for the product."""
+
+    channel_names: list[str] | None = None
+    """The names of the channels in the product."""
+
+    file_extension: str | None = None
+    """The file extension for the product."""
 
     snapshot_minutes: Minutes | None = None
     """The minutes for which we have data in an hour.
@@ -34,10 +54,70 @@ class CollectionMeta(Model):
 
 class EumetsatCollection(Enum):
     """Enum class that defines the collections for the EUMETSAT datastore."""
-    amsu = CollectionMeta(query_string="EO:EUM:DAT:METOP:AMSUL1")
-    avhrr = CollectionMeta(query_string="EO:EUM:DAT:METOP:AVHRRL1")
-    mhs = CollectionMeta(query_string="EO:EUM:DAT:METOP:MHSL1")
-    seviri = CollectionMeta(query_string="EO:EUM:DAT:MSG:HRSEVIRI", snapshot_minutes=[12, 27, 42, 57])
+    amsu = CollectionMeta(
+        query_string="EO:EUM:DAT:METOP:AMSUL1",
+        filename_prefix="amsu"
+    )
+    avhrr = CollectionMeta(
+        query_string="EO:EUM:DAT:METOP:AVHRRL1",
+        filename_prefix="avhrr"
+    )
+    mhs = CollectionMeta(
+        query_string="EO:EUM:DAT:METOP:MHSL1",
+        filename_prefix="mhs"
+    )
+    seviri = CollectionMeta(
+        query_string="EO:EUM:DAT:MSG:HRSEVIRI",
+        snapshot_minutes=[12, 27, 42, 57],
+        filename_prefix="seviri",
+        parser=SeviriIDParser,
+        reader="seviri_l1b_native",
+        channel_names=list(CHANNEL_NAMES.values()),
+        file_extension=".nat"
+    )
+    fci_normal_resolution = CollectionMeta(
+        query_string="EO:EUM:DAT:0662",
+        snapshot_minutes=[0, 10, 20, 30, 40, 50],
+        filename_prefix="fci",
+        parser=FCIIDParser,
+        reader="fci_l1c_nc",
+        channel_names=[
+            "ir_105", "ir_123", "ir_133", "ir_38",
+            "ir_87", "ir_97", "nir_13", "nir_16",
+            "nir_22", "vis_04", "vis_05", "vis_06",
+            "vis_08", "vis_09", "wv_63", "wv_73"
+        ],
+        file_extension=".nc"
+    )
+    fci_high_resolution = CollectionMeta(
+        query_string="EO:EUM:DAT:0665",
+        snapshot_minutes=[0, 10, 20, 30, 40, 50],
+        filename_prefix="fci",
+        parser=FCIIDParser,
+        reader="fci_l1c_nc",
+        file_extension=".nc"
+    )
+
+    @staticmethod
+    def get_all_names() -> list[str]:
+        return [e.name for e in EumetsatCollection]
+
+
+class Collection(Model):
+    """Model to hold the collection information."""
+    collection: EumetsatCollection | str
+
+    @field_validator("collection", mode="after")
+    @classmethod
+    def validate_collection_name(cls, collection: EumetsatCollection | str) -> EumetsatCollection:
+        if isinstance(collection, str):
+            try:
+                return EumetsatCollection[collection]
+            except KeyError:
+                raise ValueError(
+                    f"Invalid collection name: {collection}. Valid names are: {EumetsatCollection.get_all_names()}"
+                ) from None
+        return collection
 
 
 class EumetsatAPI:
@@ -92,6 +172,18 @@ class EumetsatAPI:
     def seviri_collection_url() -> HttpUrl:
         """Return the complete URL for the SEVIRI collection."""
         return EumetsatAPI.make_collection_url(EumetsatCollection.seviri)
+
+    @staticmethod
+    @validate_call
+    def fci_normal_collection_url() -> HttpUrl:
+        """Return the complete URL for the FCI (normal resolution) collection."""
+        return EumetsatAPI.make_collection_url(EumetsatCollection.fci_normal_resolution)
+
+    @staticmethod
+    @validate_call
+    def fci_high_collection_url() -> HttpUrl:
+        """Return the complete URL for the FCI (high resolution) collection."""
+        return EumetsatAPI.make_collection_url(EumetsatCollection.fci_high_resolution)
 
     @classmethod
     def get_token(cls) -> AccessToken:

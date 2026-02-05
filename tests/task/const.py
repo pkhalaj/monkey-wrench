@@ -15,6 +15,7 @@ datetime_range_in_batches = dict(
 )
 
 specifications = dict(
+    collection="seviri",
     output_filepath=output_filepath,
     **datetime_range_in_batches
 )

@@ -129,6 +129,30 @@ class SeviriIDParser(DateTimeParserBase):
         return DateTimeParserBase.parse_by_regex(seviri_product_id, SeviriIDParser.regex)
 
 
+class FCIIDParser(DateTimeParserBase):
+    """Static parser class for FCI product IDs."""
+
+    @staticmethod
+    @validate_call
+    def parse(fci_product_id: str) -> datetime:
+        """Parse the given FCI product ID into a datetime object.
+
+        Example:
+            >>> FCIIDParser.parse(
+            ... "W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-FDHSI-FD--x-x---x_C_EUMT_"
+            ... "20251216091032_IDPFI_OPE_20251216091007_20251216091923_N__O_0056_0000"
+            ... )
+            datetime.datetime(2025, 12, 16, 9, 10, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+
+            >>> FCIIDParser.parse(
+            ... "W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+FCI-1C-RRAD-HRFI-FD--x-x---x_C_EUMT_"
+            ... "20250102102250_IDPFI_OPE_20250102102007_20250102102924_N__O_0063_0000"
+            ... )
+            datetime.datetime(2025, 1, 2, 10, 20, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+        """
+        return DateTimeParserBase.parse_by_format_string(fci_product_id[-44:-32], "%Y%m%d%H%M")
+
+
 class ChimpFilePathParser(DateTimeParserBase):
     """Static parser class for CHIMP-compiliant input and output file paths."""
 
@@ -152,6 +176,10 @@ class ChimpFilePathParser(DateTimeParserBase):
             >>> # Input is an absolute path of type `Path`.
             >>> ChimpFilePathParser.parse(Path("/home/user/dir/seviri_20150731_22_12.extension"))
             datetime.datetime(2015, 7, 31, 22, 12, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
+
+            >>> # Input is an absolute path of type `Path`.
+            >>> ChimpFilePathParser.parse(Path("/home/user/dir/seviri_20150110_00_01.extension"))
+            datetime.datetime(2015, 1, 10, 0, 1, tzinfo=zoneinfo.ZoneInfo(key='UTC'))
 
             >>> # Input is a relative path of type `Path`.
             >>> ChimpFilePathParser.parse(Path("chimp_20150731_22_12.extension"))

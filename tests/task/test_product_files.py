@@ -121,6 +121,7 @@ def test_fetch_files(get_token_or_skip, temp_dir):
             context="files",
             action="fetch",
             specifications=dict(
+                collection="seviri",
                 area=get_area_definition(),
                 fsspec_cache="filecache",
                 start_datetime=start_datetime.isoformat(),
