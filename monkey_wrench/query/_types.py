@@ -6,7 +6,7 @@ from typing import ClassVar, Generator, TypeVar
 from eumdac import AccessToken
 from loguru import logger
 from pydantic import HttpUrl, field_validator, validate_call
-from satpy.readers.core.seviri import CHANNEL_NAMES
+from satpy.readers.seviri_base import CHANNEL_NAMES
 
 from monkey_wrench.date_time import DateTimeParserBase, FCIIDParser, Minutes, SeviriIDParser
 from monkey_wrench.generic import Model
