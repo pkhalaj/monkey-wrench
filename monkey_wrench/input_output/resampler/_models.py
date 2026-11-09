@@ -13,7 +13,7 @@ from fsspec import open_files
 from loguru import logger
 from pydantic import ConfigDict, NonNegativeInt, model_validator, validate_call
 from satpy import Scene
-from satpy.readers.core.utils import FSFile
+from satpy.readers import FSFile
 
 from monkey_wrench.geometry import Area
 from monkey_wrench.input_output._models import DatasetSaveOptions, DateTimeDirectory, FsSpecCache
